@@ -7,15 +7,21 @@
 
 # ANSI color codes for terminal logging
 print_error() {
-    echo -e "\033[31mERROR:\033[0m $1" >&2
+    local message="$1"
+    echo -e "\033[31mERROR:\033[0m $message" >&2
+    return 0
 }
 
 print_warning() {
-    echo -e "\033[33mWARNING:\033[0m $1" >&2
+    local message="$1"
+    echo -e "\033[33mWARNING:\033[0m $message" >&2
+    return 0
 }
 
 print_info() {
-    echo -e "\033[32mINFO:\033[0m $1"
+    local message="$1"
+    echo -e "\033[32mINFO:\033[0m $message"
+    return 0
 }
 
 check_git_repo() {
@@ -23,10 +29,11 @@ check_git_repo() {
         print_error "Not inside a git repository!"
         exit 1
     fi
+    return 0
 }
 
 check_gitignore() {
-    if [ ! -f .gitignore ]; then
+    if [[ ! -f .gitignore ]]; then
         print_error ".gitignore does not exist!"
         exit 1
     fi
@@ -35,14 +42,15 @@ check_gitignore() {
         print_warning "FCG_Stages not found in .gitignore, adding it..."
         echo "FCG_Stages" >> .gitignore
     fi
+    return 0
 }
 
 generate_wrapper_cmake() {
     local target_dir="FCG_Stages"
-    local cmake_template="CMakeLists.stages.template.txt"
+    local cmake_template="CMakeLists.stages.template"
     local cmake_file="$target_dir/CMakeLists.txt"
     
-    if [ ! -f "$cmake_template" ]; then
+    if [[ ! -f "$cmake_template" ]]; then
         print_error "CMake template '$cmake_template' not found in project root!"
         exit 1
     fi
@@ -63,6 +71,8 @@ generate_wrapper_cmake() {
         echo "message(STATUS \"[Wrapper] Adding subdirectory module: $stage_name\")" >> "$cmake_file"
         echo "add_subdirectory($stage_name \${CMAKE_BINARY_DIR}/build_$stage_name)" >> "$cmake_file"
     done
+
+    return 0
 }
 
 export_command() {
@@ -72,7 +82,7 @@ export_command() {
     local current_branch=$(git branch --show-current)
 
     # Guard against detached HEAD
-    if [ -z "$current_branch" ]; then
+    if [[ -z "$current_branch" ]]; then
         print_error "Repository is in detached HEAD state. Switch back to a branch first."
         exit 1
     fi
@@ -81,7 +91,7 @@ export_command() {
     local branch_tip=$(git rev-parse "$current_branch")
     local current_head=$(git rev-parse HEAD)
 
-    if [ "$branch_tip" != "$current_head" ]; then
+    if [[ "$branch_tip" != "$current_head" ]]; then
         print_error "Local HEAD differs from branch tip '$current_branch'. Push all commits before exporting."
         exit 1
     fi
@@ -89,7 +99,7 @@ export_command() {
     # Fetch standard SemVer tags (vX.Y.Z)
     local all_tags=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" 2>/dev/null)
 
-    if [ -z "$all_tags" ]; then
+    if [[ -z "$all_tags" ]]; then
         print_error "No SemVer tags found matching vX.Y.Z (required for staging)"
         exit 1
     fi
@@ -99,7 +109,7 @@ export_command() {
 
     # Check for untracked unignored files
     local untracked=$(git ls-files --others --exclude-standard)
-    if [ -n "$untracked" ]; then
+    if [[ -n "$untracked" ]]; then
         print_error "Repository has untracked, unignored files. Remove or commit them:"
         echo "$untracked" | sed 's/^/  /'
         exit 1
@@ -111,7 +121,7 @@ export_command() {
         exit 1
     fi
 
-    if [ ! -d FCG_Stages ]; then
+    if [[ ! -d FCG_Stages ]]; then
         mkdir -p FCG_Stages
     fi
 
@@ -126,14 +136,14 @@ export_command() {
 
         # Checkout target version tag
         git checkout "$tag" > /dev/null 2>&1
-        if [ $? -ne 0 ]; then
+        if [[ $? -ne 0 ]]; then
             print_error "Could not checkout tag: $tag"
             git checkout "$current_branch" > /dev/null 2>&1
             exit 1
         fi
 
         # Safely remove old staging folder
-        if [ -d "$stage_dir" ]; then
+        if [[ -d "$stage_dir" ]]; then
             rm -rf "$stage_dir"
         fi
         mkdir -p "$stage_dir"
@@ -142,8 +152,11 @@ export_command() {
         git ls-files | while read -r file; do
             # Filter out git configuration, templates, scripts and pipeline definitions
             if [[ $(basename "$file") == .git* ]] || \
+               [[ "$file" == .github* ]] || \
+               [[ "$file" == .clang-format ]] || \
+               [[ "$file" == release-please-config.json ]] || \
+               [[ "$file" == LICENSE ]] || \
                [[ $(basename "$file") == export.sh ]] || \
-               [[ $(basename "$file") == stages.sh ]] || \
                [[ $(basename "$file") == CMakeLists.stages.template ]]; then
                 continue
             fi
@@ -158,16 +171,41 @@ export_command() {
     print_info "Returning workspace to branch '$current_branch'..."
     git checkout "$current_branch" > /dev/null 2>&1
 
+    print_info "Copying documentation and assets to FCG_Stages root..."
+
+    # Copy the main README.md if exists
+    if [[ -f README.md ]]; then
+        cp README.md FCG_Stages/
+        print_info "  -> README.md copied successfully."
+    fi
+
+    # Copy the main DOCUMENTATION.md if exists
+    if [[ -f DOCUMENTATION.md ]]; then
+        cp DOCUMENTATION.md FCG_Stages/
+        print_info "  -> DOCUMENTATION.md copied successfully."
+    fi
+
+    # Copy screenshot folder recursively
+    if [[ -d resources/screenshots ]]; then
+        mkdir -p FCG_Stages/resources
+        cp -r resources/screenshots FCG_Stages/resources/
+        print_info "  -> Screenshots folder copied successfully."
+    else
+        print_warning "No 'resources/screenshots' folder found to copy."
+    fi
+
     # Generate the root wrapper CMakeLists.txt using the template
     generate_wrapper_cmake
 
     print_info "Staging export process completed successfully!"
+
+    return 0
 }
 
 compile_command() {
     local original_dir=$(pwd)
 
-    if [ ! -d FCG_Stages ] || [ ! -f FCG_Stages/CMakeLists.txt ]; then
+    if [[ ! -d FCG_Stages ]] || [[ ! -f FCG_Stages/CMakeLists.txt ]]; then
         print_error "FCG_Stages workspace is not initialized. Run export first."
         exit 1
     fi
@@ -178,7 +216,7 @@ compile_command() {
     # Configure CMake build tree
     print_info "Running: cmake -B build -D CMAKE_BUILD_TYPE=Release"
     cmake -B build -D CMAKE_BUILD_TYPE=Release
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         print_error "CMake configuration failed for FCG_Stages."
         cd "$original_dir"
         exit 1
@@ -187,7 +225,7 @@ compile_command() {
     # Execute build step
     print_info "Running: cmake --build build"
     cmake --build build
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
         print_error "Build compilation cycle failed!"
         cd "$original_dir"
         exit 1
@@ -197,6 +235,8 @@ compile_command() {
     print_info "All Stages successfully built!"
     print_info "Stage executables are available inside:"
     print_info "  FCG_Stages/build/bin/Stage_XX/"
+
+    return 0
 }
 
 # ============================================================================
@@ -212,10 +252,12 @@ usage() {
     echo "  a|all         Sequence both export and compile pipelines"
     echo "  p|print       Print the filtered list of SemVer tags mapped to output stages"
     echo "  h|help        Print this assistance dialogue"
+
+    return 0
 }
 
 main() {
-    if [ $# -eq 0 ]; then
+    if [[ $# -eq 0 ]]; then
         print_error "No instruction provided"
         usage
         exit 1
@@ -237,7 +279,7 @@ main() {
         p|print)
             check_git_repo
             all_tags=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" 2>/dev/null)
-            if [ -n "$all_tags" ]; then
+            if [[ -n "$all_tags" ]]; then
                 echo "Detected SemVer tags selected for Stage mapping:"
                 echo "$all_tags" | sort -V | awk -F. '{key=$1"."$2; arr[key]=$0} END {for (k in arr) print arr[k]}' | sort -V | sed 's/^/  - /'
             else
@@ -253,6 +295,8 @@ main() {
             exit 1
             ;;
     esac
+
+    return 0
 }
 
 main "$@"

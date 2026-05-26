@@ -1,1 +1,95 @@
 # Tu-Maze
+
+**Tu-Maze** is an enhanced, high-performance evolution of the [Maze project](https://github.com/Tugamer89/Maze), completely rewritten and accelerated using modern graphics libraries: **SFML 3.0**, **GLM** and **OpenGL 4.1**.
+
+The core rendering engine features strict C++20 standard compliance, real-time animation clock tracking, and an automated multi-stage compilation framework.
+
+---
+
+## Installation & Build Instructions
+
+### Prerequisites
+
+Ensure you have Git, CMake (v3.5 or higher), and a C++20 compliant compiler (such as GCC 15+, Clang, or MSVC) installed on your system.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/tugamer89/tu-maze.git
+cd tu-maze
+```
+
+### 2. Standalone Development Mode
+
+To compile and run the main branch of the project in standalone development mode, use the following standard CMake commands from the root directory:
+
+#### Configure the Project
+
+```bash
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+```
+
+*(Note: You can omit `-G Ninja` if you prefer to use your system's default build generator like Make or MSBuild).*
+
+#### Compile the Project
+
+```bash
+cmake --build build --config Release
+```
+
+Upon successful compilation, the compiled standalone binary along with its assets will be automatically placed in the centralized binary output folder: `build/bin/`.
+
+#### Run the Application
+
+```bash
+./build/bin/tu-maze
+```
+
+---
+
+## Managing and Compiling Project Stages (Export Workflow)
+
+This repository tracks the evolutionary milestones of the project using semantic versioning (SemVer) Git tags. A centralized automation utility script, `export.sh`, handles checking out historic milestones, filtering configuration configurations, and compiling them into a single parallelized collection.
+
+### 1. Exporting Milestones (Stages)
+
+To extract all tagged minor versions of the project into individual modular subdirectories (`FCG_Stages/Stage_01`, `FCG_Stages/Stage_02`, etc.) and automatically generate a unified wrapper `CMakeLists.txt`, execute:
+
+```bash
+./export.sh x
+# or: ./export.sh export
+```
+
+This script parses your Git tag history, safely copies tracked source files for each valid release version, and returns your workspace seamlessly to your active development branch.
+
+### 2. Centralized Multi-Stage Compilation
+
+Once exported, you can compile all evolutionary stages simultaneously in parallel through a single unified build tree by running:
+
+```bash
+./export.sh c
+# or: ./export.sh compile
+```
+
+Alternatively, you can chain both the export and the compilation pipelines sequentially in one single command:
+
+```bash
+./export.sh a
+# or: ./export.sh all
+```
+
+### 3. Running an Independent Stage Executable
+
+Once compiled via the centralized multi-stage workspace, the independent executables for each specific milestone are isolated inside the build directory:
+
+```bash
+# To run Stage 1
+cd FCG_Stages/build/bin/Stage_01
+./tu-maze
+
+# To run Stage 2
+cd ../Stage_02
+./tu-maze
+
+# And so on...
+```

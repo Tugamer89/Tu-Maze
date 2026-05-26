@@ -8,6 +8,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Warnings
+add_library(project_warnings INTERFACE)
+target_compile_options(project_warnings INTERFACE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -Wall 
+        -funsigned-char
+        -Wno-error=narrowing
+    >
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+)
+
 # ============================================================================
 # SMART BINARY OUTPUT DIRECTORY CONFIGURATION
 # ============================================================================
@@ -65,6 +76,7 @@ if(SRC_FILES)
             sfml-window
             sfml-system
             glm::glm
+            project_warnings
     )
     
     # Include src/ directory as system target include path
