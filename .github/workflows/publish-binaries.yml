@@ -1,0 +1,88 @@
+name: Publish Binaries
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g., v1.0.0) to associate with the uploaded binaries'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish-binaries:
+    name: Package for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ""
+      ASSET_NAME: ""
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-2025-vs2026, macos-latest]
+        include:
+          - os: ubuntu-latest
+            os_suffix: linux
+          - os: windows-2025-vs2026
+            os_suffix: windows
+          - os: macos-latest
+            os_suffix: macos
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set Version Environment Variable
+        shell: bash
+        run: |
+          VERSION=${{ inputs.tag_name || github.event.release.tag_name || github.ref_name }}
+          VERSION=${VERSION#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          os: ${{ runner.os }}
+          build_type: Release
+
+      - name: Configure CMake
+        run: >
+          cmake -B build 
+          -G Ninja 
+          -DCMAKE_BUILD_TYPE=Release 
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache 
+          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+          -DINSTALL_MANPAGES=OFF
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package with CPack
+        working-directory: build
+        run: cpack -G ZIP -C Release
+
+      - name: Rename and Prepare Package
+        shell: bash
+        run: |
+          FINAL_NAME="fcg-${{ env.VERSION }}-${{ matrix.os_suffix }}.zip"
+          
+          GENERATED_ZIP=$(find build -maxdepth 1 -name "*.zip" -print -quit)
+          
+          if [ -n "$GENERATED_ZIP" ]; then
+            echo "Renaming $GENERATED_ZIP to $FINAL_NAME"
+            mv "$GENERATED_ZIP" "$FINAL_NAME"
+            echo "ASSET_NAME=$FINAL_NAME" >> $GITHUB_ENV
+          else
+            echo "Error: No zip file found in build directory"
+            exit 1
+          fi
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ env.ASSET_NAME }}
+          tag_name: ${{ env.VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

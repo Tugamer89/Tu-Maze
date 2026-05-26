@@ -1,0 +1,41 @@
+cmake_minimum_required(VERSION 3.5...4.0)
+project(FCG_Stages_Collection LANGUAGES CXX)
+
+# Force C++20 standard for all compiled stages
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Centralized output directory for compiled executables
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# ==============================================================================
+# SHARED DEPENDENCIES (Downloaded once for all stages to optimize compile times)
+# ==============================================================================
+include(FetchContent)
+
+message(STATUS "[Wrapper] Pre-configuring global dependencies...")
+
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG        1.0.3
+    GIT_SHALLOW    ON
+    SYSTEM
+    EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable(glm)
+
+FetchContent_Declare(
+    SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG        3.0.2
+    GIT_SHALLOW    ON
+    SYSTEM
+    EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable(SFML)
+
+# ============================================================================
+# AUTOMATIC SUB-PROJECT INCLUSION (STAGES)
+# The export script will dynamically append exported Stage directories below
+# ============================================================================
