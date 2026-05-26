@@ -87,19 +87,20 @@ endif()
 # ============================================================================
 # INSTALLATION & PACKAGING (CPack)
 # ============================================================================
-# Install the resources directory into the package bin/ folder
+# Install the resources directory into the package . folder
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources")
-    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION bin)
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION .)
 endif()
 
-# Ensure the executable is also installed into the package bin/ folder
+# Ensure the executable is also installed into the package . folder
 if(TARGET tu-maze)
-    install(TARGETS tu-maze DESTINATION bin)
+    install(TARGETS tu-maze DESTINATION .)
 endif()
 
 # Configure CPack variables
 set(CPACK_GENERATOR "ZIP")
-set(CPACK_PACKAGE_NAME "fcg-labs")
+set(CPACK_PACKAGE_NAME "tu-maze")
 set(CPACK_PACKAGE_VERSION "0.1.0") # x-release-please-version
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 
 include(CPack)

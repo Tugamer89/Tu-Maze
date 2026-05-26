@@ -66,7 +66,7 @@ jobs:
       - name: Rename and Prepare Package
         shell: bash
         run: |
-          FINAL_NAME="fcg-${{ env.VERSION }}-${{ matrix.os_suffix }}.zip"
+          FINAL_NAME="tu-maze-${{ env.VERSION }}-${{ matrix.os_suffix }}.zip"
           
           GENERATED_ZIP=$(find build -maxdepth 1 -name "*.zip" -print -quit)
           
