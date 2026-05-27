@@ -179,12 +179,6 @@ export_command() {
         print_info "  -> README.md copied successfully."
     fi
 
-    # Copy the main DOCUMENTATION.md if exists
-    if [[ -f DOCUMENTATION.md ]]; then
-        cp DOCUMENTATION.md FCG_Stages/
-        print_info "  -> DOCUMENTATION.md copied successfully."
-    fi
-
     # Copy screenshot folder recursively
     if [[ -d resources/screenshots ]]; then
         mkdir -p FCG_Stages/resources

@@ -4,8 +4,6 @@
 
 The core rendering engine features strict C++20 standard compliance, real-time animation clock tracking, and an automated multi-stage compilation framework.
 
----
-
 ## Installation & Build Instructions
 
 ### Prerequisites
@@ -44,8 +42,6 @@ Upon successful compilation, the compiled standalone binary along with its asset
 ```bash
 ./build/bin/tu-maze
 ```
-
----
 
 ## Managing and Compiling Project Stages (Export Workflow)
 
@@ -93,3 +89,28 @@ cd ../Stage_02
 
 # And so on...
 ```
+
+## User Interface Controls & Documentation
+
+### Stage 1 (v0.1.0)
+
+#### Keyboard Controls
+
+* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
+
+#### Mouse Controls
+
+* **`Window Close Button (X)`**: Clicking the native OS window close button terminates the program safely.
+* *Note: No interactive in-window mouse controls are implemented in this stage.*
+
+## Credits
+
+### External Code & Snippets
+
+* **Starting Template**: The starting template is from FCG lab7.
+
+### Resources
+
+* **UI Fonts**: "[Font Name]" sourced from TODO.
+* **Textures**: "[Textures Names]" sourced from TODO.
+* **Meshes**: "[Meshes Names]" sourced from TODO.
