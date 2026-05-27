@@ -75,7 +75,7 @@ if(SRC_FILES)
             sfml-graphics
             sfml-window
             sfml-system
-            glm::glm
+            glm::glm-header-only
             project_warnings
     )
     
