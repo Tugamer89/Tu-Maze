@@ -3,6 +3,7 @@ name: "CodeQL Custom Config"
 paths-ignore:
   - '**/_deps/**'
   - '**/SFML/**'
+  - '**/imgui-src/**'
   - 'build'
   - '**/build/**'
   - 'glad'
