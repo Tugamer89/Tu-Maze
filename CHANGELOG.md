@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.3.0...v0.4.0) (2026-06-07)
+
+
+### Features
+
+* enhance maze generation with bounds checking and random seed initialization ([b0e29ef](https://github.com/Tugamer89/Tu-Maze/commit/b0e29ef786fc3dfd31145796b9bcb25b4272187e))
+
+
+### Code Refactoring
+
+* simplify maze generation logic using direction table ([b1c7403](https://github.com/Tugamer89/Tu-Maze/commit/b1c7403740f8c52375f11a9019bd3a810cf03f4d))
+
+
+### Documentation
+
+* add Stage 3 description and maze generation algorithm details to REPORT.md ([8a10843](https://github.com/Tugamer89/Tu-Maze/commit/8a10843237f06c9816f9c0a0c08fd8f22e22f6a0))
+* add Stage 3 image to REPORT.md and update maze generation description ([f660d0d](https://github.com/Tugamer89/Tu-Maze/commit/f660d0da3b68c6391669a0f79d5a2d7deb06065a))
+
 ## [0.3.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.2.0...v0.3.0) (2026-06-07)
 
 
