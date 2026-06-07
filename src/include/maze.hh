@@ -53,7 +53,6 @@ class Maze {
                 cellNode.localMatrix = glm::translate(
                     glm::mat4(1.0f), glm::vec3(static_cast<float>(x) * cellSize, 0.0f,
                                                static_cast<float>(y) * cellSize));
-                
 
                 // Add Floor (Relative to the cell, so Identity matrix)
                 Node floorNode;
