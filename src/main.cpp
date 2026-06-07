@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     Texture wallDiff("resources/textures/mossy_brick_diff_4k.jpg", true);
     Texture wallNorm("resources/textures/mossy_brick_nor_gl_4k.png");
     Texture wallRough("resources/textures/mossy_brick_rough_4k.png");
-    
+
     Material wallMaterial;
     wallMaterial.diffuse = &wallDiff;
     wallMaterial.normal = &wallNorm;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     Texture floorDiff("resources/textures/cobblestone_pavement_diff_4k.jpg", true);
     Texture floorNorm("resources/textures/cobblestone_pavement_nor_gl_4k.png");
     Texture floorRough("resources/textures/cobblestone_pavement_rough_4k.png");
-    
+
     Material floorMaterial;
     floorMaterial.diffuse = &floorDiff;
     floorMaterial.normal = &floorNorm;

@@ -16,8 +16,8 @@
 #endif
 
 #include "gpumesh.hh"
-#include "matrices.hh"
 #include "material.hh"
+#include "matrices.hh"
 #include "node.hh"
 
 struct Cell {
@@ -41,7 +41,8 @@ class Maze {
         generate();
     }
 
-    Node populateSceneNode(GPUMesh* floorMesh, GPUMesh* wallMesh, const Material& wallMat, const Material& floorMat) const {
+    Node populateSceneNode(GPUMesh* floorMesh, GPUMesh* wallMesh, const Material& wallMat,
+                           const Material& floorMat) const {
         const float cellSize = 1.0f;
         const float wallThickness = 0.1f;
         const float wallHeight = 1.0f;
@@ -52,8 +53,8 @@ class Maze {
 
         Node mazeRoot;
 
-        auto addWall = [&wallMesh, &wallHeight, &wallMat](Node& parent, float tx, float tz, float sx,
-                                                float sz) {
+        auto addWall = [&wallMesh, &wallHeight, &wallMat](Node& parent, float tx, float tz,
+                                                          float sx, float sz) {
             Node wallNode;
             wallNode.mesh = wallMesh;
             wallNode.material = wallMat;
