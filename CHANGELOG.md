@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.4.0...v0.5.0) (2026-06-07)
+
+
+### Features
+
+* add high-quality textures for Stage 4 and update REPORT.md ([c3b2e27](https://github.com/Tugamer89/Tu-Maze/commit/c3b2e27123197fd7d4b5c570b3ea3c4a1d185592))
+* implement triplanar mapping and material system for enhanced texture handling ([39dff50](https://github.com/Tugamer89/Tu-Maze/commit/39dff50777495987f747a737a68be23aaa08625c))
+
+
+### Code Refactoring
+
+* delete copy constructors for GPUMesh, Gui, and Shaders classes ([6d2daf8](https://github.com/Tugamer89/Tu-Maze/commit/6d2daf8bdb0386041e0d1dfe5509f3ba40d2b64c))
+* remove Gouraud and Normal shaders, update controls in documentation ([9209990](https://github.com/Tugamer89/Tu-Maze/commit/920999045e5d4942d6eb65d64aea8fe25c15a0a7))
+* reorder includes and improve code formatting in maze and texture headers, and main file ([b4f5331](https://github.com/Tugamer89/Tu-Maze/commit/b4f533114d868057ea7574c566211f060c342dc2))
+* update shader UV mapping and improve maze wall dimensions ([5fa0c5e](https://github.com/Tugamer89/Tu-Maze/commit/5fa0c5eba4ee6b89d74c2d418573e20f408fa033))
+
 ## [0.4.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.3.0...v0.4.0) (2026-06-07)
 
 
