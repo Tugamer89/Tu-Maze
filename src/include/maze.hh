@@ -1,10 +1,12 @@
 #ifndef MAZE_HH
 #define MAZE_HH
 
+#include <algorithm>
+#include <ctime>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
-#include <stdexcept>
+#include <random>
+#include <stack>
 #include <vector>
 
 #ifndef GLAD_GL_IMPLEMENTATION
@@ -96,13 +98,88 @@ class Maze {
     }
 
    private:
+    Cell& getCell(int x, int y) {
+        if (x < 0 || x >= width || y < 0 || y >= height)
+            throw std::out_of_range("Maze coordinate out of bounds");
+        return grid[y * width + x];
+    }
+
+    const Cell& getCell(int x, int y) const {
+        if (x < 0 || x >= width || y < 0 || y >= height)
+            throw std::out_of_range("Maze coordinate out of bounds");
+        return grid[y * width + x];
+    }
+
     void generate() {
-        for (auto& cell : grid) {
-            cell.wallTop = true;
-            cell.wallRight = true;
-            cell.wallBottom = true;
-            cell.wallLeft = true;
-            cell.visited = false;
+        std::stack<int> stack;
+
+        auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+        std::mt19937 rng(static_cast<unsigned int>(seed));
+        std::cout << "Maze generated with seed: " << seed << std::endl;
+
+        int currentIndex = 0;
+        grid[currentIndex].visited = true;
+        stack.push(currentIndex);
+
+        enum class Direction { TOP, RIGHT, BOTTOM, LEFT };
+
+        // List of neighbors: <index, direction>
+        std::vector<std::pair<int, Direction>> neighbors;
+        neighbors.reserve(4);
+
+        using enum Direction;
+
+        while (!stack.empty()) {
+            currentIndex = stack.top();
+            int cx = currentIndex % width;
+            int cy = currentIndex / width;
+
+            neighbors.clear();
+
+            if (cy > 0 && !getCell(cx, cy - 1).visited)
+                neighbors.push_back({(cy - 1) * width + cx, TOP});
+            if (cx < width - 1 && !getCell(cx + 1, cy).visited)
+                neighbors.push_back({cy * width + (cx + 1), RIGHT});
+            if (cy < height - 1 && !getCell(cx, cy + 1).visited)
+                neighbors.push_back({(cy + 1) * width + cx, BOTTOM});
+            if (cx > 0 && !getCell(cx - 1, cy).visited)
+                neighbors.push_back({cy * width + (cx - 1), LEFT});
+
+            if (neighbors.empty()) {
+                stack.pop();
+                continue;
+            }
+
+            std::uniform_int_distribution<size_t> dist(0, neighbors.size() - 1);
+            auto [nextIndex, dir] = neighbors[dist(rng)];
+
+            // Remove walls
+            Cell& curr = grid[currentIndex];
+            Cell& next = grid[nextIndex];
+
+            switch (dir) {
+                case TOP:
+                    curr.wallTop = false;
+                    next.wallBottom = false;
+                    break;
+                case RIGHT:
+                    curr.wallRight = false;
+                    next.wallLeft = false;
+                    break;
+                case BOTTOM:
+                    curr.wallBottom = false;
+                    next.wallTop = false;
+                    break;
+                case LEFT:
+                    curr.wallLeft = false;
+                    next.wallRight = false;
+                    break;
+                default:
+                    break;
+            }
+
+            next.visited = true;
+            stack.push(nextIndex);
         }
     }
 };
