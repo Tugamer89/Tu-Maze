@@ -90,7 +90,7 @@ cd ../Stage_02
 
 ## User Interface Controls
 
-### Stage 1 (v0.1.x)
+### Stage 1 (v0.2.x)
 
 #### Keyboard Controls
 
