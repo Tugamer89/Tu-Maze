@@ -125,8 +125,8 @@ class Maze {
         struct DirInfo {
             int dx;
             int dy;
-            bool Cell::* wallCurrent;
-            bool Cell::* wallNext;
+            bool Cell::*wallCurrent;
+            bool Cell::*wallNext;
         };
 
         static const std::array<DirInfo, 4> dirTable = {{
