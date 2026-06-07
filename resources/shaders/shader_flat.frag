@@ -53,7 +53,8 @@ void main() {
     float roughX = texture(roughnessMap, pos.yz * uv_scale).r;
     float roughY = texture(roughnessMap, pos.xz * uv_scale).r;
     float roughZ = texture(roughnessMap, pos.xy * uv_scale).r;
-    float roughness = roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
+    float roughness =
+        roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
 
     // Nota: Ignoriamo la normalMap perché stiamo calcolando una geometria flat rigorosa.
 

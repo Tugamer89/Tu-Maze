@@ -36,7 +36,7 @@ void main() {
 
     // 1. Calculate blending weights based on the geometric normal
     vec3 blend_weights = abs(geom_normal);
-    blend_weights = pow(blend_weights, vec3(4.0)); // Sharpen transitions
+    blend_weights = pow(blend_weights, vec3(4.0));  // Sharpen transitions
     blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z);
 
     // 2. Triplanar Diffuse (Albedo)
@@ -49,27 +49,29 @@ void main() {
     float roughX = texture(roughnessMap, pos.yz * uv_scale).r;
     float roughY = texture(roughnessMap, pos.xz * uv_scale).r;
     float roughZ = texture(roughnessMap, pos.xy * uv_scale).r;
-    float roughness = roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
+    float roughness =
+        roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
 
     // 4. Triplanar Normal (Spazio mondo calcolato dai 3 piani)
     vec3 tnormX = texture(normalMap, pos.yz * uv_scale).rgb * 2.0 - 1.0;
     vec3 tnormY = texture(normalMap, pos.xz * uv_scale).rgb * 2.0 - 1.0;
     vec3 tnormZ = texture(normalMap, pos.xy * uv_scale).rgb * 2.0 - 1.0;
-    
+
     // Rispettiamo il verso della faccia (per evitare normali invertite sui lati negativi)
     vec3 axis_sign = sign(geom_normal);
     tnormX.z *= axis_sign.x;
     tnormY.z *= axis_sign.y;
     tnormZ.z *= axis_sign.z;
-    
+
     // Swizzle per allineare le normali campionate allo spazio mondo reale
     vec3 nX = vec3(tnormX.z, tnormX.y, -tnormX.x);
     vec3 nY = vec3(tnormY.x, tnormY.z, -tnormY.y);
     vec3 nZ = vec3(tnormZ.x, tnormZ.y, tnormZ.z);
-    
+
     // Le normali sono già in spazio mondo, non dobbiamo sommarle alla geom_normal!
     // Basta fare il blend tra di loro.
-    vec3 final_normal = normalize(nX * blend_weights.x + nY * blend_weights.y + nZ * blend_weights.z);
+    vec3 final_normal =
+        normalize(nX * blend_weights.x + nY * blend_weights.y + nZ * blend_weights.z);
 
     // --- PHONG SHADING ---
 
@@ -84,7 +86,7 @@ void main() {
     // Specular (modulated by roughness texture)
     vec3 view_dir = normalize(camera_pos - pos);
     vec3 reflect_dir = reflect(-light_dir, final_normal);
-    
+
     // Convert roughness to a Phong shininess exponent
     float current_shininess = mix(1.0, material.shininess, 1.0 - roughness);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), current_shininess);
