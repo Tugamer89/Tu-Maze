@@ -40,7 +40,8 @@ Sono stati rimossi gli shader "Normal" e di Gouraud perché non più utili.
 
 ### Soluzioni tecniche
 
-* **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata tramite stack come descritto sulla seguente [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack))
+* **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata tramite stack come descritto sulla seguente [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
+* **Mapping triplanare**: Per il mapping triplanare delle texture è stata presa fortissima ispirazione da [questo articolo](https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/) e la realizzazione è stata fortemente LLM-aided.
 
 ### Codice esterno
 

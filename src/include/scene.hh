@@ -40,6 +40,10 @@ class Scene {
         model_loc = glGetUniformLocation(shaders.program, "model");
         vp_loc = glGetUniformLocation(shaders.program, "vp");
         tr_inv_model_loc = glGetUniformLocation(shaders.program, "tr_inv_model");
+
+        glUniform1i(glGetUniformLocation(shaders.program, "diffuseMap"), 0);
+        glUniform1i(glGetUniformLocation(shaders.program, "normalMap"), 1);
+        glUniform1i(glGetUniformLocation(shaders.program, "roughnessMap"), 2);
     }
 
     void update_all() {

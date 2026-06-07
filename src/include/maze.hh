@@ -17,6 +17,7 @@
 
 #include "gpumesh.hh"
 #include "matrices.hh"
+#include "material.hh"
 #include "node.hh"
 
 struct Cell {
@@ -40,7 +41,7 @@ class Maze {
         generate();
     }
 
-    Node populateSceneNode(GPUMesh* floorMesh, GPUMesh* wallMesh) const {
+    Node populateSceneNode(GPUMesh* floorMesh, GPUMesh* wallMesh, const Material& wallMat, const Material& floorMat) const {
         const float cellSize = 1.0f;
         const float wallThickness = 0.1f;
         const float wallHeight = 1.0f;
@@ -51,10 +52,11 @@ class Maze {
 
         Node mazeRoot;
 
-        auto addWall = [&wallMesh, &wallHeight](Node& parent, float tx, float tz, float sx,
+        auto addWall = [&wallMesh, &wallHeight, &wallMat](Node& parent, float tx, float tz, float sx,
                                                 float sz) {
             Node wallNode;
             wallNode.mesh = wallMesh;
+            wallNode.material = wallMat;
             glm::mat4 local = glm::translate(glm::mat4(1.0f), glm::vec3(tx, 0.0f, tz));
             wallNode.localMatrix = glm::scale(local, glm::vec3(sx, wallHeight, sz));
             parent.children.push_back(std::move(wallNode));
@@ -76,6 +78,7 @@ class Maze {
                 // Add Floor (Relative to the cell, so Identity matrix)
                 Node floorNode;
                 floorNode.mesh = floorMesh;
+                floorNode.material = floorMat;
                 cellNode.children.push_back(std::move(floorNode));
 
                 // Add Walls (Relative to the cell)

@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
     Gui gui(window);
 
-    Maze maze(10, 10);
+    Maze maze(20, 20);
     GPUMesh floorMesh(floor_mesh);
     GPUMesh wallMesh(wall_mesh);
 
@@ -104,7 +104,28 @@ int main(int argc, char* argv[]) {
 
     Scene scene(shaders);
 
-    Node mazeNode = maze.populateSceneNode(&floorMesh, &wallMesh);
+    //// Texture Loading ////
+    // Wall
+    Texture wallDiff("resources/textures/mossy_brick_diff_4k.jpg", true);
+    Texture wallNorm("resources/textures/mossy_brick_nor_gl_4k.png");
+    Texture wallRough("resources/textures/mossy_brick_rough_4k.png");
+    
+    Material wallMaterial;
+    wallMaterial.diffuse = &wallDiff;
+    wallMaterial.normal = &wallNorm;
+    wallMaterial.roughness = &wallRough;
+
+    // Floor
+    Texture floorDiff("resources/textures/cobblestone_pavement_diff_4k.jpg", true);
+    Texture floorNorm("resources/textures/cobblestone_pavement_nor_gl_4k.png");
+    Texture floorRough("resources/textures/cobblestone_pavement_rough_4k.png");
+    
+    Material floorMaterial;
+    floorMaterial.diffuse = &floorDiff;
+    floorMaterial.normal = &floorNorm;
+    floorMaterial.roughness = &floorRough;
+
+    Node mazeNode = maze.populateSceneNode(&floorMesh, &wallMesh, wallMaterial, floorMaterial);
     scene.root.children.push_back(mazeNode);
 
     glEnable(GL_CULL_FACE);

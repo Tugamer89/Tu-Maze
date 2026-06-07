@@ -11,11 +11,13 @@
 #endif
 
 #include "gpumesh.hh"
+#include "material.hh"
 
 class Node {
    public:
     glm::mat4 localMatrix = glm::mat4(glm::mat4(1.0f));
     GPUMesh* mesh = nullptr;
+    Material material;
     std::vector<Node> children;
 
     Node() = default;
@@ -27,11 +29,11 @@ class Node {
         if (mesh) {
             glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
 
-            // Calculate and send the normal matrix (transpose of the inverse of the top-left 3x3
-            // model matrix)
+            // Calculate and send the normal matrix
             glm::mat3 tr_inv_model = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
             glUniformMatrix3fv(tr_inv_model_loc, 1, GL_FALSE, glm::value_ptr(tr_inv_model));
 
+            material.bind();
             mesh->draw();
         }
 

@@ -18,6 +18,6 @@ void main() {
     interpolated_pos = p.xyz;
 
     // this shader doesn't use normals from the model.
-    // it declares tr_inv_m for the sake of convenience, to keep the
-    // same CPU-GPu interface in handlind uniforms as the other shaders.
+    // it declares tr_inv_model for the sake of convenience, to keep the
+    // same CPU-GPU interface in handling uniforms as the other shaders.
 }
