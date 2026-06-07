@@ -27,35 +27,42 @@ in vec3 interpolated_normal;
 
 out vec4 fragment_color;
 
+const float uv_scale = 0.7;
+
 void main() {
     vec3 pos = interpolated_pos;
     vec3 geom_normal = normalize(interpolated_normal);
-
-    // --- TRIPLANAR MAPPING ---
-    float uv_scale = 0.25;
 
     // 1. Calculate blending weights based on the geometric normal
     vec3 blend_weights = abs(geom_normal);
     blend_weights = pow(blend_weights, vec3(4.0));  // Sharpen transitions
     blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z);
 
+    // FIX ROTAZIONE: Scegliamo correttamente quali piani assegnare a (U, V)
+    // - Muri su asse X: Z orizzontale, Y verticale -> pos.zy
+    // - Pavimento/Soffitto (Y): X orizzontale, Z verticale (profondità) -> pos.xz
+    // - Muri su asse Z: X orizzontale, Y verticale -> pos.xy
+    vec2 uvX = pos.zy * uv_scale;
+    vec2 uvY = pos.xz * uv_scale;
+    vec2 uvZ = pos.xy * uv_scale;
+
     // 2. Triplanar Diffuse (Albedo)
-    vec3 diffX = texture(diffuseMap, pos.yz * uv_scale).rgb;
-    vec3 diffY = texture(diffuseMap, pos.xz * uv_scale).rgb;
-    vec3 diffZ = texture(diffuseMap, pos.xy * uv_scale).rgb;
+    vec3 diffX = texture(diffuseMap, uvX).rgb;
+    vec3 diffY = texture(diffuseMap, uvY).rgb;
+    vec3 diffZ = texture(diffuseMap, uvZ).rgb;
     vec3 albedo = diffX * blend_weights.x + diffY * blend_weights.y + diffZ * blend_weights.z;
 
     // 3. Triplanar Roughness
-    float roughX = texture(roughnessMap, pos.yz * uv_scale).r;
-    float roughY = texture(roughnessMap, pos.xz * uv_scale).r;
-    float roughZ = texture(roughnessMap, pos.xy * uv_scale).r;
+    float roughX = texture(roughnessMap, uvX).r;
+    float roughY = texture(roughnessMap, uvY).r;
+    float roughZ = texture(roughnessMap, uvZ).r;
     float roughness =
         roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
 
     // 4. Triplanar Normal (Spazio mondo calcolato dai 3 piani)
-    vec3 tnormX = texture(normalMap, pos.yz * uv_scale).rgb * 2.0 - 1.0;
-    vec3 tnormY = texture(normalMap, pos.xz * uv_scale).rgb * 2.0 - 1.0;
-    vec3 tnormZ = texture(normalMap, pos.xy * uv_scale).rgb * 2.0 - 1.0;
+    vec3 tnormX = texture(normalMap, uvX).rgb * 2.0 - 1.0;
+    vec3 tnormY = texture(normalMap, uvY).rgb * 2.0 - 1.0;
+    vec3 tnormZ = texture(normalMap, uvZ).rgb * 2.0 - 1.0;
 
     // Rispettiamo il verso della faccia (per evitare normali invertite sui lati negativi)
     vec3 axis_sign = sign(geom_normal);
@@ -75,15 +82,15 @@ void main() {
 
     // --- PHONG SHADING ---
 
-    // Ambient (tinted by texture)
+    // Ambient
     vec3 ambient = material.ambient * light.ambient_val * albedo;
 
-    // Diffuse (tinted by texture)
+    // Diffuse
     vec3 light_dir = normalize(light.direct_pos - pos);
     float diff = max(dot(final_normal, light_dir), 0.0);
     vec3 diffuse = material.diffuse * diff * light.direct_val * albedo;
 
-    // Specular (modulated by roughness texture)
+    // Specular
     vec3 view_dir = normalize(camera_pos - pos);
     vec3 reflect_dir = reflect(-light_dir, final_normal);
 

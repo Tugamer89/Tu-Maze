@@ -46,6 +46,7 @@ class Maze {
         const float cellSize = 1.0f;
         const float wallThickness = 0.1f;
         const float wallHeight = 1.0f;
+        const float margin = 0.005f; 
 
         // Calculate offsets to center the maze at the origin
         const float offsetX = (static_cast<float>(width) * cellSize) * 0.5f;
@@ -82,19 +83,21 @@ class Maze {
                 floorNode.material = floorMat;
                 cellNode.children.push_back(std::move(floorNode));
 
+                float wallLen = cellSize + wallThickness - (margin * 2.0f);
+
                 // Add Walls (Relative to the cell)
-                if (cell.wallTop)
-                    addWall(cellNode, 0.0f, -cellSize / 2.0f, cellSize + wallThickness,
+                if (cell.wallTop && y == 0)
+                    addWall(cellNode, 0.0f, -cellSize / 2.0f, wallLen,
                             wallThickness);
                 if (cell.wallBottom)
-                    addWall(cellNode, 0.0f, cellSize / 2.0f, cellSize + wallThickness,
+                    addWall(cellNode, 0.0f, cellSize / 2.0f, wallLen,
                             wallThickness);
-                if (cell.wallLeft)
+                if (cell.wallLeft && x == 0)
                     addWall(cellNode, -cellSize / 2.0f, 0.0f, wallThickness,
-                            cellSize + wallThickness);
+                            wallLen);
                 if (cell.wallRight)
                     addWall(cellNode, cellSize / 2.0f, 0.0f, wallThickness,
-                            cellSize + wallThickness);
+                            wallLen);
 
                 mazeRoot.children.push_back(std::move(cellNode));
             }

@@ -25,6 +25,8 @@ in vec3 interpolated_pos;
 
 out vec4 fragment_color;
 
+const float uv_scale = 0.7;
+
 vec4 clamp4(vec4 v) {
     return clamp(v, vec4(0.0), vec4(1.0));
 }
@@ -37,26 +39,28 @@ void main() {
     vec3 dy = dFdy(pos);
     vec3 geom_normal = normalize(cross(dx, dy));
 
-    // --- TRIPLANAR MAPPING ---
-    float uv_scale = 0.25;
+    // --- TRIPLANAR MAPPING ---    
     vec3 blend_weights = abs(geom_normal);
     blend_weights = pow(blend_weights, vec3(4.0));
     blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z);
 
-    // Diffuse
-    vec3 diffX = texture(diffuseMap, pos.yz * uv_scale).rgb;
-    vec3 diffY = texture(diffuseMap, pos.xz * uv_scale).rgb;
-    vec3 diffZ = texture(diffuseMap, pos.xy * uv_scale).rgb;
+    // Corretti i mapping (U, V)
+    vec2 uvX = pos.zy * uv_scale;
+    vec2 uvY = pos.xz * uv_scale;
+    vec2 uvZ = pos.xy * uv_scale;
+
+    vec3 diffX = texture(diffuseMap, uvX).rgb;
+    vec3 diffY = texture(diffuseMap, uvY).rgb;
+    vec3 diffZ = texture(diffuseMap, uvZ).rgb;
     vec3 albedo = diffX * blend_weights.x + diffY * blend_weights.y + diffZ * blend_weights.z;
 
-    // Roughness (Aggiunto per consistenza con lo specular di Phong)
-    float roughX = texture(roughnessMap, pos.yz * uv_scale).r;
-    float roughY = texture(roughnessMap, pos.xz * uv_scale).r;
-    float roughZ = texture(roughnessMap, pos.xy * uv_scale).r;
+    // Roughness
+    float roughX = texture(roughnessMap, uvX).r;
+    float roughY = texture(roughnessMap, uvY).r;
+    float roughZ = texture(roughnessMap, uvZ).r;
     float roughness =
         roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
 
-    // Nota: Ignoriamo la normalMap perché stiamo calcolando una geometria flat rigorosa.
 
     // --- PHONG SHADING ---
 

@@ -18,8 +18,8 @@ class Camera {
     glm::mat4 vp;
 
    private:
-    float phi_deg = 0.0;
-    float theta_deg = 0.0;
+    float phi_deg = 45.0;
+    float theta_deg = 45.0;
 
     const float normal_fd = 4.0;
 

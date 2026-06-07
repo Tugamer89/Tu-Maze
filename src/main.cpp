@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
     Gui gui(window);
 
-    Maze maze(20, 20);
+    Maze maze(10, 10);
     GPUMesh floorMesh(floor_mesh);
     GPUMesh wallMesh(wall_mesh);
 
@@ -132,6 +132,7 @@ int main(int argc, char* argv[]) {
     glCullFace(GL_BACK);
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     //// Main Loop ////
 
