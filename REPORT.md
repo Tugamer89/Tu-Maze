@@ -28,6 +28,10 @@ In questa tappa si modifica la generazione del labirinto andando a crearne uno v
 
 ![Vero labirinto, stage 3](resources/screenshots/stage3.png)
 
+### Stage 4 (v0.5.x)
+
+L'obiettivo di questa tappa è attaccare delle texture in alta qualità al labrinto. In particolare ogni texture oltre al il colore (`diff`), ha anche una mappa di "ruvidezza" (`rough`) che indica quanto riflettere la luce e una mappa di normali (`nor`) che indica di quanto inclinare la normale di ogni voxel per far sembrare le ombre più realisiche.
+
 ## Crediti
 
 È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).
@@ -39,3 +43,8 @@ In questa tappa si modifica la generazione del labirinto andando a crearne uno v
 ### Codice esterno
 
 * **Template di base**: Il template di partenza è quello del Lab7 visto a lezione, a cui è stato fatto un po' refactoring e diversi piccoli miglioramenti.
+
+### Risorse
+
+* **Texture `cobblestone_pavement`**: Presa da [PolyHaven](https://polyhaven.com/a/cobblestone_pavement), fatta da [Charlotte Baglioni](https://www.artstation.com/wyrine).
+* **Texture `mossy_brick`**: Presa da [PolyHaven](https://polyhaven.com/a/mossy_brick), fatta da [Amal Kumar](https://www.artstation.com/amalbubble).
