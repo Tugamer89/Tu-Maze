@@ -24,10 +24,8 @@ To compile and run the main branch of the project in standalone development mode
 #### Configure the Project
 
 ```bash
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release
 ```
-
-*(Note: You can omit `-G Ninja` if you prefer to use your system's default build generator like Make or MSBuild).*
 
 #### Compile the Project
 
@@ -90,27 +88,20 @@ cd ../Stage_02
 # And so on...
 ```
 
-## User Interface Controls & Documentation
+## User Interface Controls
 
-### Stage 1 (v0.1.0)
+### Stage 1 (v0.1.x)
 
 #### Keyboard Controls
 
 * **`Escape`**: Closes the application and shuts down the rendering loop immediately.
+* **`G`**: Use Gouraud shaders.
+* **`P`**: Use Phong shaders.
+* **`F`**: Use Flat shaders.
+* **`C`**: Use Normal shaders.
 
 #### Mouse Controls
 
 * **`Window Close Button (X)`**: Clicking the native OS window close button terminates the program safely.
-* *Note: No interactive in-window mouse controls are implemented in this stage.*
-
-## Credits
-
-### External Code & Snippets
-
-* **Starting Template**: The starting template is from FCG lab7.
-
-### Resources
-
-* **UI Fonts**: "[Font Name]" sourced from TODO.
-* **Textures**: "[Textures Names]" sourced from TODO.
-* **Meshes**: "[Meshes Names]" sourced from TODO.
+* **`Left Mouse Button` while dragging**: rotate the object.
+* **`Left Mouse Button` + `Left Alt` while dragging**: mvoe the object.

@@ -9,15 +9,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Warnings
-add_library(project_warnings INTERFACE)
-target_compile_options(project_warnings INTERFACE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-        -Wall 
-        -funsigned-char
-        -Wno-error=narrowing
-    >
-    $<$<CXX_COMPILER_ID:MSVC>:/W4>
-)
+if(NOT TARGET project_warnings)
+    add_library(project_warnings INTERFACE)
+    target_compile_options(project_warnings INTERFACE
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+            -Wall 
+            -funsigned-char
+            -Wno-error=narrowing
+        >
+        $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    )
+endif()
+
+# Static linking for releases
+if(MINGW)
+    add_link_options(-static -static-libgcc -static-libstdc++)
+endif()
 
 # ============================================================================
 # SMART BINARY OUTPUT DIRECTORY CONFIGURATION
@@ -38,7 +45,7 @@ endif()
 # ============================================================================
 include(FetchContent)
 
-# 1. Fetch GLM (Header-only)
+# 1. Fetch GLM
 FetchContent_Declare(
     glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
@@ -60,6 +67,30 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SFML)
 
+# 3. Fetch Dear ImGui
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG        v1.91.9
+    GIT_SHALLOW    ON
+    SYSTEM
+    EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable(imgui)
+
+# 4. Fetch ImGui-SFML
+set(IMGUI_SFML_FIND_SFML OFF)
+FetchContent_Declare(
+    imgui_sfml
+    GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
+    GIT_TAG        v3.0
+    GIT_SHALLOW    ON
+    SYSTEM
+    EXCLUDE_FROM_ALL
+)
+set(IMGUI_DIR ${imgui_SOURCE_DIR})
+FetchContent_MakeAvailable(imgui_sfml)
+
 # ============================================================================
 # DEVELOPMENT TARGET CONFIGURATION
 # ============================================================================
@@ -67,7 +98,10 @@ FetchContent_MakeAvailable(SFML)
 file(GLOB_RECURSE SRC_FILES "src/*.cpp" "src/*.cc" "src/*.hpp" "src/*.hh")
 
 if(SRC_FILES)
-    add_executable(tu-maze ${SRC_FILES})
+    add_executable(tu-maze
+        ${SRC_FILES}
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    )
     
     # Link SFML 3.0 graphics modules and GLM
     target_link_libraries(tu-maze 
@@ -76,11 +110,16 @@ if(SRC_FILES)
             sfml-window
             sfml-system
             glm::glm-header-only
+            ImGui-SFML::ImGui-SFML
             project_warnings
     )
     
-    # Include src/ directory as system target include path
-    target_include_directories(tu-maze PRIVATE src)
+    # Include src/ directory and other necessary folders
+    target_include_directories(tu-maze PRIVATE
+        src
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+    )
 
     # Automatically copy resources/ directory to the binary directory post-build
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources")

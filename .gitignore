@@ -14,6 +14,7 @@ CMakeUserPresets.json
 build
 FCG_Stages
 *.log
+*.ini
 .DS_Store
 .vscode
 .sonarlint

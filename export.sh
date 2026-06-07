@@ -179,6 +179,12 @@ export_command() {
         print_info "  -> README.md copied successfully."
     fi
 
+    # Copy the main REMPORT.md if exists
+    if [[ -f REMPORT.md ]]; then
+        cp REMPORT.md FCG_Stages/
+        print_info "  -> REMPORT.md copied successfully."
+    fi
+
     # Copy screenshot folder recursively
     if [[ -d resources/screenshots ]]; then
         mkdir -p FCG_Stages/resources
