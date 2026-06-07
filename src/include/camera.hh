@@ -17,9 +17,6 @@ class Camera {
     glm::mat4 inv_v;
     glm::mat4 vp;
 
-    float fov = 60.0f;
-    float aspect_ratio = 1.0f;
-
    private:
     float phi_deg = 0.0;
     float theta_deg = 0.0;
