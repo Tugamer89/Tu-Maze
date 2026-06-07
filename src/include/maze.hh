@@ -42,6 +42,10 @@ class Maze {
         const float wallThickness = 0.1f;
         const float wallHeight = 1.0f;
 
+        // Calculate offsets to center the maze at the origin
+        const float offsetX = (static_cast<float>(width) * cellSize) * 0.5f;
+        const float offsetZ = (static_cast<float>(height) * cellSize) * 0.5f;
+
         Node mazeRoot;
 
         for (int y = 0; y < height; ++y) {
@@ -50,9 +54,12 @@ class Maze {
 
                 // Create a parent node for this specific cell
                 Node cellNode;
+                // Center the cell relative to the origin
                 cellNode.localMatrix = glm::translate(
-                    glm::mat4(1.0f), glm::vec3(static_cast<float>(x) * cellSize, 0.0f,
-                                               static_cast<float>(y) * cellSize));
+                    glm::mat4(1.0f),
+                    glm::vec3((static_cast<float>(x) * cellSize) - offsetX + (cellSize * 0.5f),
+                              0.0f,
+                              (static_cast<float>(y) * cellSize) - offsetZ + (cellSize * 0.5f)));
 
                 // Add Floor (Relative to the cell, so Identity matrix)
                 Node floorNode;
@@ -103,7 +110,6 @@ class Maze {
                 mazeRoot.children.push_back(std::move(cellNode));
             }
         }
-
         return mazeRoot;
     }
 
