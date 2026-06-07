@@ -48,9 +48,18 @@ class Maze {
 
         Node mazeRoot;
 
+        auto addWall = [&wallMesh, &wallHeight](Node& parent, float tx, float tz, float sx,
+                                                float sz) {
+            Node wallNode;
+            wallNode.mesh = wallMesh;
+            glm::mat4 local = glm::translate(glm::mat4(1.0f), glm::vec3(tx, 0.0f, tz));
+            wallNode.localMatrix = glm::scale(local, glm::vec3(sx, wallHeight, sz));
+            parent.children.push_back(std::move(wallNode));
+        };
+
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
-                const Cell& cell = getCell(x, y);
+                const Cell& cell = grid[y * width + x];
 
                 // Create a parent node for this specific cell
                 Node cellNode;
@@ -67,45 +76,18 @@ class Maze {
                 cellNode.children.push_back(std::move(floorNode));
 
                 // Add Walls (Relative to the cell)
-                if (cell.wallTop) {
-                    Node wallNode;
-                    wallNode.mesh = wallMesh;
-                    glm::mat4 local =
-                        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -cellSize / 2.0f));
-                    wallNode.localMatrix = glm::scale(
-                        local, glm::vec3(cellSize + wallThickness, wallHeight, wallThickness));
-                    cellNode.children.push_back(std::move(wallNode));
-                }
-
-                if (cell.wallBottom) {
-                    Node wallNode;
-                    wallNode.mesh = wallMesh;
-                    glm::mat4 local =
-                        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, cellSize / 2.0f));
-                    wallNode.localMatrix = glm::scale(
-                        local, glm::vec3(cellSize + wallThickness, wallHeight, wallThickness));
-                    cellNode.children.push_back(std::move(wallNode));
-                }
-
-                if (cell.wallLeft) {
-                    Node wallNode;
-                    wallNode.mesh = wallMesh;
-                    glm::mat4 local =
-                        glm::translate(glm::mat4(1.0f), glm::vec3(-cellSize / 2.0f, 0.0f, 0.0f));
-                    wallNode.localMatrix = glm::scale(
-                        local, glm::vec3(wallThickness, wallHeight, cellSize + wallThickness));
-                    cellNode.children.push_back(std::move(wallNode));
-                }
-
-                if (cell.wallRight) {
-                    Node wallNode;
-                    wallNode.mesh = wallMesh;
-                    glm::mat4 local =
-                        glm::translate(glm::mat4(1.0f), glm::vec3(cellSize / 2.0f, 0.0f, 0.0f));
-                    wallNode.localMatrix = glm::scale(
-                        local, glm::vec3(wallThickness, wallHeight, cellSize + wallThickness));
-                    cellNode.children.push_back(std::move(wallNode));
-                }
+                if (cell.wallTop)
+                    addWall(cellNode, 0.0f, -cellSize / 2.0f, cellSize + wallThickness,
+                            wallThickness);
+                if (cell.wallBottom)
+                    addWall(cellNode, 0.0f, cellSize / 2.0f, cellSize + wallThickness,
+                            wallThickness);
+                if (cell.wallLeft)
+                    addWall(cellNode, -cellSize / 2.0f, 0.0f, wallThickness,
+                            cellSize + wallThickness);
+                if (cell.wallRight)
+                    addWall(cellNode, cellSize / 2.0f, 0.0f, wallThickness,
+                            cellSize + wallThickness);
 
                 mazeRoot.children.push_back(std::move(cellNode));
             }
@@ -122,22 +104,6 @@ class Maze {
             cell.wallLeft = true;
             cell.visited = false;
         }
-    }
-
-    Cell& getCell(int x, int y) {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
-            throw std::out_of_range("Coordinate del labirinto fuori dai limiti consentiti.");
-        }
-
-        return grid[y * width + x];
-    }
-
-    const Cell& getCell(int x, int y) const {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
-            throw std::out_of_range("Coordinate del labirinto fuori dai limiti consentiti.");
-        }
-
-        return grid[y * width + x];
     }
 };
 
