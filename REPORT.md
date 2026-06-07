@@ -16,7 +16,7 @@ Viene visualizzato un semplice pavimento che può essere ruotato con il drag del
 
 ### Stage 2 (v0.3.x)
 
-L'obiettivo principale è generare un labirinto, per ora tutto pieno di muri, e modificare l'attuale gestione della scena in una scena multi-oggetto usando un grafo di scena.
+L'obiettivo principale è generare un labirinto, per ora con muri ovunque, centrato nell'origine e di conseguenza modificare l'attuale gestione della scena in una scena multi-oggetto usando un grafo di scena.
 
 ![Labirinto completo, stage 2](resources/screenshots/stage2.png)
 
