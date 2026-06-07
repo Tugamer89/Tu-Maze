@@ -27,10 +27,9 @@ inline std::string read_file(const std::string& filename) {
 }
 
 // get OpenGL log errors when compiling or linking shaders
-using glGetIv_func = std::function<void(GLuint, GLenum, GLint*)>;
-using glGetInfoLog_func = std::function<void(GLuint, GLsizei, GLsizei*, GLchar*)>;
-inline std::string getInfoLog(GLuint object, const glGetIv_func& get_iv,
-                              const glGetInfoLog_func& get_infolog) {
+template <typename GetIvFunc, typename GetInfoLogFunc>
+inline std::string getInfoLog(GLuint object, GetIvFunc get_iv,
+                              GetInfoLogFunc get_infolog) {
     // get length
     GLint loglen = 0;
     get_iv(object, GL_INFO_LOG_LENGTH, &loglen);
