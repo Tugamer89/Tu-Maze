@@ -22,6 +22,10 @@ L'obiettivo principale è generare un labirinto, per ora con muri ovunque, centr
 
 Adesso viene visualizzato tutto il labirinto (pratiamente una griglia) e si può spostare con il drag del mouse.
 
+### Stage 3 (v0.4.x)
+
+In questa tappa si modifica la generazione del labirinto andando a crearne uno vero e proprio seguendo un [algoritmo](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)) basato su una visita DFS randomizzata.
+
 ## Crediti
 
 È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).
