@@ -33,7 +33,3 @@ Adesso viene visualizzato tutto il labirinto (pratiamente una griglia) e si può
 ### Codice esterno
 
 * **Template di base**: Il template di partenza è quello del Lab7 visto a lezione, a cui è stato fatto un po' refactoring e diversi piccoli miglioramenti.
-
-### Risorse
-
-* **Lorem Ipsum**: "[Font Name]" sourced from TODO.
