@@ -39,7 +39,7 @@ void main() {
     vec3 dy = dFdy(pos);
     vec3 geom_normal = normalize(cross(dx, dy));
 
-    // --- TRIPLANAR MAPPING ---    
+    // --- TRIPLANAR MAPPING ---
     vec3 blend_weights = abs(geom_normal);
     blend_weights = pow(blend_weights, vec3(4.0));
     blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z);
@@ -60,7 +60,6 @@ void main() {
     float roughZ = texture(roughnessMap, uvZ).r;
     float roughness =
         roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
-
 
     // --- PHONG SHADING ---
 
