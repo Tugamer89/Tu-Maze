@@ -60,6 +60,7 @@ class Shaders {
 
     ~Shaders() { clean(); }
 
+    Shaders(const Shaders&) = delete;
     Shaders& operator=(Shaders&&) = delete;
 
     void load() {

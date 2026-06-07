@@ -27,6 +27,7 @@ class Gui {
         ImGui::SFML::Shutdown();
     }
 
+    Gui(const Gui&) = delete;
     Gui& operator=(Gui&&) = delete;
 
     // Forward SFML events to ImGui

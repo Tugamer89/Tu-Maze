@@ -31,6 +31,7 @@ class GPUMesh {
 
     ~GPUMesh() { clean(); }
 
+    GPUMesh(const GPUMesh&) = delete;
     GPUMesh& operator=(GPUMesh&&) = delete;
 
     void load(const std::string& filename) {
