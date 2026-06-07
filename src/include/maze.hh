@@ -2,6 +2,7 @@
 #define MAZE_HH
 
 #include <algorithm>
+#include <array>
 #include <ctime>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
@@ -121,13 +122,22 @@ class Maze {
         grid[currentIndex].visited = true;
         stack.push(currentIndex);
 
-        enum class Direction { TOP, RIGHT, BOTTOM, LEFT };
+        struct DirInfo {
+            int dx;
+            int dy;
+            bool Cell::* wallCurrent;
+            bool Cell::* wallNext;
+        };
 
-        // List of neighbors: <index, direction>
-        std::vector<std::pair<int, Direction>> neighbors;
+        static const std::array<DirInfo, 4> dirTable = {{
+            {0, -1, &Cell::wallTop, &Cell::wallBottom},  // TOP
+            {1, 0, &Cell::wallRight, &Cell::wallLeft},   // RIGHT
+            {0, 1, &Cell::wallBottom, &Cell::wallTop},   // BOTTOM
+            {-1, 0, &Cell::wallLeft, &Cell::wallRight}   // LEFT
+        }};
+
+        std::vector<std::pair<int, int>> neighbors;  // <index, dirIndex>
         neighbors.reserve(4);
-
-        using enum Direction;
 
         while (!stack.empty()) {
             currentIndex = stack.top();
@@ -136,14 +146,15 @@ class Maze {
 
             neighbors.clear();
 
-            if (cy > 0 && !getCell(cx, cy - 1).visited)
-                neighbors.push_back({(cy - 1) * width + cx, TOP});
-            if (cx < width - 1 && !getCell(cx + 1, cy).visited)
-                neighbors.push_back({cy * width + (cx + 1), RIGHT});
-            if (cy < height - 1 && !getCell(cx, cy + 1).visited)
-                neighbors.push_back({(cy + 1) * width + cx, BOTTOM});
-            if (cx > 0 && !getCell(cx - 1, cy).visited)
-                neighbors.push_back({cy * width + (cx - 1), LEFT});
+            for (int i = 0; i < 4; ++i) {
+                int nx = cx + dirTable[i].dx;
+                int ny = cy + dirTable[i].dy;
+
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height &&
+                    !grid[ny * width + nx].visited) {
+                    neighbors.push_back({ny * width + nx, i});
+                }
+            }
 
             if (neighbors.empty()) {
                 stack.pop();
@@ -151,34 +162,13 @@ class Maze {
             }
 
             std::uniform_int_distribution<size_t> dist(0, neighbors.size() - 1);
-            auto [nextIndex, dir] = neighbors[dist(rng)];
+            auto [nextIndex, dIdx] = neighbors[dist(rng)];
 
             // Remove walls
-            Cell& curr = grid[currentIndex];
-            Cell& next = grid[nextIndex];
+            grid[currentIndex].*dirTable[dIdx].wallCurrent = false;
+            grid[nextIndex].*dirTable[dIdx].wallNext = false;
 
-            switch (dir) {
-                case TOP:
-                    curr.wallTop = false;
-                    next.wallBottom = false;
-                    break;
-                case RIGHT:
-                    curr.wallRight = false;
-                    next.wallLeft = false;
-                    break;
-                case BOTTOM:
-                    curr.wallBottom = false;
-                    next.wallTop = false;
-                    break;
-                case LEFT:
-                    curr.wallLeft = false;
-                    next.wallRight = false;
-                    break;
-                default:
-                    break;
-            }
-
-            next.visited = true;
+            grid[nextIndex].visited = true;
             stack.push(nextIndex);
         }
     }
