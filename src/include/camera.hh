@@ -21,7 +21,7 @@ class Camera {
     float phi_deg = 0.0;
     float theta_deg = 0.0;
 
-    const float normal_fd = 50.0;
+    const float normal_fd = 4.0;
 
     float fd;  // focal distance
     float od;  // object distance
