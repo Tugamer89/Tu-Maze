@@ -92,7 +92,7 @@ cd ../Stage_02
 
 ### Stage 1 (v0.2.x)
 
-#### Keyboard Controls
+#### Keyboard Controls v0.2
 
 * **`Escape`**: Closes the application and shuts down the rendering loop immediately.
 * **`G`**: Use Gouraud shaders.
@@ -100,8 +100,15 @@ cd ../Stage_02
 * **`F`**: Use Flat shaders.
 * **`C`**: Use Normal shaders.
 
-#### Mouse Controls
+#### Mouse Controls v0.2
 
 * **`Window Close Button (X)`**: Clicking the native OS window close button terminates the program safely.
 * **`Left Mouse Button` while dragging**: rotate the object.
 * **`Left Mouse Button` + `Left Alt` while dragging**: mvoe the object.
+
+### Stage 4 (v0.5.x)
+
+#### Keyboard Controls v0.5
+
+* ~~**`G`**: Use Gouraud shaders.~~
+* ~~**`C`**: Use Normal shaders.~~

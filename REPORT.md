@@ -32,6 +32,8 @@ In questa tappa si modifica la generazione del labirinto andando a crearne uno v
 
 L'obiettivo di questa tappa è attaccare delle texture in alta qualità al labrinto. In particolare ogni texture oltre al il colore (`diff`), ha anche una mappa di "ruvidezza" (`rough`) che indica quanto riflettere la luce e una mappa di normali (`nor`) che indica di quanto inclinare la normale di ogni voxel per far sembrare le ombre più realisiche.
 
+Sono stati rimossi gli shader "Normal" e di Gouraud perché non più utili.
+
 ## Crediti
 
 È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).

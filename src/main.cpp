@@ -23,17 +23,11 @@
 // Constants //
 ///////////////
 
-const std::string gouraud_vert = "resources/shaders/shader_gouraud.vert";
-const std::string gouraud_frag = "resources/shaders/shader_gouraud.frag";
-
 const std::string phong_vert = "resources/shaders/shader_phong.vert";
 const std::string phong_frag = "resources/shaders/shader_phong.frag";
 
 const std::string flat_vert = "resources/shaders/shader_flat.vert";
 const std::string flat_frag = "resources/shaders/shader_flat.frag";
-
-const std::string normals_vert = "resources/shaders/shader_normals.vert";
-const std::string normals_frag = "resources/shaders/shader_normals.frag";
 
 const std::string floor_mesh = "resources/meshes/floor.off";
 const std::string wall_mesh = "resources/meshes/wall.off";
@@ -46,12 +40,6 @@ void handle(const sf::Event::KeyPressed& key, Shaders& shaders, Scene& scene, bo
     switch (key.scancode) {
         using enum sf::Keyboard::Scancode;
 
-        case G:
-            shaders.reload(gouraud_vert, gouraud_frag);
-            shaders.use();
-            scene.locations(shaders);
-            scene.update_all();
-            return;
         case P:
             shaders.reload(phong_vert, phong_frag);
             shaders.use();
@@ -60,12 +48,6 @@ void handle(const sf::Event::KeyPressed& key, Shaders& shaders, Scene& scene, bo
             return;
         case F:
             shaders.reload(flat_vert, flat_frag);
-            shaders.use();
-            scene.locations(shaders);
-            scene.update_all();
-            return;
-        case C:
-            shaders.reload(normals_vert, normals_frag);
             shaders.use();
             scene.locations(shaders);
             scene.update_all();
