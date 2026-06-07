@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     //// Startup ////
 
     Setup setup;
-    sf::Window& window = *setup.window;
+    sf::Window& window = setup.window;
 
     Gui gui(window);
 

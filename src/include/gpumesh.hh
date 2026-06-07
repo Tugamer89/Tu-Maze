@@ -31,6 +31,8 @@ class GPUMesh {
 
     ~GPUMesh() { clean(); }
 
+    GPUMesh& operator=(GPUMesh&&) = delete;
+
     void load(const std::string& filename) {
         Mesh mesh(filename);
         center = mesh.center;

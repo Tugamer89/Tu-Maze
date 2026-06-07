@@ -18,7 +18,7 @@ class Mesh {
     glm::vec3 center = {0.0, 0.0, 0.0};
     float extent = 1.0;
 
-   protected:
+   private:
     std::vector<glm::vec3> vertices = {};
     std::vector<glm::vec3> normals = {};
     std::vector<glm::uvec3> triangles = {};

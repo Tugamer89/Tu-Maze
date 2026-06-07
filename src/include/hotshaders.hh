@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <string>
 
@@ -26,9 +27,9 @@ inline std::string read_file(const std::string& filename) {
 }
 
 // get OpenGL log errors when compiling or linking shaders
-using glGetIv_func = void (*)(GLuint, GLenum, GLint*);
-using glGetInfoLog_func = void (*)(GLuint, GLsizei, GLsizei*, GLchar*);
-inline std::string getInfoLog(GLuint object, glGetIv_func get_iv, glGetInfoLog_func get_infolog) {
+using glGetIv_func = std::function<void(GLuint, GLenum, GLint*)>;
+using glGetInfoLog_func = std::function<void(GLuint, GLsizei, GLsizei*, GLchar*)>;
+inline std::string getInfoLog(GLuint object, const glGetIv_func& get_iv, const glGetInfoLog_func& get_infolog) {
     // get length
     GLint loglen = 0;
     get_iv(object, GL_INFO_LOG_LENGTH, &loglen);
@@ -59,6 +60,8 @@ class Shaders {
     }
 
     ~Shaders() { clean(); }
+
+    Shaders& operator=(Shaders&&) = delete;
 
     void load() {
         const char* vertex_source =
@@ -91,7 +94,7 @@ class Shaders {
         }
     }
 
-    void clean() { glDeleteProgram(program); }
+    void clean() const { glDeleteProgram(program); }
 
     void reload(const std::string& vertex_file, const std::string& fragment_file) {
         clean();
@@ -103,7 +106,7 @@ class Shaders {
 
         // copmile vertex shader
         GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, vertex_source_ptr, NULL);
+        glShaderSource(vertex, 1, vertex_source_ptr, nullptr);
         glCompileShader(vertex);
         // check for errors
         params = -1;
@@ -116,7 +119,7 @@ class Shaders {
 
         // compile fragment shader
         GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, fragment_source_ptr, NULL);
+        glShaderSource(fragment, 1, fragment_source_ptr, nullptr);
         glCompileShader(fragment);
         // check for errors
         glGetShaderiv(fragment, GL_COMPILE_STATUS, &params);
@@ -146,13 +149,7 @@ class Shaders {
         return true;
     }
 
-    void use() { glUseProgram(program); }
-
-    // if the need to stop the program arises, this is how to do it
-    // void stop ()
-    // {
-    //     glUseProgram (0);
-    // }
+    void use() const { glUseProgram(program); }
 };
 
 #endif
