@@ -6,15 +6,25 @@ Si tratta di un gioco in prima persona con l'obiettivo di uscire da un labrinto 
 
 ## Tappe
 
-### Stage 1 (v0.1.x)
+### Stage 1 (v0.2.x)
 
 L'obiettivo di questa prima tappa è di scrivere un template di base per l'ambiente di sviluppo, quindi includendo correttamente [ImGui SFML](https://github.com/SFML/imgui-sfml) e il resto del codice per gestire uno spazio 3-dimensionale mediante **OpenGL**.
 
+![Vista di default, stage 1](resources/screenshots/stage1.png)
+
 Viene visualizzato un semplice pavimento che può essere ruotato con il drag del mouse premendo il tasto sinistro e c'è una semplice GUI per modificare diversi parametri di scena.
+
+### Stage 2 (v0.3.x)
+
+L'obiettivo principale è generare un labirinto, per ora tutto pieno di muri, e modificare l'attuale gestione della scena in una scena multi-oggetto usando un grafo di scena.
+
+![Labirinto completo, stage 2](resources/screenshots/stage2.png)
+
+Adesso viene visualizzato tutto il labirinto (pratiamente una griglia) e si può spostare con il drag del mouse.
 
 ## Crediti
 
-È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).
+È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).
 
 ### Soluzioni tecniche
 

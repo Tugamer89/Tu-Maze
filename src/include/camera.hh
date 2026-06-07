@@ -17,11 +17,14 @@ class Camera {
     glm::mat4 inv_v;
     glm::mat4 vp;
 
+    float fov = 60.0f;
+    float aspect_ratio = 1.0f;
+
    private:
     float phi_deg = 0.0;
     float theta_deg = 0.0;
 
-    const float normal_fd = 4.0;
+    const float normal_fd = 50.0;
 
     float fd;  // focal distance
     float od;  // object distance
@@ -58,9 +61,8 @@ class Camera {
     }
 
     void projection() {
-        float ncp = od - 1.0f;  // distance near clip plane
-        if (ncp < 0.1) ncp = 0.1f;
-        float fcp = od + 1.0f;  // distance far clip plane
+        float ncp = std::max(0.1f, od * 0.1f);  // distance near clip plane
+        float fcp = od + 30.0f;                 // distance far clip plane
 
         // prepare rotation matrices
         float ps = glm::sin(glm::radians(phi_deg));

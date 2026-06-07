@@ -13,7 +13,9 @@
 #include "include/hotshaders.hh"
 #include "include/lights.hh"
 #include "include/matrices.hh"
+#include "include/maze.hh"
 #include "include/mesh.hh"
+#include "include/node.hh"
 #include "include/scene.hh"
 #include "include/setup.hh"
 
@@ -33,7 +35,8 @@ const std::string flat_frag = "resources/shaders/shader_flat.frag";
 const std::string normals_vert = "resources/shaders/shader_normals.vert";
 const std::string normals_frag = "resources/shaders/shader_normals.frag";
 
-const std::string meshfile = "resources/meshes/floor.off";
+const std::string floor_mesh = "resources/meshes/floor.off";
+const std::string wall_mesh = "resources/meshes/wall.off";
 
 ////////////////////
 // SFML Callbacks //
@@ -110,10 +113,17 @@ int main(int argc, char* argv[]) {
 
     Gui gui(window);
 
+    Maze maze(10, 10);
+    GPUMesh floorMesh(floor_mesh);
+    GPUMesh wallMesh(wall_mesh);
+
     Shaders shaders(flat_vert, flat_frag);
     shaders.use();
 
-    Scene scene(meshfile, shaders);
+    Scene scene(shaders);
+
+    Node mazeNode = maze.populateSceneNode(&floorMesh, &wallMesh);
+    scene.root.children.push_back(mazeNode);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
