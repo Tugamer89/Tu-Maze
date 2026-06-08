@@ -39,8 +39,8 @@ void main() {
     // --- BOX MAPPING ---
     vec3 abs_normal = abs(flat_normal);
     vec2 uv;
-    int axis = 0; // 0 = X, 1 = Y, 2 = Z
-    
+    int axis = 0;  // 0 = X, 1 = Y, 2 = Z
+
     if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z) {
         uv = pos.zy;
         axis = 0;
@@ -51,7 +51,7 @@ void main() {
         uv = pos.xy;
         axis = 2;
     }
-    
+
     uv *= uv_scale;
 
     // Single sample per texture
@@ -72,7 +72,7 @@ void main() {
         tnorm.z *= axis_sign.z;
         final_normal = vec3(tnorm.x, tnorm.y, tnorm.z);
     }
-    
+
     final_normal = normalize(final_normal);
 
     // --- PHONG SHADING ---

@@ -42,7 +42,7 @@ void main() {
     // --- BOX MAPPING ---
     vec3 abs_normal = abs(geom_normal);
     vec2 uv;
-    
+
     if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z) {
         uv = pos.zy;
     } else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z) {
@@ -50,7 +50,7 @@ void main() {
     } else {
         uv = pos.xy;
     }
-    
+
     uv *= uv_scale;
 
     vec3 albedo = texture(diffuseMap, uv).rgb;
