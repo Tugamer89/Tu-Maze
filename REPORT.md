@@ -52,7 +52,11 @@ Sono stati fatti miglioramenti alla GUI aggiungendo un contantore degli FPS per 
 
 ### Stage 6 (v0.7.x)
 
+L'obiettivo di questa tappa è l'ottimizzazione radicale delle prestazioni (FPS) risolvendo un pesante collo di bottiglia sulla GPU (*Fill-rate bottleneck*).
 
+Il **mapping triplanare** utilizzato negli stage precedenti calcolava e fondeva le texture da tutte e tre le direzioni spaziali. Questo costringeva il *Fragment Shader* a eseguire ben 9 campionamenti in memoria video per ogni singolo pixel a schermo (3 assi calcolati per le 3 mappe: colore, normali e ruvidezza).
+
+Sfruttando la natura architettonica del labirinto, composto esclusivamente da pareti ortogonali perfettamente allineate agli assi cartesiani, la tecnica è stata sostituita con un più efficiente **Box Mapping** (o *Single-Sample Dominant-Axis Mapping*). Lo shader ora identifica matematicamente l'asse dominante della faccia osservata e campiona le texture una sola volta per quel piano specifico. Questa modifica ha ridotto il carico sulla memoria video del 66%, mantenendo intatto il fotorealismo ma garantendo un drastico aumento dei fotogrammi al secondo.
 
 ## Crediti
 
@@ -62,6 +66,7 @@ Sono stati fatti miglioramenti alla GUI aggiungendo un contantore degli FPS per 
 
 * **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata tramite stack come descritto sulla seguente [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
 * **Mapping triplanare**: Per il mapping triplanare delle texture è stata presa fortissima ispirazione da [questo articolo](https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/) e la realizzazione è stata fortemente LLM-aided.
+* **Box Mapping (Ottimizzazione Triplanare)**: Per risolvere il collo di bottiglia prestazionale, il mapping triplanare è stato convertito in un *Dominant-Axis Box Mapping*. Questa ottimizzazione, standard nei motori grafici basati su voxel/griglie, calcola un singolo piano di proiezione evitando il costoso *blending* multi-asse. Maggiori dettagli concettuali sulle proiezioni planari ottimizzate possono essere trovati nella documentazione tecnica sulle [tecniche di proiezione planare](https://en.wikipedia.org/wiki/Texture_mapping#Box_mapping).
 
 ### Codice esterno
 
