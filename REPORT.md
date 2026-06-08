@@ -1,38 +1,42 @@
 # Relazione
 
-Questo progetto ha l'obiettivo di migliorare il progetto [Maze](https://github.com/Tugamer89/maze) implementando un rendering 3D nativo che sfrutta **OpenGL** e usando [ImGui](https://github.com/ocornut/imgui) per una GUI più semplice per gestire diverse impostazioni.
+Questo progetto mira a espandere e migliorare il progetto originario [Maze](https://github.com/Tugamer89/maze), implementando un motore di rendering 3D nativo basato su **OpenGL**. Inoltre, è stata integrata la libreria [ImGui](https://github.com/ocornut/imgui) per fornire un'interfaccia grafica intuitiva (GUI) utile alla gestione in tempo reale dei parametri di scena.
 
-Si tratta di un gioco in prima persona con l'obiettivo di uscire da un labrinto generato casualmente ad ogni run nel minor tempo possibile con il solo aiuto di una minimappa.
+Il gameplay si sviluppa in prima persona: l'obiettivo del giocatore è fuggire nel minor tempo possibile da un labirinto generato proceduralmente a ogni partita, orientandosi esclusivamente tramite l'ausilio di una minimappa.
 
 ## Tappe
 
 ### Stage 1 (v0.2.x)
 
-L'obiettivo di questa prima tappa è di scrivere un template di base per l'ambiente di sviluppo, quindi includendo correttamente [ImGui SFML](https://github.com/SFML/imgui-sfml) e il resto del codice per gestire uno spazio 3-dimensionale mediante **OpenGL**.
+L'obiettivo di questa prima fase è stato predisporre un ambiente di sviluppo solido. È stato configurato un template di base che include correttamente [ImGui SFML](https://github.com/SFML/imgui-sfml) affiancato al codice necessario per gestire un primo spazio tridimensionale tramite **OpenGL**.
 
 ![Vista di default, stage 1](resources/screenshots/stage1.png)
 
-Viene visualizzato un semplice pavimento che può essere ruotato con il drag del mouse premendo il tasto sinistro e c'è una semplice GUI per modificare diversi parametri di scena.
+In questo stage viene visualizzato un semplice pavimento, ruotabile liberamente trascinando il cursore con il tasto sinistro del mouse. È presente inoltre un pannello GUI rudimentale per testare la modifica in tempo reale di alcuni parametri visivi.
 
 ### Stage 2 (v0.3.x)
 
-L'obiettivo principale è generare un labirinto, per ora con muri ovunque, centrato nell'origine e di conseguenza modificare l'attuale gestione della scena in una scena multi-oggetto usando un grafo di scena.
+Il focus si è spostato sulla generazione della griglia di base del labirinto. Per ora la struttura è riempita interamente di muri e posizionata al centro dell'origine degli assi. Questa modifica ha richiesto una transizione architetturale da una scena a singolo oggetto a una scena complessa gestita tramite un **grafo di scena** (*Scene Graph*).
 
 ![Labirinto completo, stage 2](resources/screenshots/stage2.png)
 
-Adesso viene visualizzato tutto il labirinto (pratiamente una griglia) e si può spostare con il drag del mouse.
+Il risultato visivo è una griglia completa esplorabile spostando la telecamera tramite input del mouse.
 
 ### Stage 3 (v0.4.x)
 
-In questa tappa si modifica la generazione del labirinto andando a crearne uno vero e proprio seguendo un [algoritmo](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)) basato su una visita DFS randomizzata.
+La generazione della mappa è stata implementata con la logica di un vero e proprio labirinto. È stato adottato un [algoritmo](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)) basato su una visita DFS (*Depth-First Search*) randomizzata, che garantisce percorsi sempre diversi e completabili.
 
 ![Vero labirinto, stage 3](resources/screenshots/stage3.png)
 
 ### Stage 4 (v0.5.x)
 
-L'obiettivo di questa tappa è attaccare delle texture in alta qualità al labrinto. In particolare ogni texture oltre al il colore (`diff`), ha anche una mappa di "ruvidezza" (`rough`) che indica quanto riflettere la luce e una mappa di normali (`nor`) che indica di quanto inclinare la normale di ogni voxel per far sembrare le ombre più realisiche.
+L'obiettivo di questa tappa è innalzare la fedeltà visiva applicando texture ad alta risoluzione ai modelli del labirinto. È stato sviluppato un sistema di materiali che utilizza, per ogni superficie, tre mappe:
 
-Sono stati rimossi gli shader "Normal" e di Gouraud perché non più utili.
+* **Albedo (`diff`)**: per il colore base.
+* **Roughness (`rough`)**: per determinare la ruvidezza del materiale e la dispersione dei riflessi.
+* **Normal (`nor`)**: per manipolare le normali dei pixel, simulando micro-rilievi e restituendo un'illuminazione molto più realistica.
+
+A fronte di queste novità, gli shader storici "Normal" e "Gouraud" sono stati rimossi in quanto obsoleti.
 
 ![Labirinto con shader flat, stage 4](resources/screenshots/stage4_flat.png)
 
@@ -40,39 +44,38 @@ Sono stati rimossi gli shader "Normal" e di Gouraud perché non più utili.
 
 ### Stage 5 (v0.6.x)
 
-Sono stati fatti miglioramenti alla GUI aggiungendo un contantore degli FPS per misurare le performance ed è stata aggiunta una schermata iniziale di caricamento per dare un feedback all'utente di cosa sta succedendo.
+Sono state apportate migliorie all'interfaccia utente, aggiungendo un contatore degli FPS per monitorare le performance grafiche. È stata inoltre introdotta una schermata di caricamento progressiva per fornire feedback all'utente durante l'inizializzazione sincrona degli asset pesanti.
 
 ![Schermata di caricamento, stage 5](resources/screenshots/stage5.gif)
 
-È stata migliorata anche la renderizzazione tramite phong degli spigoli dei muri.
+Parallelamente, il sistema di illuminazione Phong è stato fixato e raffinato per correggere fastidiosi artefatti visivi agli angoli dei muri.
 
-| Prima (Spigoli rotti) | Dopo (Spigoli aggiustati) |
+| Prima (Spigoli rotti) | Dopo (Spigoli corretti) |
 | :---: | :---: |
 | ![Spigoli rotti, stage 5](resources/screenshots/stage5_broken.png) | ![Spigoli aggiustati, stage 5](resources/screenshots/stage5_new.png) |
 
 ### Stage 6 (v0.7.x)
 
-L'obiettivo di questa tappa è l'ottimizzazione radicale delle prestazioni (FPS) risolvendo un pesante collo di bottiglia sulla GPU (*Fill-rate bottleneck*).
+L'obiettivo di questa tappa è stata l'ottimizzazione radicale delle prestazioni (FPS), andando a risolvere un pesante collo di bottiglia generato dalla GPU (*Fill-rate bottleneck*).
 
-Il **mapping triplanare** utilizzato negli stage precedenti calcolava e fondeva le texture da tutte e tre le direzioni spaziali. Questo costringeva il *Fragment Shader* a eseguire ben 9 campionamenti in memoria video per ogni singolo pixel a schermo (3 assi calcolati per le 3 mappe: colore, normali e ruvidezza).
+Il **mapping triplanare** utilizzato nello stage precedente per applicare le texture costringeva il *Fragment Shader* a eseguire ben 9 campionamenti in memoria video per ogni singolo pixel a schermo (calcolando i 3 assi per le mappe di colore, normali e ruvidezza e poi fondendoli insieme).
 
-Sfruttando la natura architettonica del labirinto, composto esclusivamente da pareti ortogonali perfettamente allineate agli assi cartesiani, la tecnica è stata sostituita con un più efficiente **Box Mapping** (o *Single-Sample Dominant-Axis Mapping*). Lo shader ora identifica matematicamente l'asse dominante della faccia osservata e campiona le texture una sola volta per quel piano specifico. Questa modifica ha ridotto il carico sulla memoria video del 66%, mantenendo intatto il fotorealismo ma garantendo un drastico aumento dei fotogrammi al secondo.
+Sfruttando la natura architettonica del labirinto, composto esclusivamente da pareti ortogonali perfettamente allineate agli assi cartesiani, la tecnica è stata sostituita con un più efficiente **Box Mapping** (*Single-Sample Dominant-Axis Mapping*). Lo shader ora identifica matematicamente l'asse dominante della faccia osservata ed effettua il campionamento delle texture una sola volta per quel piano specifico. Questa modifica ha ridotto il carico sulla memoria video del 66%, mantenendo intatto il fotorealismo ma garantendo un drastico aumento dei fotogrammi al secondo.
 
 ## Crediti
 
-È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).
+Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
 
 ### Soluzioni tecniche
 
-* **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata tramite stack come descritto sulla seguente [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
-* **Mapping triplanare**: Per il mapping triplanare delle texture è stata presa fortissima ispirazione da [questo articolo](https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/) e la realizzazione è stata fortemente LLM-aided.
-* **Box Mapping (Ottimizzazione Triplanare)**: Per risolvere il collo di bottiglia prestazionale, il mapping triplanare è stato convertito in un *Dominant-Axis Box Mapping*. Questa ottimizzazione, standard nei motori grafici basati su voxel/griglie, calcola un singolo piano di proiezione evitando il costoso *blending* multi-asse. Maggiori dettagli concettuali sulle proiezioni planari ottimizzate possono essere trovati nella documentazione tecnica sulle [tecniche di proiezione planare](https://en.wikipedia.org/wiki/Texture_mapping#Box_mapping).
+* **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata in maniera iterativa tramite stack come descritto nell'apposita [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
+* **Dal Mapping Triplanare al Box Mapping**: Inizialmente le texture venivano applicate tramite un approccio *Triplanar Mapping* (ispirato a [questo articolo](https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/)). Per risolvere severi colli di bottiglia prestazionali, l'approccio è stato convertito in un *Dominant-Axis Box Mapping*, un'ottimizzazione standard nei motori grafici basati su griglie ortogonali che proietta la texture su un singolo piano per evitare il costoso calcolo di interpolazione multi-asse. Maggiori dettagli su Wikipedia alla voce [Box Mapping](https://en.wikipedia.org/wiki/Texture_mapping#Box_mapping).
 
 ### Codice esterno
 
-* **Template di base**: Il template di partenza è quello del Lab7 visto a lezione, a cui è stato fatto un po' refactoring e diversi piccoli miglioramenti.
+* **Template di base**: Il template di partenza è basato sul Lab7 del corso universitario, a cui è stato applicato un pesante refactoring architetturale unito a diversi miglioramenti qualitativi.
 
 ### Risorse
 
-* **Texture `cobblestone_pavement`**: Presa da [PolyHaven](https://polyhaven.com/a/cobblestone_pavement), fatta da [Charlotte Baglioni](https://www.artstation.com/wyrine).
-* **Texture `mossy_brick`**: Presa da [PolyHaven](https://polyhaven.com/a/mossy_brick), fatta da [Amal Kumar](https://www.artstation.com/amalbubble).
+* **Texture `cobblestone_pavement`**: Creata da [Charlotte Baglioni](https://www.artstation.com/wyrine), prelevata in CC0 da [PolyHaven](https://polyhaven.com/a/cobblestone_pavement).
+* **Texture `mossy_brick`**: Creata da [Amal Kumar](https://www.artstation.com/amalbubble), prelevata in CC0 da [PolyHaven](https://polyhaven.com/a/mossy_brick).
