@@ -13,14 +13,20 @@ concurrency:
 jobs:
   format:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
+      - name: Generate Bot Token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Clang-Format
         run: |
@@ -35,6 +41,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "style: auto-format C++ code with clang-format"
-          branch: ${{ github.head_ref }}
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          branch: ${{ github.head_ref || github.ref_name }}
+          commit_user_name: "tugamer89-release-bot[bot]"
+          commit_user_email: "287969055+tugamer89-release-bot[bot]@users.noreply.github.com"
