@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.5.0...v0.6.0) (2026-06-08)
+
+
+### Features
+
+* enhance loading screen and GUI with FPS counter and loading feedback ([9f1a019](https://github.com/Tugamer89/Tu-Maze/commit/9f1a019302d7500db6fda86a5e3d4f76fb8111f6))
+* enhance loading screen rendering and buffer clearing in main loop ([ccb99a2](https://github.com/Tugamer89/Tu-Maze/commit/ccb99a22fb12718675bc4ff947d542fb623d7d53))
+* enhance wall rendering and improve normal calculations in shader ([13b730e](https://github.com/Tugamer89/Tu-Maze/commit/13b730eeb4529449fbce8601960cc631f75af7fe))
+* update stage5 screenshot to reflect recent changes ([00c5b2e](https://github.com/Tugamer89/Tu-Maze/commit/00c5b2e46c336f754707a560807b921fcdc615f2))
+
+
+### Bug Fixes
+
+* correct grammatical error in stage 5 rendering description ([70707dd](https://github.com/Tugamer89/Tu-Maze/commit/70707dd2442893366b4ecaaadddeacfb3e1a22b4))
+
 ## [0.5.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.4.0...v0.5.0) (2026-06-07)
 
 
