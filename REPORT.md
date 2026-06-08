@@ -50,6 +50,10 @@ Sono stati fatti miglioramenti alla GUI aggiungendo un contantore degli FPS per 
 | :---: | :---: |
 | ![Spigoli rotti, stage 5](resources/screenshots/stage5_broken.png) | ![Spigoli aggiustati, stage 5](resources/screenshots/stage5_new.png) |
 
+### Stage 6 (v0.7.x)
+
+
+
 ## Crediti
 
 È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).
