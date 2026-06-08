@@ -44,7 +44,7 @@ Sono stati fatti miglioramenti alla GUI aggiungendo un contantore degli FPS per 
 
 ![Schermata di caricamento, stage 5](resources/screenshots/stage5.gif)
 
-È stato migliorato anche la renderizzazione tramite phong degli spigoli dei muri.
+È stata migliorata anche la renderizzazione tramite phong degli spigoli dei muri.
 
 | Prima (Spigoli rotti) | Dopo (Spigoli aggiustati) |
 | :---: | :---: |
