@@ -64,7 +64,7 @@ void main() {
     vec3 tnormY = texture(normalMap, uvY).rgb * 2.0 - 1.0;
     vec3 tnormZ = texture(normalMap, uvZ).rgb * 2.0 - 1.0;
 
-    // To respect the direction of the face by ALWAYS using the flat normal, 
+    // To respect the direction of the face by ALWAYS using the flat normal,
     // to avoid flipping the normal halfway through a corner
     vec3 axis_sign = sign(flat_normal);
     tnormX.z *= axis_sign.x;
