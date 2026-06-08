@@ -75,7 +75,8 @@ class Gui {
 
     void renderLoading(const sf::Window& window, const std::string& what, float progress) const {
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)));
+        ImGui::SetNextWindowSize(
+            ImVec2(static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)));
 
         ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
