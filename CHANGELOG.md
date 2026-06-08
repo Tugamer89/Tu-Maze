@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.7.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.6.0...v0.7.0) (2026-06-08)
+
+
+### Features
+
+* add pre-commit hook for automatic code formatting with clang-format ([730aa80](https://github.com/Tugamer89/Tu-Maze/commit/730aa8058d3c3255c788cfc2272b633a842a0e69))
+* add Stage 6 section to REPORT.md ([9ebaf19](https://github.com/Tugamer89/Tu-Maze/commit/9ebaf19e286f8efbd2a8eeda2bcfb524d8269803))
+* enhance REPORT.md with detailed project descriptions and performance optimization insights ([f3c2820](https://github.com/Tugamer89/Tu-Maze/commit/f3c2820c36db22055df56533c5c9c77da8f2ec88))
+* implement Box Mapping optimization for texture sampling in shaders ([f372409](https://github.com/Tugamer89/Tu-Maze/commit/f37240996af2470acf3dd18db6bbc1d469ba1e3b))
+
+
+### Bug Fixes
+
+* update GitHub Actions workflow for clang-format to use app token and correct user details ([cf958e2](https://github.com/Tugamer89/Tu-Maze/commit/cf958e205b90f0ac19d67dec5a107181d930a7fc))
+
 ## [0.6.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.5.0...v0.6.0) (2026-06-08)
 
 
