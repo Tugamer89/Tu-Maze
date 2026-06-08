@@ -1,6 +1,8 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window.hpp>
 #include <iostream>
+#include <thread>
+#include <atomic>
 
 #ifndef GLAD_GL_IMPLEMENTATION
 #define GLAD_GL_IMPLEMENTATION
@@ -83,6 +85,69 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
     }
 }
 
+////////////////////
+// Loading Screen //
+////////////////////
+
+struct GameAssets {
+    // Texture
+    std::unique_ptr<Texture> wallDiff, wallNorm, wallRough;  // NOSONAR
+    std::unique_ptr<Texture> floorDiff, floorNorm, floorRough;  // NOSONAR
+    // Meshes
+    std::unique_ptr<GPUMesh> floorMesh, wallMesh;  // NOSONAR
+    // Materiali
+    std::optional<Material> wallMat, floorMat;  // NOSONAR
+    // Gameplay
+    std::unique_ptr<Maze> maze;
+};
+
+std::string nextLoadingStep(int step, GameAssets& assets, Scene& scene) {
+    switch(step) {
+    case 0:
+        assets.wallDiff = std::make_unique<Texture>("resources/textures/mossy_brick_diff_4k.jpg", true);
+        return "mossy bricks texture";
+    case 1:
+        assets.wallNorm = std::make_unique<Texture>("resources/textures/mossy_brick_nor_gl_4k.png");
+        return "mossy bricks normals map";
+    case 2:
+        assets.wallRough = std::make_unique<Texture>("resources/textures/mossy_brick_rough_4k.png");
+        return "mossy bricks roughness map";
+    case 3:
+        assets.floorDiff = std::make_unique<Texture>("resources/textures/cobblestone_pavement_diff_4k.jpg", true);
+        return "cobblestone pavement texture";
+    case 4:
+        assets.floorNorm = std::make_unique<Texture>("resources/textures/cobblestone_pavement_nor_gl_4k.png");
+        return "cobblestone pavement normals map";
+    case 5:
+        assets.floorRough = std::make_unique<Texture>("resources/textures/cobblestone_pavement_rough_4k.png");
+        return "cobblestone pavement roughness map";
+    case 6:
+        assets.wallMesh = std::make_unique<GPUMesh>(wall_mesh);
+        return "wall mesh";
+    case 7:
+        assets.floorMesh = std::make_unique<GPUMesh>(floor_mesh);
+        return "floor mesh";
+    case 8:
+        assets.wallMat = Material{assets.wallDiff.get(), assets.wallNorm.get(), assets.wallRough.get()};
+        return "wall material";
+    case 9:
+        assets.floorMat = Material{assets.floorDiff.get(), assets.floorNorm.get(), assets.floorRough.get()};
+        return "floor material";
+    case 10:
+        assets.maze = std::make_unique<Maze>(10, 10);
+        return "random maze";
+    case 11: 
+        {
+            Node mazeNode = assets.maze->populateSceneNode(assets.floorMesh.get(), assets.wallMesh.get(), *assets.wallMat, *assets.floorMat);
+            scene.root.children.push_back(mazeNode);
+        }
+        return "scene";
+
+    default:
+        return "something";
+    }
+}
+
 //////////
 // Main //
 //////////
@@ -95,38 +160,12 @@ int main(int argc, char* argv[]) {
 
     Gui gui(window);
 
-    Maze maze(10, 10);
-    GPUMesh floorMesh(floor_mesh);
-    GPUMesh wallMesh(wall_mesh);
-
     Shaders shaders(flat_vert, flat_frag);
     shaders.use();
 
     Scene scene(shaders);
 
-    //// Texture Loading ////
-    // Wall
-    Texture wallDiff("resources/textures/mossy_brick_diff_4k.jpg", true);
-    Texture wallNorm("resources/textures/mossy_brick_nor_gl_4k.png");
-    Texture wallRough("resources/textures/mossy_brick_rough_4k.png");
-
-    Material wallMaterial;
-    wallMaterial.diffuse = &wallDiff;
-    wallMaterial.normal = &wallNorm;
-    wallMaterial.roughness = &wallRough;
-
-    // Floor
-    Texture floorDiff("resources/textures/cobblestone_pavement_diff_4k.jpg", true);
-    Texture floorNorm("resources/textures/cobblestone_pavement_nor_gl_4k.png");
-    Texture floorRough("resources/textures/cobblestone_pavement_rough_4k.png");
-
-    Material floorMaterial;
-    floorMaterial.diffuse = &floorDiff;
-    floorMaterial.normal = &floorNorm;
-    floorMaterial.roughness = &floorRough;
-
-    Node mazeNode = maze.populateSceneNode(&floorMesh, &wallMesh, wallMaterial, floorMaterial);
-    scene.root.children.push_back(mazeNode);
+    GameAssets assets;
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -136,6 +175,9 @@ int main(int argc, char* argv[]) {
 
     //// Main Loop ////
 
+    const int TOTAL_STEPS = 12;
+    int step = 0;
+    
     sf::Clock deltaClock;
     bool running = true;
 
@@ -158,11 +200,20 @@ int main(int argc, char* argv[]) {
 
         gui.update(window, deltaClock.restart());
 
-        // --- OpenGl rendering ---
-        scene.draw();
+        if (step < TOTAL_STEPS) {
+            std::string what = nextLoadingStep(step, assets, scene);
+            step++;
 
-        // --- ImGui rendering ---
-        gui.render(scene);
+            float progress = static_cast<float>(step) / static_cast<float>(TOTAL_STEPS);
+            gui.renderLoading(window, what, progress);
+
+        } else {
+            // --- OpenGl rendering ---
+            scene.draw();
+
+            // --- ImGui rendering ---
+            gui.render(scene);
+        }
 
         window.display();
     }

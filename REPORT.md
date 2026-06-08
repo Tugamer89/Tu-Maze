@@ -34,6 +34,16 @@ L'obiettivo di questa tappa è attaccare delle texture in alta qualità al labri
 
 Sono stati rimossi gli shader "Normal" e di Gouraud perché non più utili.
 
+![Labirinto con shader flat, stage 4](resources/screenshots/stage4_flat.png)
+
+![Dettagli fotorealismo texture, stage 4](resources/screenshots/stage4_photo.png)
+
+### Stage 5 (v0.6.x)
+
+Sono stati fatti miglioramenti alla GUI aggiungendo un contantore degli FPS per misurare le performance ed è stata aggiunta una schermata iniziale di caricamento per dare un feedback all'utente di cosa sta succedendo.
+
+![Schermata di caricamento, stage 5](resources/screenshots/stage5.gif)
+
 ## Crediti
 
 È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).

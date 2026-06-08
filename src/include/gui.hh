@@ -49,7 +49,8 @@ class Gui {
 
     // Defines the interface and renders it
     void render(Scene& scene) const {
-        ImGui::Begin("Scene Settings");
+        ImGui::Begin("Settings");
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Modify world parameters:");
 
         bool updateShader = false;
@@ -68,6 +69,21 @@ class Gui {
         }
 
         // Generate draw data and use OpenGL3 to render them
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
+
+    void renderLoading(const sf::Window& window, const std::string& what, float progress) const {
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowSize(ImVec2(static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)));
+
+        ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+
+        ImGui::Text("Loading %s...", what.c_str());
+        ImGui::ProgressBar(progress);
+
+        ImGui::End();
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
