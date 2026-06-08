@@ -44,6 +44,12 @@ Sono stati fatti miglioramenti alla GUI aggiungendo un contantore degli FPS per 
 
 ![Schermata di caricamento, stage 5](resources/screenshots/stage5.gif)
 
+È stato migliorato anche la renderizzazione tramite phong degli spigoli dei muri.
+
+| Prima (Spigoli rotti) | Dopo (Spigoli aggiustati) |
+| :---: | :---: |
+| ![Spigoli rotti, stage 5](resources/screenshots/stage5_broken.png) | ![Spigoli aggiustati, stage 5](resources/screenshots/stage5_new.png) |
+
 ## Crediti
 
 È stato utilizzato [Gemini](https://gemini.google.com/) per la correzzione e il miglioramento dei testi/commenti sia nel codice che nella documentazione, oltre che nello sviluppo per velocizzare la risoluzione di *Code Smells* e altri *Issues* segnalati da [SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze).

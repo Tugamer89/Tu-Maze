@@ -31,17 +31,17 @@ const float uv_scale = 0.7;
 
 void main() {
     vec3 pos = interpolated_pos;
-    vec3 geom_normal = normalize(interpolated_normal);
 
-    // 1. Calculate blending weights based on the geometric normal
-    vec3 blend_weights = abs(geom_normal);
+    vec3 dx = dFdx(pos);
+    vec3 dy = dFdy(pos);
+    vec3 flat_normal = normalize(cross(dx, dy));
+
+    // 1. Calculate blending weights based on the FLAT geometric normal
+    vec3 blend_weights = abs(flat_normal);
     blend_weights = pow(blend_weights, vec3(4.0));  // Sharpen transitions
     blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z);
 
-    // FIX ROTAZIONE: Scegliamo correttamente quali piani assegnare a (U, V)
-    // - Muri su asse X: Z orizzontale, Y verticale -> pos.zy
-    // - Pavimento/Soffitto (Y): X orizzontale, Z verticale (profondità) -> pos.xz
-    // - Muri su asse Z: X orizzontale, Y verticale -> pos.xy
+    // (U, V) mapping based on planes
     vec2 uvX = pos.zy * uv_scale;
     vec2 uvY = pos.xz * uv_scale;
     vec2 uvZ = pos.xy * uv_scale;
@@ -59,24 +59,24 @@ void main() {
     float roughness =
         roughX * blend_weights.x + roughY * blend_weights.y + roughZ * blend_weights.z;
 
-    // 4. Triplanar Normal (Spazio mondo calcolato dai 3 piani)
+    // 4. Triplanar Normal
     vec3 tnormX = texture(normalMap, uvX).rgb * 2.0 - 1.0;
     vec3 tnormY = texture(normalMap, uvY).rgb * 2.0 - 1.0;
     vec3 tnormZ = texture(normalMap, uvZ).rgb * 2.0 - 1.0;
 
-    // Rispettiamo il verso della faccia (per evitare normali invertite sui lati negativi)
-    vec3 axis_sign = sign(geom_normal);
+    // To respect the direction of the face by ALWAYS using the flat normal, 
+    // to avoid flipping the normal halfway through a corner
+    vec3 axis_sign = sign(flat_normal);
     tnormX.z *= axis_sign.x;
     tnormY.z *= axis_sign.y;
     tnormZ.z *= axis_sign.z;
 
-    // Swizzle per allineare le normali campionate allo spazio mondo reale
+    // Swizzle to align sampled normals to real-world space
     vec3 nX = vec3(tnormX.z, tnormX.y, -tnormX.x);
     vec3 nY = vec3(tnormY.x, tnormY.z, -tnormY.y);
     vec3 nZ = vec3(tnormZ.x, tnormZ.y, tnormZ.z);
 
-    // Le normali sono già in spazio mondo, non dobbiamo sommarle alla geom_normal!
-    // Basta fare il blend tra di loro.
+    // Final blending
     vec3 final_normal =
         normalize(nX * blend_weights.x + nY * blend_weights.y + nZ * blend_weights.z);
 
