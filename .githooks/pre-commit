@@ -1,0 +1,20 @@
+#!/bin/bash
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^src/.*\.cpp$|^src/.*\.hh$|^resources/shaders/')
+
+if [ -z "$FILES" ]; then
+    exit 0
+fi
+
+if ! command -v clang-format-15 &> /dev/null; then
+    echo "Error: clang-format-15 is not installed on your system. Commit aborted."
+    exit 1
+fi
+
+echo "Formatting files with clang-format-15..."
+
+echo "$FILES" | xargs clang-format-15 -i
+
+echo "$FILES" | xargs git add
+
+echo "Formatting completed and included in the commit!"
