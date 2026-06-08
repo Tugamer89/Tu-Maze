@@ -208,6 +208,9 @@ int main(int argc, char* argv[]) {
 
         gui.update(window, deltaClock.restart());
 
+        // clear the buffers
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         if (step < TOTAL_STEPS) {
             std::string what = nextLoadingStep(step, assets, scene);
             step++;

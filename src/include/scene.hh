@@ -53,9 +53,6 @@ class Scene {
     }
 
     void draw() {
-        // clear the buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.vp));
 
         root.draw(model_loc, tr_inv_model_loc, glm::mat4(1.0f));

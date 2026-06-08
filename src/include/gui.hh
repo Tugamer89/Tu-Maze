@@ -74,16 +74,60 @@ class Gui {
     }
 
     void renderLoading(const sf::Window& window, const std::string& what, float progress) const {
+        ImVec2 windowSize(static_cast<float>(window.getSize().x),
+                          static_cast<float>(window.getSize().y));
+
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(
-            ImVec2(static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)));
+        ImGui::SetNextWindowSize(windowSize);
 
-        ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        // Push window styles for a borderless and dark background
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.08f, 0.08f, 0.08f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-        ImGui::Text("Loading %s...", what.c_str());
-        ImGui::ProgressBar(progress);
+        // Disable inputs and saving settings for this window
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+                                 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
+
+        ImGui::Begin("Loading", nullptr, flags);
+
+        // Prepare text and calculate dimensions for centering
+        std::string text = "Loading " + what + "...";
+        ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+
+        float barWidth = windowSize.x * 0.5f;  // Bar takes up 50% of screen width
+        float barHeight = 24.0f;
+        float spacing = 12.0f;
+
+        // Calculate starting Y position to vertically center the entire block
+        float totalContentHeight = textSize.y + spacing + barHeight;
+        float startY = (windowSize.y - totalContentHeight) * 0.5f;
+
+        // Render Centered Text
+        ImGui::SetCursorPosY(startY);
+        ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
+        ImGui::Text("%s", text.c_str());
+
+        // Push modern styles for the progress bar
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram,
+                              ImVec4(0.2f, 0.6f, 1.0f, 1.0f));  // Bright modern blue
+        ImGui::PushStyleColor(ImGuiCol_FrameBg,
+                              ImVec4(0.15f, 0.15f, 0.15f, 1.0f));  // Dark track background
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);    // Rounded edges
+
+        // Render Centered Progress Bar
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
+        ImGui::SetCursorPosX((windowSize.x - barWidth) * 0.5f);
+        ImGui::ProgressBar(progress, ImVec2(barWidth, barHeight));
+
+        // Restore progress bar styles
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor(2);
 
         ImGui::End();
+
+        // Restore window styles
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
