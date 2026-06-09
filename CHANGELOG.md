@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.7.0...v0.7.1) (2026-06-09)
+
+
+### Performance Improvements
+
+* optimize transformation calculations in Node class and update scene rendering ([1094e31](https://github.com/Tugamer89/Tu-Maze/commit/1094e318351f1cc26e4586f09f1dfafad13d50e0))
+
 ## [0.7.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.6.0...v0.7.0) (2026-06-08)
 
 
