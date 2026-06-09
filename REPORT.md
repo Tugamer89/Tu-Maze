@@ -74,6 +74,8 @@ L'obiettivo principale è spostare la camera dentro al labirinto e creare i movi
 
 Sono state fatte piccole ottimizzazioni come rimuovere la sincronizzazione verticale e l'antialiasing per rendere il gioco più fluido.
 
+Aggiunto anche un filtro anisotropico adatto per rendere più "sharp" le texture distanti.
+
 ## Crediti
 
 Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
