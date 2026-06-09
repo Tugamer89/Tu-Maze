@@ -61,7 +61,13 @@ class Gui {
         updateShader |=
             ImGui::SliderFloat("Shininess", &scene.lights.material_shininess, 1.0f, 2000.0f);
 
+        bool updatePos =
+            ImGui::SliderFloat3("Torch Position", &scene.lights.light_direct_pos[0], -2.0f, 2.0f);
+
         ImGui::End();
+
+        // if the torch position changed, update the shader with the new position in view space
+        if (updatePos) scene.lights.position(scene.camera.inv_v);
 
         // If a parameter changed, update the scene shaders
         if (updateShader) {

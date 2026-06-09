@@ -32,7 +32,6 @@ class Setup {
         window = sf::Window(sf::VideoMode({window_width, window_height}), "Tu Maze",
                             sf::Style::Default, sf::State::Windowed, settings);
         window.setPosition(centerPosition);
-        window.setVerticalSyncEnabled(true);
 
         if (!window.setActive(true)) {
             std::cerr << "Failure: error during SFML OpenGL Activation." << std::endl;

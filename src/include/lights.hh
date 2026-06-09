@@ -12,13 +12,13 @@
 
 class Lights {
    public:
-    glm::vec3 light_direct_pos = {2.0, 2.0, 0.0};   // xyz
-    glm::vec3 light_direct_val = {1.0, 1.0, 1.0};   // rgb
-    glm::vec3 light_ambient_val = {0.1, 0.1, 0.1};  // rgb
-    glm::vec3 material_diffuse = {0.8, 0.7, 0.6};   // rgb
-    glm::vec3 material_ambient = {0.5, 0.5, 0.8};   // rgb
-    glm::vec3 material_specular = {1.0, 1.0, 1.0};  // rgb
-    float material_shininess = 1000.f;              // scalar
+    glm::vec3 light_direct_pos = {0.15, -0.1, -0.15};  // xyz
+    glm::vec3 light_direct_val = {1.0, 1.0, 1.0};      // rgb
+    glm::vec3 light_ambient_val = {0.1, 0.1, 0.1};     // rgb
+    glm::vec3 material_diffuse = {0.8, 0.7, 0.6};      // rgb
+    glm::vec3 material_ambient = {0.5, 0.5, 0.8};      // rgb
+    glm::vec3 material_specular = {1.0, 1.0, 1.0};     // rgb
+    float material_shininess = 1000.f;                 // scalar
 
    private:
     // lights and materials
