@@ -16,22 +16,28 @@
 class Node {
    public:
     glm::mat4 localMatrix = glm::mat4(glm::mat4(1.0f));
+    glm::mat4 globalMatrix = glm::mat4(1.0f);
+    glm::mat3 normalMatrix = glm::mat3(1.0f);
     GPUMesh* mesh = nullptr;
     Material material;
     std::vector<Node> children;
 
     Node() = default;
 
-    // Recursively draw this node and all its children
-    void draw(GLint model_loc, GLint tr_inv_model_loc, const glm::mat4& parentMatrix) const {
-        glm::mat4 globalMatrix = parentMatrix * localMatrix;
+    void updateTransforms(const glm::mat4& parentMatrix = glm::mat4(1.0f)) {
+        globalMatrix = parentMatrix * localMatrix;
+        normalMatrix = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
 
+        for (Node& child : children) {
+            child.updateTransforms(globalMatrix);
+        }
+    }
+
+    // Recursively draw this node and all its children
+    void draw(GLint model_loc, GLint tr_inv_model_loc) const {
         if (mesh) {
             glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
-
-            // Calculate and send the normal matrix
-            glm::mat3 tr_inv_model = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
-            glUniformMatrix3fv(tr_inv_model_loc, 1, GL_FALSE, glm::value_ptr(tr_inv_model));
+            glUniformMatrix3fv(tr_inv_model_loc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
             material.bind();
             mesh->draw();
@@ -39,7 +45,7 @@ class Node {
 
         // Recursively draw all children passing our computed global matrix as their parent matrix
         for (const Node& child : children) {
-            child.draw(model_loc, tr_inv_model_loc, globalMatrix);
+            child.draw(model_loc, tr_inv_model_loc);
         }
     }
 };

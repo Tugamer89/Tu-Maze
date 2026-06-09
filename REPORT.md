@@ -16,7 +16,7 @@ In questo stage viene visualizzato un semplice pavimento, ruotabile liberamente 
 
 ### Stage 2 (v0.3.x)
 
-Il focus si è spostato sulla generazione della griglia di base del labirinto. Per ora la struttura è riempita interamente di muri e posizionata al centro dell'origine degli assi. Questa modifica ha richiesto una transizione architetturale da una scena a singolo oggetto a una scena complessa gestita tramite un **grafo di scena** (*Scene Graph*).
+Il focus si è spostato sulla generazione della griglia di base del labirinto. Per ora la struttura è riempita interamente di muri e posizionata al centro dell'origine degli assi. Questa modifica ha richiesto una transizione architetturale da una scena a singolo oggetto a una scena complessa gestita tramite un **grafo di scena**.
 
 ![Labirinto completo, stage 2](resources/screenshots/stage2.png)
 
@@ -24,7 +24,7 @@ Il risultato visivo è una griglia completa esplorabile spostando la telecamera 
 
 ### Stage 3 (v0.4.x)
 
-La generazione della mappa è stata implementata con la logica di un vero e proprio labirinto. È stato adottato un [algoritmo](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)) basato su una visita DFS (*Depth-First Search*) randomizzata, che garantisce percorsi sempre diversi e completabili.
+La generazione della mappa è stata implementata con la logica di un vero e proprio labirinto. È stato adottato un [algoritmo](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)) basato su una visita DFS randomizzata, che garantisce percorsi sempre diversi e completabili.
 
 ![Vero labirinto, stage 3](resources/screenshots/stage3.png)
 
@@ -56,11 +56,15 @@ Parallelamente, il sistema di illuminazione Phong è stato fixato e raffinato pe
 
 ### Stage 6 (v0.7.x)
 
-L'obiettivo di questa tappa è stata l'ottimizzazione radicale delle prestazioni (FPS), andando a risolvere un pesante collo di bottiglia generato dalla GPU (*Fill-rate bottleneck*).
+L'obiettivo di questa tappa è stata l'ottimizzazione radicale delle prestazioni.
 
 Il **mapping triplanare** utilizzato nello stage precedente per applicare le texture costringeva il *Fragment Shader* a eseguire ben 9 campionamenti in memoria video per ogni singolo pixel a schermo (calcolando i 3 assi per le mappe di colore, normali e ruvidezza e poi fondendoli insieme).
 
 Sfruttando la natura architettonica del labirinto, composto esclusivamente da pareti ortogonali perfettamente allineate agli assi cartesiani, la tecnica è stata sostituita con un più efficiente **Box Mapping** (*Single-Sample Dominant-Axis Mapping*). Lo shader ora identifica matematicamente l'asse dominante della faccia osservata ed effettua il campionamento delle texture una sola volta per quel piano specifico. Questa modifica ha ridotto il carico sulla memoria video del 66%, mantenendo intatto il fotorealismo ma garantendo un drastico aumento dei fotogrammi al secondo.
+
+È stata inoltre implementata un'ottimizzazione architetturale lato CPU introducendo il pre-calcolo (*caching*) delle matrici di trasformazione. Poiché il labirinto è un elemento geometricamente statico, la *Model Matrix* e la relativa *Normal Matrix* di ciascun nodo dello *Scene Graph* vengono ora calcolate e salvate in memoria una sola volta in fase di inizializzazione. Questo approccio elimina migliaia di costose e ridondanti inversioni matriciali dal loop di rendering principale, alleggerendo drasticamente il carico sul processore.
+
+L'implementazione combinata di queste due tecniche (riduzione dei campionamenti GPU e caching delle matrici su CPU) ha portato a un **incremento prestazionale misurato di circa 2.5x in termini di FPS**, garantendo un'esperienza visiva estremamente fluida senza alcun compromesso sul fotorealismo.
 
 ## Crediti
 
@@ -73,7 +77,7 @@ Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, uti
 
 ### Codice esterno
 
-* **Template di base**: Il template di partenza è basato sul Lab7 del corso universitario, a cui è stato applicato un pesante refactoring architetturale unito a diversi miglioramenti qualitativi.
+* **Template di base**: Il template di partenza è basato sul [Lab7](https://github.com/Tugamer89/FCG/tree/main/Lab7) di [FCG](https://github.com/Tugamer89/FCG), a cui è stato applicato un pesante refactoring architetturale unito a diversi miglioramenti qualitativi.
 
 ### Risorse
 

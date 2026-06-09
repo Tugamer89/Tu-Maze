@@ -34,6 +34,14 @@ const std::string flat_frag = "resources/shaders/shader_flat.frag";
 const std::string floor_mesh = "resources/meshes/floor.off";
 const std::string wall_mesh = "resources/meshes/wall.off";
 
+const std::string wall_diff = "resources/textures/mossy_brick_diff_4k.jpg";
+const std::string wall_norm = "resources/textures/mossy_brick_nor_gl_4k.png";
+const std::string wall_rough = "resources/textures/mossy_brick_rough_4k.png";
+
+const std::string floor_diff = "resources/textures/cobblestone_pavement_diff_4k.jpg";
+const std::string floor_norm = "resources/textures/cobblestone_pavement_nor_gl_4k.png";
+const std::string floor_rough = "resources/textures/cobblestone_pavement_rough_4k.png";
+
 ////////////////////
 // SFML Callbacks //
 ////////////////////
@@ -104,28 +112,22 @@ struct GameAssets {
 std::string nextLoadingStep(int step, GameAssets& assets, Scene& scene) {
     switch (step) {
         case 0:
-            assets.wallDiff =
-                std::make_unique<Texture>("resources/textures/mossy_brick_diff_4k.jpg", true);
+            assets.wallDiff = std::make_unique<Texture>(wall_diff, true);
             return "mossy bricks texture";
         case 1:
-            assets.wallNorm =
-                std::make_unique<Texture>("resources/textures/mossy_brick_nor_gl_4k.png");
+            assets.wallNorm = std::make_unique<Texture>(wall_norm);
             return "mossy bricks normals map";
         case 2:
-            assets.wallRough =
-                std::make_unique<Texture>("resources/textures/mossy_brick_rough_4k.png");
+            assets.wallRough = std::make_unique<Texture>(wall_rough);
             return "mossy bricks roughness map";
         case 3:
-            assets.floorDiff = std::make_unique<Texture>(
-                "resources/textures/cobblestone_pavement_diff_4k.jpg", true);
+            assets.floorDiff = std::make_unique<Texture>(floor_diff, true);
             return "cobblestone pavement texture";
         case 4:
-            assets.floorNorm =
-                std::make_unique<Texture>("resources/textures/cobblestone_pavement_nor_gl_4k.png");
+            assets.floorNorm = std::make_unique<Texture>(floor_norm);
             return "cobblestone pavement normals map";
         case 5:
-            assets.floorRough =
-                std::make_unique<Texture>("resources/textures/cobblestone_pavement_rough_4k.png");
+            assets.floorRough = std::make_unique<Texture>(floor_rough);
             return "cobblestone pavement roughness map";
         case 6:
             assets.wallMesh = std::make_unique<GPUMesh>(wall_mesh);
@@ -148,6 +150,8 @@ std::string nextLoadingStep(int step, GameAssets& assets, Scene& scene) {
             Node mazeNode = assets.maze->populateSceneNode(
                 assets.floorMesh.get(), assets.wallMesh.get(), *assets.wallMat, *assets.floorMat);
             scene.root.children.push_back(mazeNode);
+
+            scene.build_static_tree();
         }
             return "scene";
 
