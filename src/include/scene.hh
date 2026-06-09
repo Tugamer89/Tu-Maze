@@ -29,7 +29,6 @@ class Scene {
 
    public:
     explicit Scene(const Shaders& shaders) : camera(shaders), lights(shaders) {
-        camera.view_normal();
         locations(shaders);
         update_all();
     }

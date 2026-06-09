@@ -1,6 +1,7 @@
 #ifndef CAMERA_HH
 #define CAMERA_HH
 
+#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 
@@ -11,6 +12,8 @@
 
 #include "hotshaders.hh"
 
+enum class Camera_Movement { FORWARD, BACKWARD, LEFT, RIGHT };
+
 class Camera {
    public:
     glm::mat4 v;
@@ -18,98 +21,117 @@ class Camera {
     glm::mat4 vp;
 
    private:
-    float phi_deg = 45.0;
-    float theta_deg = 45.0;
+    GLint camera_pos_loc;
 
-    const float normal_fd = 4.0;
+    // Camera Attributes
+    glm::vec3 position = {0.0f, 0.5f, 0.0f};  // Start at height 0.5 (inside the maze)
+    glm::vec3 front = {0.0f, 0.0f, -1.0f};    // Look towards -Z
+    glm::vec3 up = {0.0f, 1.0f, 0.0f};        // Up is +Y
+    glm::vec3 right;
+    glm::vec3 worldUp = {0.0f, 1.0f, 0.0f};  // World up vector
 
-    float fd;  // focal distance
-    float od;  // object distance
+    // Euler angles
+    float yaw = -90.0f;
+    float pitch = 0.0f;
 
-    GLint camera_pos_loc;                    // xyz
-    glm::vec3 camera_pos = {0.0, 0.0, 0.0};  // xyz
+    // Camera options
+    float movementSpeed = 2.5f;  // Units per second
+    float mouseSensitivity = 0.2f;
+    float fov = 45.0f;
+    float aspectRatio = 1.0f;
+
+    void updateCameraVectors() {
+        glm::vec3 newFront;
+        newFront.x = static_cast<float>(cos(glm::radians(yaw)) * cos(glm::radians(pitch)));
+        newFront.y = static_cast<float>(sin(glm::radians(pitch)));
+        newFront.z = static_cast<float>(sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
+
+        front = glm::normalize(newFront);
+        // Also re-calculate the Right and Up vector
+        right = glm::normalize(glm::cross(front, worldUp));
+        up = glm::normalize(glm::cross(right, front));
+    }
+
+    void move(Camera_Movement direction, float deltaTime) {
+        using enum Camera_Movement;
+
+        float velocity = movementSpeed * deltaTime;
+
+        // Project the front vector onto the XZ plane to prevent flying
+        glm::vec3 flatFront = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+        glm::vec3 flatRight = glm::normalize(glm::vec3(right.x, 0.0f, right.z));
+
+        if (direction == FORWARD) position += flatFront * velocity;
+        if (direction == BACKWARD) position -= flatFront * velocity;
+        if (direction == LEFT) position -= flatRight * velocity;
+        if (direction == RIGHT) position += flatRight * velocity;
+    }
 
    public:
-    explicit Camera(const Shaders& shaders) { locations(shaders); }
+    explicit Camera(const Shaders& shaders) {
+        updateCameraVectors();
+        locations(shaders);
+    }
 
     void locations(const Shaders& shaders) {
         camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");
     }
 
-    void drag(float dx, float dy) {
-        phi_deg += dx * 0.1f;
-        theta_deg += dy * 0.1f;
-        theta_deg = theta_deg > 90.0f ? 90.0f : theta_deg;
-        theta_deg = theta_deg < -90.0f ? -90.0f : theta_deg;
-        projection();
+    void setAspectRatio(float ratio) { aspectRatio = ratio; }
+
+    bool update(sf::Time dt) {
+        using enum Camera_Movement;
+
+        bool moved = false;
+        float dt_secs = dt.asSeconds();
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+            move(FORWARD, dt_secs);
+            moved = true;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+            move(BACKWARD, dt_secs);
+            moved = true;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+            move(LEFT, dt_secs);
+            moved = true;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+            move(RIGHT, dt_secs);
+            moved = true;
+        }
+
+        return moved;
     }
 
-    void dolly(float dy) {
-        float ratio = od / 100.0f;
-        od -= dy * ratio;  // note: we go in the opposite direction of zoooming
-        if (od < 0.5) od = 0.5;
-        projection();
-    }
+    void processMouseMovement(float xoffset, float yoffset) {
+        xoffset *= mouseSensitivity;
+        yoffset *= mouseSensitivity;
 
-    void view_normal() {
-        fd = normal_fd;
-        od = normal_fd;
-        projection();
+        yaw += xoffset;
+        pitch += yoffset;
+
+        // Make sure that when pitch is out of bounds, screen doesn't get flipped
+        pitch = std::clamp(pitch, -89.0f, 89.0f);
+
+        // Update Front, Right and Up Vectors using the updated Euler angles
+        updateCameraVectors();
     }
 
     void projection() {
-        float ncp = std::max(0.1f, od * 0.1f);  // distance near clip plane
-        float fcp = od + 30.0f;                 // distance far clip plane
-
-        // prepare rotation matrices
-        float ps = glm::sin(glm::radians(phi_deg));
-        float pc = glm::cos(glm::radians(phi_deg));
-        glm::mat4 ry(            //
-            pc, 0.0, -ps, 0.0,   // 1st column
-            0.0, 1.0, 0.0, 0.0,  // 2nd column
-            ps, 0.0, pc, 0.0,    // 3rd column
-            0.0, 0.0, 0.0, 1.0   //
-        );
-
-        float ts = glm::sin(glm::radians(theta_deg));
-        float tc = glm::cos(glm::radians(theta_deg));
-        glm::mat4 rx(            //
-            1.0, 0.0, 0.0, 0.0,  // 1st column
-            0.0, tc, ts, 0.0,    // 2nd column
-            0.0, -ts, tc, 0.0,   // 3rd column
-            0.0, 0.0, 0.0, 1.0   //
-        );
-
-        // prepare translation matrix
-        glm::mat4 tz(            //
-            1.0, 0.0, 0.0, 0.0,  // 1st column
-            0.0, 1.0, 0.0, 0.0,  // 2nd column
-            0.0, 0.0, 1.0, 0.0,  // 3rd column
-            0.0, 0.0, -od, 1.0   // translate world along the Z axis
-        );
-        v = tz * rx * ry;
-
+        // Build View Matrix
+        v = glm::lookAt(position, position + front, up);
         inv_v = glm::inverse(v);
 
-        // prepare projection matrix
-        float a = (fcp + ncp) / (ncp - fcp);
-        float b = 2.0f * fcp * ncp / (ncp - fcp);
+        // Build Projection Matrix
+        glm::mat4 pr = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
 
-        glm::mat4 pr(           //
-            fd, 0.0, 0.0, 0.0,  // 1st column
-            0.0, fd, 0.0, 0.0,  // 2nd column
-            0.0, 0.0, a, -1.0,  // 3rd column
-            0.0, 0.0, b, 0.0    // 4th column
-        );
-
-        // Compute VP matrix and update it
+        // Compute VP matrix
         vp = pr * v;
-        inv_v = glm::inverse(v);
 
-        glm::vec4 cp4 = {0.0, 0.0, 0.0, 1.0};
-        cp4 = inv_v * cp4;
-        glm::vec3 cp3 = {cp4.x, cp4.y, cp4.z};
-        glUniform3fv(camera_pos_loc, 1, &cp3[0]);
+        // Update the camera position uniform in the shader
+        glUniform3fv(camera_pos_loc, 1, &position[0]);
     }
 };
 

@@ -66,6 +66,14 @@ Sfruttando la natura architettonica del labirinto, composto esclusivamente da pa
 
 L'implementazione combinata di queste due tecniche (riduzione dei campionamenti GPU e caching delle matrici su CPU) ha portato a un **incremento prestazionale misurato di circa 2.5x in termini di FPS**, garantendo un'esperienza visiva estremamente fluida senza alcun compromesso sul fotorealismo.
 
+### Stage 7 (v0.8.x)
+
+L'obiettivo principale è spostare la camera dentro al labirinto e creare i movimenti di un gioco in prima persona. Il calcolo delle matrici di vista è stato "automatizzato" tramite la funzione `glm::lookAt` per rendere il codice più pulito.
+
+È stato aggiunta alla GUI la posizione della luce ed è stata impostata la posizione di default come se fosse una torcia nella mano destra del giocatore.
+
+Sono state fatte piccole ottimizzazioni come rimuovere la sincronizzazione verticale e l'antialiasing per rendere il gioco più fluido.
+
 ## Crediti
 
 Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.

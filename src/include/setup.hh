@@ -17,7 +17,7 @@ class Setup {
         sf::ContextSettings settings;
         settings.depthBits = 32;
         settings.stencilBits = 8;
-        settings.antiAliasingLevel = 4;
+        settings.antiAliasingLevel = 0;
         settings.attributeFlags = sf::ContextSettings::Attribute::Core;
         settings.majorVersion = 4;
         settings.minorVersion = 1;

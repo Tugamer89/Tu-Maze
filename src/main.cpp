@@ -83,11 +83,7 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
     prev_y = y;
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-        scene.camera.drag(dx, dy);
-        scene.camera.projection();
-        scene.lights.position(scene.camera.inv_v);
-    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LAlt)) {
-        scene.camera.dolly(dy);
+        scene.camera.processMouseMovement(dx, -dy);
         scene.camera.projection();
         scene.lights.position(scene.camera.inv_v);
     }
@@ -194,15 +190,20 @@ int main(int argc, char* argv[]) {
     bool running = true;
 
     while (running) {
+        sf::Time dt = deltaClock.restart();
+
         while (const std::optional event = window.pollEvent()) {
             gui.process_event(window, *event);
 
             if (event->is<sf::Event::Closed>())
                 running = false;
-            else if (const auto* resized = event->getIf<sf::Event::Resized>())
+            else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
                 glViewport(0, 0, resized->size.x, resized->size.y);
-            else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
-                     key_pressed && !gui.wants_capture_keyboard()) {
+                scene.camera.setAspectRatio(static_cast<float>(resized->size.x) /
+                                            static_cast<float>(resized->size.y));
+                scene.camera.projection();
+            } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
+                       key_pressed && !gui.wants_capture_keyboard()) {
                 handle(*key_pressed, shaders, scene, running);
             } else if (const auto* mouse = event->getIf<sf::Event::MouseMoved>();
                        mouse && !gui.wants_capture_mouse()) {
@@ -210,7 +211,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        gui.update(window, deltaClock.restart());
+        gui.update(window, dt);
 
         // clear the buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -222,13 +223,21 @@ int main(int argc, char* argv[]) {
             float progress = static_cast<float>(step) / static_cast<float>(TOTAL_STEPS);
             gui.renderLoading(window, what, progress);
 
-        } else {
-            // --- OpenGl rendering ---
-            scene.draw();
-
-            // --- ImGui rendering ---
-            gui.render(scene);
+            window.display();
+            continue;
         }
+
+        if (!gui.wants_capture_keyboard()) {
+            bool camera_moved = scene.camera.update(dt);
+
+            if (camera_moved) {
+                scene.camera.projection();
+                scene.lights.position(scene.camera.inv_v);
+            }
+        }
+
+        scene.draw();
+        gui.render(scene);
 
         window.display();
     }
