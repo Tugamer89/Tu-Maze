@@ -25,11 +25,11 @@
 // Constants //
 ///////////////
 
-const std::string phong_vert = "resources/shaders/shader_phong.vert";
-const std::string phong_frag = "resources/shaders/shader_phong.frag";
+const std::string phong_vert = "resources/shaders/phong.vert";
+const std::string phong_frag = "resources/shaders/phong.frag";
 
-const std::string flat_vert = "resources/shaders/shader_flat.vert";
-const std::string flat_frag = "resources/shaders/shader_flat.frag";
+const std::string flat_vert = "resources/shaders/flat.vert";
+const std::string flat_frag = "resources/shaders/flat.frag";
 
 const std::string floor_mesh = "resources/meshes/floor.off";
 const std::string wall_mesh = "resources/meshes/wall.off";
