@@ -19,18 +19,20 @@ cd tu-maze
 
 ### 2. Standalone Development Mode
 
-To compile and run the main branch of the project in standalone development mode, use the following standard CMake commands from the root directory:
+To compile and run the main branch of the project in standalone development mode, use the following commands from the root directory:
 
 #### Configure the Project
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
+# or: make configure
 ```
 
 #### Compile the Project
 
 ```bash
-cmake --build build --config Release
+cmake --build build --parallel --config Release
+# or: make build
 ```
 
 Upon successful compilation, the compiled standalone binary along with its assets will be automatically placed in the centralized binary output folder: `build/bin/`.
@@ -39,6 +41,13 @@ Upon successful compilation, the compiled standalone binary along with its asset
 
 ```bash
 ./build/bin/tu-maze
+# or: make run
+```
+
+Alternatively, you can chain all the previuos steps in one single command:
+
+```bash
+make all
 ```
 
 ## Managing and Compiling Project Stages (Export Workflow)
