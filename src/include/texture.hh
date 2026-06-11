@@ -7,7 +7,7 @@
 
 #ifndef GLAD_GL_IMPLEMENTATION
 #define GLAD_GL_IMPLEMENTATION
-#include "glad/gl.h"
+#include "../glad/gl.h"
 #endif
 
 enum class TextureQuality : int { High = 0, Medium = 1, Low = 2 };
