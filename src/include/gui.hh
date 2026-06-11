@@ -7,11 +7,41 @@
 
 #include <SFML/Window.hpp>
 #include <SFML/Window/Event.hpp>
+#include <fstream>
 #include <iostream>
+#include <string>
 
 #include "scene.hh"
+#include "texture.hh"
 
 class Gui {
+   private:
+    const std::string settingsFile = "tu-maze_settings.txt";
+
+    void loadSettings() const {
+        std::ifstream file(settingsFile);
+        if (file.is_open()) {
+            if (int q; file >> q) {
+                // Clamp loaded value to valid enum range to be safe
+                q = std::clamp(q, static_cast<int>(TextureQuality::High),
+                               static_cast<int>(TextureQuality::Low));
+                Texture::currentGlobalQuality = static_cast<TextureQuality>(q);
+            }
+            file.close();
+        } else {
+            Texture::currentGlobalQuality = Texture::autoDetectQuality();
+            saveSettings();
+        }
+    }
+
+    void saveSettings() const {
+        std::ofstream file(settingsFile);
+        if (file.is_open()) {
+            file << static_cast<int>(Texture::currentGlobalQuality) << "\n";
+            file.close();
+        }
+    }
+
    public:
     explicit Gui(sf::Window& window) {
         if (!ImGui::SFML::Init(window, sf::Vector2f(window.getSize()), false)) {
@@ -20,6 +50,8 @@ class Gui {
         }
         // Start the native OpenGL 3 backend for GUI rendering
         ImGui_ImplOpenGL3_Init("#version 410 core");
+
+        loadSettings();
     }
 
     ~Gui() {
@@ -50,7 +82,18 @@ class Gui {
     // Defines the interface and renders it
     void render(Scene& scene) const {
         ImGui::Begin("Settings");
+
+        ImGui::Text("Performance & Quality:");
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
+        auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
+        if (std::array<const char*, 3> qualities = {"High", "Medium", "Low"};
+            ImGui::Combo("Texture Quality", &currentQuality, qualities.data(), qualities.size())) {
+            Texture::setGlobalQuality(static_cast<TextureQuality>(currentQuality));
+            saveSettings();
+        }
+
+        ImGui::Separator();
         ImGui::Text("Modify world parameters:");
 
         bool updateShader = false;

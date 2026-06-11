@@ -81,11 +81,15 @@ Infine, il motore di rendering è stato bilanciato per favorire la fluidità e l
 
 In questa tappa ci si è concentrati un'altra volta sul rendere la renderizzazione più leggera, specialmente per computer con basse prestazioni. Per fare questo è stato introdotto il *Frustum culling* e una nuova impostazione di qualità delle texture con il default detectato automaticamente in base alle "performance" del computer e le impostazioni vengono salvate localmente.
 
-L'implementazione del *Frustum culling* ha aumentato le prestazioni di circa **1.4x in termini di FPS** mediamente, con un aumento ben maggiore in scene in cui si vedono poche cose.
+L'implementazione del *Frustum culling* ha aumentato le prestazioni di circa **1.5x in termini di FPS** mediamente, con un aumento ben maggiore in scene in cui si vedono poche cose.
+
+| Low | Medium | High |
+| :---: | :---: | :---: |
+| ![Impostazioni low, stage 8](resources/screenshots/stage8_low.png) | ![Impostazioni medium, stage 8](resources/screenshots/stage8_medium.png) | ![Impostazioni high, stage 8](resources/screenshots/stage8_high.png) |
 
 ## Crediti
 
-Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
+Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente alla programmazione, specialmente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
 
 ### Soluzioni tecniche
 
