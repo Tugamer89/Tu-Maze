@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.7.1...v0.8.0) (2026-06-11)
+
+
+### Features
+
+* add Makefile for simplified build process and update README with usage instructions ([d1cdad3](https://github.com/Tugamer89/Tu-Maze/commit/d1cdad37568fb73226f494340db9e347bd5c0603))
+* add torch position slider to GUI and update shader on change ([028e0fe](https://github.com/Tugamer89/Tu-Maze/commit/028e0fe4e32623e68ef4040166b76a7994c37651))
+* added antisotropic filter ([7e7e428](https://github.com/Tugamer89/Tu-Maze/commit/7e7e428db1fbfdd2e6a629ea1db2b71313632913))
+* implement first-person camera movement and optimize rendering settings ([10ab94b](https://github.com/Tugamer89/Tu-Maze/commit/10ab94bf7a05200fd3aa8ac7d6cc51d437da01c2))
+* update field of view to 60 degrees and clean up camera vector calculation ([a19e092](https://github.com/Tugamer89/Tu-Maze/commit/a19e092ba8f3a6c26d1c1e7c83c0684cdccbd118))
+* update keyboard and mouse controls for stages 4 and 6 in README ([c26c89b](https://github.com/Tugamer89/Tu-Maze/commit/c26c89b735d0baf2a1702350f5eb08d764b7fc4a))
+* update stage 7 details in README and REPORT ([b09230f](https://github.com/Tugamer89/Tu-Maze/commit/b09230fc94bb57bca155a7dc1aab84de7c8b1181))
+
+
+### Bug Fixes
+
+* ensure grid resizing uses size_t for width and height in Maze constructor ([d4a9ed2](https://github.com/Tugamer89/Tu-Maze/commit/d4a9ed20a63ca28d812b62f6843ef7edbf582750))
+
 ## [0.7.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.7.0...v0.7.1) (2026-06-09)
 
 
