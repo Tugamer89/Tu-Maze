@@ -15,18 +15,29 @@
 #include "texture.hh"
 
 class Gui {
-   private:
-    const std::string settingsFile = "tu-maze_settings.txt";
+   public:
+    inline static const std::string settingsFile = "tu-maze_settings.txt";
 
-    void loadSettings() const {
+   private:
+    bool vsync_enabled = true;
+    bool wireframe_enabled = false;
+    int msaa_level = 0;
+    int active_msaa_level = 0;
+    float camera_fov = 60.0f;
+
+    void loadSettings() {
         std::ifstream file(settingsFile);
         if (file.is_open()) {
             if (int q; file >> q) {
-                // Clamp loaded value to valid enum range to be safe
-                q = std::clamp(q, static_cast<int>(TextureQuality::High),
-                               static_cast<int>(TextureQuality::Low));
+                q = std::clamp(q, 0, 2);
                 Texture::currentGlobalQuality = static_cast<TextureQuality>(q);
             }
+
+            file >> vsync_enabled;
+            file >> wireframe_enabled;
+            file >> msaa_level;
+            file >> camera_fov;
+
             file.close();
         } else {
             Texture::currentGlobalQuality = Texture::autoDetectQuality();
@@ -38,11 +49,102 @@ class Gui {
         std::ofstream file(settingsFile);
         if (file.is_open()) {
             file << static_cast<int>(Texture::currentGlobalQuality) << "\n";
+            file << vsync_enabled << "\n";
+            file << wireframe_enabled << "\n";
+            file << msaa_level << "\n";
+            file << camera_fov << "\n";
             file.close();
         }
     }
 
+    void renderDebugSection(Scene& scene) {
+        if (ImGui::Checkbox("Wireframe Mode", &wireframe_enabled)) {
+            if (wireframe_enabled)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            saveSettings();
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Lighting Parameters:");
+
+        bool updateShader = false;
+        updateShader |= ImGui::ColorEdit3("Directional Light", &scene.lights.light_direct_val[0]);
+        updateShader |= ImGui::ColorEdit3("Ambient Light", &scene.lights.light_ambient_val[0]);
+        updateShader |= ImGui::ColorEdit3("Diffuse Color", &scene.lights.material_diffuse[0]);
+        updateShader |= ImGui::ColorEdit3("Ambient Color", &scene.lights.material_ambient[0]);
+        updateShader |=
+            ImGui::SliderFloat("Shininess", &scene.lights.material_shininess, 1.0f, 2000.0f);
+
+        bool updatePos =
+            ImGui::SliderFloat3("Torch Position", &scene.lights.light_direct_pos[0], -2.0f, 2.0f);
+
+        if (updatePos) scene.lights.position(scene.camera.inv_v);  // NOSONAR
+        if (updateShader) scene.lights.parameters();
+    }
+
+    void renderCameraSection(Scene& scene) {
+        // FOV
+        if (ImGui::SliderFloat("Field of View", &camera_fov, 30.0f, 120.0f, "%.1f deg")) {
+            scene.camera.setFov(camera_fov);
+            saveSettings();
+        }
+    }
+
+    void renderVideoSection(sf::Window& window) {
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
+        // Texture Quality
+        auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
+        if (std::array<const char*, 3> qualities = {"High", "Medium", "Low"};
+            ImGui::Combo("Texture Quality", &currentQuality, qualities.data(),
+                         static_cast<int>(qualities.size()))) {
+            Texture::setGlobalQuality(static_cast<TextureQuality>(currentQuality));
+            saveSettings();
+        }
+
+        // V-Sync
+        if (ImGui::Checkbox("V-Sync", &vsync_enabled)) {
+            window.setVerticalSyncEnabled(vsync_enabled);
+            saveSettings();
+        }
+
+        // Anti-Aliasing
+        std::array<int, 5> msaa_values = {0, 2, 4, 8, 16};
+        std::array<const char*, 5> msaa_labels = {"Off (Faster)", "2x", "4x", "8x",
+                                                  "16x (Max Quality)"};
+
+        int current_msaa_idx = 0;
+        for (size_t i = 0; i < msaa_values.size(); ++i) {
+            if (msaa_level == msaa_values[i]) current_msaa_idx = static_cast<int>(i);
+        }
+
+        if (ImGui::Combo("Anti-Aliasing (MSAA)", &current_msaa_idx, msaa_labels.data(),
+                         static_cast<int>(msaa_labels.size()))) {
+            msaa_level = msaa_values[current_msaa_idx];
+            saveSettings();
+        }
+
+        if (msaa_level != active_msaa_level) {
+            ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                               "Restart required to apply MSAA changes.");
+        }
+    }
+
    public:
+    static int getSavedMSAA() {
+        if (std::ifstream file(settingsFile); file.is_open()) {
+            int q, m;   // NOSONAR
+            bool v, w;  // NOSONAR
+            // Read until MSAA
+            if (file >> q >> v >> w >> m) {
+                return m;
+            }
+        }
+        return 0;
+    }
+
     explicit Gui(sf::Window& window) {
         if (!ImGui::SFML::Init(window, sf::Vector2f(window.getSize()), false)) {
             std::cerr << "Error during ImGui-SFML initialization!" << std::endl;
@@ -51,7 +153,20 @@ class Gui {
         // Start the native OpenGL 3 backend for GUI rendering
         ImGui_ImplOpenGL3_Init("#version 410 core");
 
+        active_msaa_level = getSavedMSAA();
         loadSettings();
+
+        window.setVerticalSyncEnabled(vsync_enabled);
+
+        if (active_msaa_level > 0)
+            glEnable(GL_MULTISAMPLE);
+        else
+            glDisable(GL_MULTISAMPLE);
+
+        if (wireframe_enabled)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     ~Gui() {
@@ -79,42 +194,29 @@ class Gui {
         ImGui::SFML::Update(sf::Mouse::getPosition(window), sf::Vector2f(window.getSize()), dt);
     }
 
-    // Defines the interface and renders it
-    void render(Scene& scene) const {
-        ImGui::Begin("Settings");
+    void render(Scene& scene, sf::Window& window) {
+        ImGui::Begin("Engine Settings");
 
-        ImGui::Text("Performance & Quality:");
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-
-        auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
-        if (std::array<const char*, 3> qualities = {"High", "Medium", "Low"};
-            ImGui::Combo("Texture Quality", &currentQuality, qualities.data(), qualities.size())) {
-            Texture::setGlobalQuality(static_cast<TextureQuality>(currentQuality));
-            saveSettings();
+        // --- SECTION: VIDEO & PERFORMANCE ---
+        if (ImGui::CollapsingHeader("Video & Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
+            renderVideoSection(window);
         }
 
-        ImGui::Separator();
-        ImGui::Text("Modify world parameters:");
+        // --- SECTION: CAMERA & GAMEPLAY ---
+        if (ImGui::CollapsingHeader("Camera & Gameplay")) {
+            renderCameraSection(scene);
+        }
 
-        bool updateShader = false;
-        updateShader |= ImGui::ColorEdit3("Directional Light", &scene.lights.light_direct_val[0]);
-        updateShader |= ImGui::ColorEdit3("Ambient Light", &scene.lights.light_ambient_val[0]);
-        updateShader |= ImGui::ColorEdit3("Diffuse Color", &scene.lights.material_diffuse[0]);
-        updateShader |= ImGui::ColorEdit3("Ambient Color", &scene.lights.material_ambient[0]);
-        updateShader |=
-            ImGui::SliderFloat("Shininess", &scene.lights.material_shininess, 1.0f, 2000.0f);
-
-        bool updatePos =
-            ImGui::SliderFloat3("Torch Position", &scene.lights.light_direct_pos[0], -2.0f, 2.0f);
+        // --- SECTION: DEBUG & WORLD ---
+        if (ImGui::CollapsingHeader("Debug & World")) {
+            renderDebugSection(scene);
+        }
 
         ImGui::End();
 
-        // if the torch position changed, update the shader with the new position in view space
-        if (updatePos) scene.lights.position(scene.camera.inv_v);
-
-        // If a parameter changed, update the scene shaders
-        if (updateShader) {
-            scene.lights.parameters();
+        if (static bool isFirstFrame = true; isFirstFrame) {
+            scene.camera.setFov(camera_fov);
+            isFirstFrame = false;
         }
 
         // Generate draw data and use OpenGL3 to render them

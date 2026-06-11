@@ -99,7 +99,15 @@ class Camera {
         camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");
     }
 
-    void setAspectRatio(float ratio) { aspectRatio = ratio; }
+    void setAspectRatio(float ratio) {
+        aspectRatio = ratio;
+        projection();
+    }
+
+    void setFov(float newFov) {
+        fov = newFov;
+        projection();
+    };
 
     bool update(sf::Time dt) {
         using enum Camera_Movement;

@@ -200,7 +200,6 @@ int main(int argc, char* argv[]) {
                 glViewport(0, 0, resized->size.x, resized->size.y);
                 scene.camera.setAspectRatio(static_cast<float>(resized->size.x) /
                                             static_cast<float>(resized->size.y));
-                scene.camera.projection();
             } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                        key_pressed && !gui.wants_capture_keyboard()) {
                 handle(*key_pressed, shaders, scene, running);
@@ -235,7 +234,7 @@ int main(int argc, char* argv[]) {
         }
 
         scene.draw();
-        gui.render(scene);
+        gui.render(scene, window);
 
         window.display();
     }
