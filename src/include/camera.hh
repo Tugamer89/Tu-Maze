@@ -37,7 +37,7 @@ class Camera {
     // Camera options
     float movementSpeed = 2.5f;  // Units per second
     float mouseSensitivity = 0.2f;
-    float fov = 45.0f;
+    float fov = 60.0f;
     float aspectRatio = 1.0f;
 
     void updateCameraVectors() {
@@ -47,7 +47,6 @@ class Camera {
         newFront.z = static_cast<float>(sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
 
         front = glm::normalize(newFront);
-        // Also re-calculate the Right and Up vector
         right = glm::normalize(glm::cross(front, worldUp));
         up = glm::normalize(glm::cross(right, front));
     }
