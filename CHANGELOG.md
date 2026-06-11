@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.10.0...v0.11.0) (2026-06-11)
+
+
+### Features
+
+* implement minimap feature with performance optimizations and UI controls ([eb07137](https://github.com/Tugamer89/Tu-Maze/commit/eb071374e155b01f0819f1e7e894afcc6aa5140b))
+* renamed shaders and added stage 10 in report ([2f481ed](https://github.com/Tugamer89/Tu-Maze/commit/2f481ed4aaeda0681336f1d635a443ad72587ffc))
+
+
+### Bug Fixes
+
+* simplify floor mesh definition by reducing vertex and face counts ([84f11fc](https://github.com/Tugamer89/Tu-Maze/commit/84f11fc7bc5c2b9cc712b368c330c92a56f5f98e))
+* update include paths for glad headers in multiple files ([9158a3a](https://github.com/Tugamer89/Tu-Maze/commit/9158a3a6b2668bf124fc154d7da5fbb62aa70065))
+
 ## [0.10.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.9.0...v0.10.0) (2026-06-11)
 
 
