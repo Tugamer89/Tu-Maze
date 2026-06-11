@@ -102,13 +102,34 @@ cd ../Stage_02
 
 #### Mouse Controls v0.2
 
-* **`Window Close Button (X)`**: Clicking the native OS window close button terminates the program safely.
 * **`Left Mouse Button` while dragging**: rotate the object.
-* **`Left Mouse Button` + `Left Alt` while dragging**: mvoe the object.
+* **`Left Mouse Button` + `Left Alt` while dragging**: move the object.
 
 ### Stage 4 (v0.5.x)
 
 #### Keyboard Controls v0.5
 
-* ~~**`G`**: Use Gouraud shaders.~~
-* ~~**`C`**: Use Normal shaders.~~
+* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
+* **`P`**: Use Phong shaders.
+* **`F`**: Use Flat shaders.
+
+#### Mouse Controls v0.5
+
+* **`Left Mouse Button` while dragging**: rotate the object.
+* **`Left Mouse Button` + `Left Alt` while dragging**: move the object.
+
+### Stage 6 (v0.7.x)
+
+#### Keyboard Controls v0.7
+
+* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
+* **`P`**: Use Phong shaders.
+* **`F`**: Use Flat shaders.
+* **`W`**: Move forward.
+* **`A`**: Move left.
+* **`S`**: Move backward.
+* **`D`**: Move right.
+
+#### Mouse Controls v0.7
+
+* **`Left Mouse Button` while dragging**: Move visual.
