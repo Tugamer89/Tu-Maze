@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.9.0...v0.10.0) (2026-06-11)
+
+
+### Features
+
+* add formatting step to Makefile for consistent code style ([5432025](https://github.com/Tugamer89/Tu-Maze/commit/5432025499ac1f4a6dca5748eee6bea189f2065f))
+* enhance GUI settings with V-Sync, MSAA, and FOV adjustments; improve rendering performance and user experience ([3963ea8](https://github.com/Tugamer89/Tu-Maze/commit/3963ea885db7b4d458bc270b2394d02ea9672329))
+
 ## [0.9.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.8.0...v0.9.0) (2026-06-11)
 
 
