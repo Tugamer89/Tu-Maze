@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.8.0...v0.9.0) (2026-06-11)
+
+
+### Features
+
+* add texture quality settings and persistence, update GUI for performance adjustments ([c25621f](https://github.com/Tugamer89/Tu-Maze/commit/c25621f412f14e1c4fb70306cb52e53d62e255ad))
+* implement frustum culling for improved rendering performance and update drawing logic ([00588c2](https://github.com/Tugamer89/Tu-Maze/commit/00588c23b2ae67fa1251d06f76229bf7bcabe123))
+
 ## [0.8.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.7.1...v0.8.0) (2026-06-11)
 
 
