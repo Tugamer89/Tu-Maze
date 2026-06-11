@@ -37,7 +37,7 @@ class Maze {
     std::vector<Cell> grid;
 
     Maze(int width, int height) : width(width), height(height) {
-        grid.resize(width * height);
+        grid.resize(static_cast<size_t>(width) * static_cast<size_t>(height));
         generate();
     }
 
