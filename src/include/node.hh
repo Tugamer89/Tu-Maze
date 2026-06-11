@@ -24,6 +24,8 @@ class Node {
     Material material;
     std::vector<Node> children;
 
+    bool is_wall = false;
+
     Node() = default;
 
     void updateTransforms(const glm::mat4& parentMatrix = glm::mat4(1.0f)) {
@@ -32,6 +34,38 @@ class Node {
 
         for (Node& child : children) {
             child.updateTransforms(globalMatrix);
+        }
+    }
+
+    // High performance fast-path drawing with culling
+    void drawMinimap(GLint model_loc, GLint color_loc, const glm::vec3& camPos,
+                     float cullRadius) const {
+        if (mesh) {
+            glm::vec3 worldCenter(globalMatrix * glm::vec4(mesh->center, 1.0f));
+
+            // Squared distance on XZ
+            float dx = worldCenter.x - camPos.x;
+            float dz = worldCenter.z - camPos.z;
+            float distSq = (dx * dx) + (dz * dz);
+
+            // Ray estimation
+            float nodeRadius = mesh->extent * 2.0f;
+            float maxRenderDist = cullRadius + nodeRadius;
+
+            if (distSq < (maxRenderDist * maxRenderDist)) {
+                glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
+
+                if (is_wall)
+                    glUniform3f(color_loc, 0.85f, 0.85f, 0.85f);  // Light grey
+                else
+                    glUniform3f(color_loc, 0.15f, 0.15f, 0.15f);  // Dark grey
+
+                mesh->draw();
+            }
+        }
+
+        for (const Node& child : children) {
+            child.drawMinimap(model_loc, color_loc, camPos, cullRadius);
         }
     }
 

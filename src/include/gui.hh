@@ -18,6 +18,10 @@ class Gui {
    public:
     inline static const std::string settingsFile = "tu-maze_settings.txt";
 
+    bool minimap_enabled = true;
+    bool minimap_fix_north = true;
+    float minimap_zoom = 8.0f;
+
    private:
     bool vsync_enabled = true;
     bool wireframe_enabled = false;
@@ -37,6 +41,9 @@ class Gui {
             file >> wireframe_enabled;
             file >> msaa_level;
             file >> camera_fov;
+            file >> minimap_enabled;
+            file >> minimap_fix_north;
+            file >> minimap_zoom;
 
             file.close();
         } else {
@@ -53,6 +60,9 @@ class Gui {
             file << wireframe_enabled << "\n";
             file << msaa_level << "\n";
             file << camera_fov << "\n";
+            file << minimap_enabled << "\n";
+            file << minimap_fix_north << "\n";
+            file << minimap_zoom << "\n";
             file.close();
         }
     }
@@ -89,6 +99,16 @@ class Gui {
         if (ImGui::SliderFloat("Field of View", &camera_fov, 30.0f, 120.0f, "%.1f deg")) {
             scene.camera.setFov(camera_fov);
             saveSettings();
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Minimap Settings:");
+        if (ImGui::Checkbox("Show Minimap", &minimap_enabled)) saveSettings();
+
+        if (minimap_enabled) {
+            if (ImGui::Checkbox("Fix North", &minimap_fix_north)) saveSettings();
+            if (ImGui::SliderFloat("Zoom", &minimap_zoom, 3.0f, 30.0f, "%.1f units"))
+                saveSettings();
         }
     }
 

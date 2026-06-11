@@ -1,6 +1,7 @@
 #ifndef CAMERA_HH
 #define CAMERA_HH
 
+#include <algorithm>
 #include <array>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -94,6 +95,10 @@ class Camera {
         updateCameraVectors();
         locations(shaders);
     }
+
+    const glm::vec3& getPosition() const { return position; }
+    const glm::vec3& getFront() const { return front; }
+    float getYaw() const { return yaw; }
 
     void locations(const Shaders& shaders) {
         camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");

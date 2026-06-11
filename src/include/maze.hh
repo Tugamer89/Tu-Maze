@@ -58,6 +58,7 @@ class Maze {
             Node wallNode;
             wallNode.mesh = wallMesh;
             wallNode.material = wallMat;
+            wallNode.is_wall = true;
             glm::mat4 local = glm::translate(glm::mat4(1.0f), glm::vec3(tx, 0.0f, tz));
             wallNode.localMatrix = glm::scale(local, glm::vec3(sx, wallHeight, sz));
             parent.children.push_back(std::move(wallNode));

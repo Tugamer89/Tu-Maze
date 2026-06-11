@@ -17,6 +17,7 @@
 #include "include/matrices.hh"
 #include "include/maze.hh"
 #include "include/mesh.hh"
+#include "include/minimap.hh"
 #include "include/node.hh"
 #include "include/scene.hh"
 #include "include/setup.hh"
@@ -31,8 +32,12 @@ const std::string phong_frag = "resources/shaders/phong.frag";
 const std::string flat_vert = "resources/shaders/flat.vert";
 const std::string flat_frag = "resources/shaders/flat.frag";
 
+const std::string minimap_vert = "resources/shaders/minimap.vert";
+const std::string minimap_frag = "resources/shaders/minimap.frag";
+
 const std::string floor_mesh = "resources/meshes/floor.off";
 const std::string wall_mesh = "resources/meshes/wall.off";
+const std::string player_marker_mesh = "resources/meshes/player_marker.off";
 
 const std::string wall_diff = "resources/textures/mossy_brick_diff_4k.jpg";
 const std::string wall_norm = "resources/textures/mossy_brick_nor_gl_4k.png";
@@ -46,7 +51,8 @@ const std::string floor_rough = "resources/textures/cobblestone_pavement_rough_4
 // SFML Callbacks //
 ////////////////////
 
-void handle(const sf::Event::KeyPressed& key, Shaders& shaders, Scene& scene, bool& running) {
+void handle(const sf::Event::KeyPressed& key, Shaders& shaders, Minimap& minimap, Scene& scene,
+            bool& running) {
     switch (key.scancode) {
         using enum sf::Keyboard::Scancode;
 
@@ -55,12 +61,14 @@ void handle(const sf::Event::KeyPressed& key, Shaders& shaders, Scene& scene, bo
             shaders.use();
             scene.locations(shaders);
             scene.update_all();
+            minimap.reloadShaders(minimap_vert, minimap_frag);
             return;
         case F:
             shaders.reload(flat_vert, flat_frag);
             shaders.use();
             scene.locations(shaders);
             scene.update_all();
+            minimap.reloadShaders(minimap_vert, minimap_frag);
             return;
         case Escape:
             running = false;
@@ -93,18 +101,18 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
 ////////////////////
 
 struct GameAssets {
-    // Texture
+    // Textures
     std::unique_ptr<Texture> wallDiff, wallNorm, wallRough;     // NOSONAR
     std::unique_ptr<Texture> floorDiff, floorNorm, floorRough;  // NOSONAR
     // Meshes
-    std::unique_ptr<GPUMesh> floorMesh, wallMesh;  // NOSONAR
-    // Materiali
+    std::unique_ptr<GPUMesh> floorMesh, wallMesh, playerMesh;  // NOSONAR
+    // Materials
     std::optional<Material> wallMat, floorMat;  // NOSONAR
     // Gameplay
     std::unique_ptr<Maze> maze;
 };
 
-std::string nextLoadingStep(int step, GameAssets& assets, Scene& scene) {
+std::string nextLoadingStep(int step, GameAssets& assets, Minimap& minimap, Scene& scene) {
     switch (step) {
         case 0:
             assets.wallDiff = std::make_unique<Texture>(wall_diff, true);
@@ -131,22 +139,26 @@ std::string nextLoadingStep(int step, GameAssets& assets, Scene& scene) {
             assets.floorMesh = std::make_unique<GPUMesh>(floor_mesh);
             return "floor mesh";
         case 8:
+            assets.playerMesh = std::make_unique<GPUMesh>(player_marker_mesh);
+            return "player marker mesh";
+        case 9:
             assets.wallMat =
                 Material{assets.wallDiff.get(), assets.wallNorm.get(), assets.wallRough.get()};
             return "wall material";
-        case 9:
+        case 10:
             assets.floorMat =
                 Material{assets.floorDiff.get(), assets.floorNorm.get(), assets.floorRough.get()};
             return "floor material";
-        case 10:
+        case 11:
             assets.maze = std::make_unique<Maze>(10, 10);
             return "random maze";
-        case 11: {
+        case 12: {
             Node mazeNode = assets.maze->populateSceneNode(
                 assets.floorMesh.get(), assets.wallMesh.get(), *assets.wallMat, *assets.floorMat);
             scene.root.children.push_back(mazeNode);
 
             scene.build_static_tree();
+            minimap.playerMesh = assets.playerMesh.get();
         }
             return "scene";
 
@@ -168,10 +180,10 @@ int main(int argc, char* argv[]) {
     Gui gui(window);
 
     Shaders shaders(flat_vert, flat_frag);
+    Minimap minimap(minimap_vert, minimap_frag);
+
     shaders.use();
-
     Scene scene(shaders);
-
     GameAssets assets;
 
     glEnable(GL_CULL_FACE);
@@ -182,7 +194,7 @@ int main(int argc, char* argv[]) {
 
     //// Main Loop ////
 
-    const int TOTAL_STEPS = 12;
+    const int TOTAL_STEPS = 13;
     int step = 0;
 
     sf::Clock deltaClock;
@@ -202,7 +214,7 @@ int main(int argc, char* argv[]) {
                                             static_cast<float>(resized->size.y));
             } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                        key_pressed && !gui.wants_capture_keyboard()) {
-                handle(*key_pressed, shaders, scene, running);
+                handle(*key_pressed, shaders, minimap, scene, running);
             } else if (const auto* mouse = event->getIf<sf::Event::MouseMoved>();
                        mouse && !gui.wants_capture_mouse()) {
                 handle(*mouse, scene);
@@ -212,10 +224,11 @@ int main(int argc, char* argv[]) {
         gui.update(window, dt);
 
         // clear the buffers
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (step < TOTAL_STEPS) {
-            std::string what = nextLoadingStep(step, assets, scene);
+            std::string what = nextLoadingStep(step, assets, minimap, scene);
             step++;
 
             float progress = static_cast<float>(step) / static_cast<float>(TOTAL_STEPS);
@@ -234,6 +247,10 @@ int main(int argc, char* argv[]) {
         }
 
         scene.draw();
+
+        minimap.draw(scene, gui, window);
+
+        shaders.use();
         gui.render(scene, window);
 
         window.display();

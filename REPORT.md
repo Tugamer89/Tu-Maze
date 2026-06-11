@@ -99,7 +99,16 @@ L'obiettivo di questa tappa è stato l'arricchimento e il perfezionamento dell'i
 
 ### Stage 10 (v0.11.x)
 
-In questa tappa viene creata la minimappa coem se fosse una camera esterna con shader "custom" per rendere la renderizzazione più veloce. Di conseguenza è stato modificato il nome delle shader precedenti.
+L'obiettivo di questa tappa è stata l'introduzione di una **minimappa** in sovraimpressione per agevolare l'orientamento del giocatore all'interno del labirinto, con un focus mirato sull'ottimizzazione prestazionale per evitare che un doppio *pass* di rendering impattasse troppo il framerate.
+
+Per raggiungere questo scopo sono state adottate diverse soluzioni architetturali:
+
+* **Shader Dedicato e Unlit**: È stata creata una telecamera ortografica dedicata ed è stato scritto un *Custom Shader* esclusivo per la minimappa (`minimap.vert/frag`). Questo programma bypassa volutamente i costosi calcoli di illuminazione (Phong) e campionamento delle texture, renderizzando la topologia geometrica tramite semplici colori solidi. Coerentemente con questa riorganizzazione, i vecchi shader generici sono stati rinominati (es. `phong.vert/frag` e `flat.vert/frag`).
+* **Ottimizzazione del Rendering (Distance Culling)**: Evitare di ridisegnare l'intero labirinto per ogni frame della minimappa era fondamentale. È stato implementato un sistema di scarto rapido che calcola la distanza radiale bidimensionale dal giocatore, processando e inviando alla GPU esclusivamente i nodi visibili all'interno dell'attuale livello di zoom della mappa.
+* **Anti-Aliasing Isolato (MSAA FBO)**: Per garantire una pulizia visiva (smussatura dei bordi) della minimappa senza forzare l'MSAA sull'intera scena tridimensionale (operazione estremamente costosa su schede video di fascia bassa), il rendering della minimappa avviene *off-screen* all'interno di un *Multisampled Framebuffer Object* (FBO). L'immagine finale viene poi fusa e trasferita sullo schermo (tramite blitting), ottenendo una UI definita a costo computazionale pressoché nullo.
+* **Integrazione e UI**: Le meccaniche di visualizzazione sono state interamente esposte nell'interfaccia utente (ImGui), permettendo al giocatore di regolare lo zoom e decidere se vincolare la rotazione della minimappa al "Nord Assoluto" o farla ruotare assecondando la visuale in prima persona.
+
+![Minimappa, stage 10](resources/screenshots/stage10.png)
 
 ## Crediti
 
@@ -110,6 +119,8 @@ Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, uti
 * **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata in maniera iterativa tramite stack come descritto nell'apposita [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
 * **Dal Mapping Triplanare al Box Mapping**: Inizialmente le texture venivano applicate tramite un approccio *Triplanar Mapping* (ispirato a [questo articolo](https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/)). Per risolvere severi colli di bottiglia prestazionali, l'approccio è stato convertito in un *Dominant-Axis Box Mapping*, un'ottimizzazione standard nei motori grafici basati su griglie ortogonali che proietta la texture su un singolo piano per evitare il costoso calcolo di interpolazione multi-asse. Maggiori dettagli su Wikipedia alla voce [Box Mapping](https://en.wikipedia.org/wiki/Texture_mapping#Box_mapping).
 * **Frustum Culling**: L'implementazione del culling spaziale per l'esclusione della geometria non visibile sfrutta l'estrazione dei sei piani del *frustum* (piramide di vista) a partire dalle matrici di vista e proiezione combinate. La logica matematica per il calcolo e il test delle intersezioni con i volumi delimitatori (*Axis-Aligned Bounding Box*, AABB) dei muri è stata sviluppata studiando e riadattando le architetture descritte negli articoli tecnici di [LearnOpenGL](https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling) e del blog [Bruop](https://bruop.github.io/frustum_culling/).
+* **Distance Culling 2D (Minimappa)**: A differenza del *Frustum Culling* tridimensionale, l'ottimizzazione implementata per la telecamera ortogonale dall'alto calcola la distanza euclidea al quadrato sul piano cartesiano XZ. Valutare la distanza ignorando il calcolo della radice quadrata (`sqrt`) garantisce cicli di *traversal* dell'albero di scena estremamente rapidi.
+* **Anti-Aliasing Frazionato (MSAA FBO)**: Per separare l'estetica nativa della GUI 2D da quella dell'engine 3D, è stato impiegato un render off-screen (*Framebuffer Object*) multisamplato pre-allocato esclusivamente per la Viewport della minimappa. L'immagine finale viene elaborata e impressa sul *Default Framebuffer* ricorrendo alla chiamata `glBlitFramebuffer`, la quale esegue contestualmente il *resolve* (downsampling) anti-alias dell'immagine limitando drasticamente i costi in VRAM.
 
 ### Codice esterno
 
