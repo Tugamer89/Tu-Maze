@@ -1,6 +1,9 @@
 .PHONY: all configure build run clean
 
-all: configure build run
+all: format configure build run
+
+format:
+	clang-format-15 -i src/*.cpp src/include/*.hh resources/shaders/*
 
 configure:
 	cmake -B build -DCMAKE_BUILD_TYPE=Release
