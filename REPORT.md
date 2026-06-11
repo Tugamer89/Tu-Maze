@@ -68,13 +68,14 @@ L'implementazione combinata di queste due tecniche (riduzione dei campionamenti 
 
 ### Stage 7 (v0.8.x)
 
-L'obiettivo principale è spostare la camera dentro al labirinto e creare i movimenti di un gioco in prima persona. Il calcolo delle matrici di vista è stato "automatizzato" tramite la funzione `glm::lookAt` per rendere il codice più pulito.
+L'obiettivo principale di questa tappa è stata l'implementazione delle meccaniche di navigazione in prima persona (FPS), collocando fisicamente la telecamera all'interno della geometria del labirinto. Dal punto di vista architetturale, la gestione delle rotazioni e delle traslazioni spaziali è stata rifattorizzata: il calcolo della *View Matrix* è stato automatizzato sfruttando la funzione `glm::lookAt`, garantendo un codice nettamente più pulito e manutenibile.
 
-È stato aggiunta alla GUI la posizione della luce ed è stata impostata la posizione di default come se fosse una torcia nella mano destra del giocatore.
+Il sistema di illuminazione è stato contestualmente aggiornato per assecondare la nuova prospettiva. La sorgente luminosa puntiforme è ora posizionata di default con un offset che simula una torcia impugnata nella mano destra del giocatore. Le coordinate spaziali di questa luce dinamica sono state inoltre esposte all'interno dell'interfaccia GUI, permettendone la manipolazione in tempo reale.
 
-Sono state fatte piccole ottimizzazioni come rimuovere la sincronizzazione verticale e l'antialiasing per rendere il gioco più fluido.
+Infine, il motore di rendering è stato bilanciato per favorire la fluidità e la qualità visiva in prospettiva:
 
-Aggiunto anche un filtro anisotropico adatto per rendere più "sharp" le texture distanti.
+* **Filtro Anisotropico**: È stato introdotto per contrastare la naturale perdita di dettaglio delle texture osservate con angolazioni oblique (situazione tipica dei lunghi corridoi in prima persona). Questa tecnica garantisce superfici distanti molto più nitide e leggibili.
+* **Micro-ottimizzazioni**: La sincronizzazione verticale (V-Sync) e l'Anti-Aliasing (AA) sono stati disabilitati di default. Questa scelta mira ad abbattere l'overhead computazionale, massimizzando gli FPS e garantendo un'esperienza di gioco estremamente fluida e reattiva.
 
 ## Crediti
 

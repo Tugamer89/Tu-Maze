@@ -127,9 +127,9 @@ cd ../Stage_02
 * **`Left Mouse Button` while dragging**: rotate the object.
 * **`Left Mouse Button` + `Left Alt` while dragging**: move the object.
 
-### Stage 6 (v0.7.x)
+### Stage 7 (v0.8.x)
 
-#### Keyboard Controls v0.7
+#### Keyboard Controls v0.8
 
 * **`Escape`**: Closes the application and shuts down the rendering loop immediately.
 * **`P`**: Use Phong shaders.
@@ -139,6 +139,6 @@ cd ../Stage_02
 * **`S`**: Move backward.
 * **`D`**: Move right.
 
-#### Mouse Controls v0.7
+#### Mouse Controls v0.8
 
 * **`Left Mouse Button` while dragging**: Move visual.
