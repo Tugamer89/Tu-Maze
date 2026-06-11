@@ -9,6 +9,7 @@
 #include "glad/gl.h"
 #endif
 
+#include "include/assetloader.hh"
 #include "include/camera.hh"
 #include "include/gpumesh.hh"
 #include "include/gui.hh"
@@ -46,6 +47,22 @@ const std::string wall_rough = "resources/textures/mossy_brick_rough_4k.png";
 const std::string floor_diff = "resources/textures/cobblestone_pavement_diff_4k.jpg";
 const std::string floor_norm = "resources/textures/cobblestone_pavement_nor_gl_4k.png";
 const std::string floor_rough = "resources/textures/cobblestone_pavement_rough_4k.png";
+
+////////////
+// Assets //
+////////////
+
+struct GameAssets {
+    // Textures
+    std::unique_ptr<Texture> wallDiff, wallNorm, wallRough;     // NOSONAR
+    std::unique_ptr<Texture> floorDiff, floorNorm, floorRough;  // NOSONAR
+    // Meshes
+    std::unique_ptr<GPUMesh> floorMesh, wallMesh, playerMesh;  // NOSONAR
+    // Materials
+    std::optional<Material> wallMat, floorMat;  // NOSONAR
+    // Gameplay
+    std::unique_ptr<Maze> maze;
+};
 
 ////////////////////
 // SFML Callbacks //
@@ -96,84 +113,12 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
     }
 }
 
-////////////////////
-// Loading Screen //
-////////////////////
-
-struct GameAssets {
-    // Textures
-    std::unique_ptr<Texture> wallDiff, wallNorm, wallRough;     // NOSONAR
-    std::unique_ptr<Texture> floorDiff, floorNorm, floorRough;  // NOSONAR
-    // Meshes
-    std::unique_ptr<GPUMesh> floorMesh, wallMesh, playerMesh;  // NOSONAR
-    // Materials
-    std::optional<Material> wallMat, floorMat;  // NOSONAR
-    // Gameplay
-    std::unique_ptr<Maze> maze;
-};
-
-std::string nextLoadingStep(int step, GameAssets& assets, Minimap& minimap, Scene& scene) {
-    switch (step) {
-        case 0:
-            assets.wallDiff = std::make_unique<Texture>(wall_diff, true);
-            return "mossy bricks texture";
-        case 1:
-            assets.wallNorm = std::make_unique<Texture>(wall_norm);
-            return "mossy bricks normals map";
-        case 2:
-            assets.wallRough = std::make_unique<Texture>(wall_rough);
-            return "mossy bricks roughness map";
-        case 3:
-            assets.floorDiff = std::make_unique<Texture>(floor_diff, true);
-            return "cobblestone pavement texture";
-        case 4:
-            assets.floorNorm = std::make_unique<Texture>(floor_norm);
-            return "cobblestone pavement normals map";
-        case 5:
-            assets.floorRough = std::make_unique<Texture>(floor_rough);
-            return "cobblestone pavement roughness map";
-        case 6:
-            assets.wallMesh = std::make_unique<GPUMesh>(wall_mesh);
-            return "wall mesh";
-        case 7:
-            assets.floorMesh = std::make_unique<GPUMesh>(floor_mesh);
-            return "floor mesh";
-        case 8:
-            assets.playerMesh = std::make_unique<GPUMesh>(player_marker_mesh);
-            return "player marker mesh";
-        case 9:
-            assets.wallMat =
-                Material{assets.wallDiff.get(), assets.wallNorm.get(), assets.wallRough.get()};
-            return "wall material";
-        case 10:
-            assets.floorMat =
-                Material{assets.floorDiff.get(), assets.floorNorm.get(), assets.floorRough.get()};
-            return "floor material";
-        case 11:
-            assets.maze = std::make_unique<Maze>(10, 10);
-            return "random maze";
-        case 12: {
-            Node mazeNode = assets.maze->populateSceneNode(
-                assets.floorMesh.get(), assets.wallMesh.get(), *assets.wallMat, *assets.floorMat);
-            scene.root.children.push_back(mazeNode);
-
-            scene.build_static_tree();
-            minimap.playerMesh = assets.playerMesh.get();
-        }
-            return "scene";
-
-        default:
-            return "something";
-    }
-}
-
 //////////
 // Main //
 //////////
 
 int main(int argc, char* argv[]) {
     //// Startup ////
-
     Setup setup;
     sf::Window& window = setup.window;
 
@@ -192,10 +137,50 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    //// Main Loop ////
+    //// Loading Setup ////
 
-    const int TOTAL_STEPS = 13;
-    int step = 0;
+    AssetLoader loader;
+
+    loader.addTask("mossy bricks texture",
+                   [&assets]() { assets.wallDiff = std::make_unique<Texture>(wall_diff, true); });
+    loader.addTask("mossy bricks normals map",
+                   [&assets]() { assets.wallNorm = std::make_unique<Texture>(wall_norm); });
+    loader.addTask("mossy bricks roughness map",
+                   [&assets]() { assets.wallRough = std::make_unique<Texture>(wall_rough); });
+
+    loader.addTask("cobblestone pavement texture",
+                   [&assets]() { assets.floorDiff = std::make_unique<Texture>(floor_diff, true); });
+    loader.addTask("cobblestone pavement normals map",
+                   [&assets]() { assets.floorNorm = std::make_unique<Texture>(floor_norm); });
+    loader.addTask("cobblestone pavement roughness map",
+                   [&assets]() { assets.floorRough = std::make_unique<Texture>(floor_rough); });
+
+    loader.addTask("wall mesh",
+                   [&assets]() { assets.wallMesh = std::make_unique<GPUMesh>(wall_mesh); });
+    loader.addTask("floor mesh",
+                   [&assets]() { assets.floorMesh = std::make_unique<GPUMesh>(floor_mesh); });
+    loader.addTask("player marker mesh", [&assets]() {
+        assets.playerMesh = std::make_unique<GPUMesh>(player_marker_mesh);
+    });
+
+    loader.addTask("materials", [&assets]() {
+        assets.wallMat =
+            Material{assets.wallDiff.get(), assets.wallNorm.get(), assets.wallRough.get()};
+        assets.floorMat =
+            Material{assets.floorDiff.get(), assets.floorNorm.get(), assets.floorRough.get()};
+    });
+
+    loader.addTask("random maze", [&assets]() { assets.maze = std::make_unique<Maze>(15, 15); });
+
+    loader.addTask("scene build", [&assets, &scene, &minimap]() {
+        Node mazeNode = assets.maze->populateSceneNode(
+            assets.floorMesh.get(), assets.wallMesh.get(), *assets.wallMat, *assets.floorMat);
+        scene.root.children.push_back(std::move(mazeNode));
+        scene.build_static_tree();
+        minimap.playerMesh = assets.playerMesh.get();
+    });
+
+    //// Main Loop ////
 
     sf::Clock deltaClock;
     bool running = true;
@@ -227,13 +212,9 @@ int main(int argc, char* argv[]) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (step < TOTAL_STEPS) {
-            std::string what = nextLoadingStep(step, assets, minimap, scene);
-            step++;
-
-            float progress = static_cast<float>(step) / static_cast<float>(TOTAL_STEPS);
-            gui.renderLoading(window, what, progress);
-
+        if (!loader.isFinished()) {
+            std::string what = loader.processNext();
+            gui.renderLoading(window, what, loader.getProgress());
             window.display();
             continue;
         }
@@ -247,9 +228,7 @@ int main(int argc, char* argv[]) {
         }
 
         scene.draw();
-
         minimap.draw(scene, gui, window);
-
         shaders.use();
         gui.render(scene, window);
 

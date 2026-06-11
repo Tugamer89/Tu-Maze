@@ -110,6 +110,18 @@ Per raggiungere questo scopo sono state adottate diverse soluzioni architettural
 
 ![Minimappa, stage 10](resources/screenshots/stage10.png)
 
+### Stage 11 (v0.12.x)
+
+L'obiettivo di questa tappa è stato il *refactoring* architetturale del sistema di inizializzazione degli asset, passando da una struttura rigida a una soluzione più moderna, dinamica ed efficiente in linea con gli standard del C++ moderno.
+
+La precedente logica della schermata di caricamento, basata su un esteso blocco `switch` vincolato a un contatore di step cablato a codice (*hardcoded*), è stata interamente sostituita introducendo una **Task Queue** basata sul [*Command Pattern*](https://en.wikipedia.org/wiki/Command_pattern). È stata implementata una classe dedicata (`AssetLoader`) che si occupa di gestire dinamicamente i caricamenti sfruttando espressioni *lambda* e `std::function`.
+
+Questa riorganizzazione ha portato evidenti vantaggi sotto il cofano:
+
+* **Decoupling Architetturale**: Il loop principale e l'interfaccia utente (che calcola dinamicamente la percentuale di completamento) sono ora totalmente slegati dall'identità dei singoli asset caricati. L'aggiunta di nuove texture o mesh non richiede più la modifica manuale della logica di progresso.
+* **Ottimizzazione della Memoria**: Sfruttando la semantica di spostamento (*move semantics* tramite `std::move`) nell'accodamento e nell'esecuzione dei task all'interno della `std::queue`, sono state eliminate copie superflue, garantendo un'occupazione di memoria strettamente necessaria e sicura.
+* **Scalabilità**: Questo sistema pone delle solide basi strutturali per le iterazioni future. Permetterà, ad esempio, di serializzare la coda di caricamento per istanziare livelli o biomi differenti partendo dalla lettura di file di configurazione esterni (es. formati JSON).
+
 ## Crediti
 
 Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente alla programmazione, specialmente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
