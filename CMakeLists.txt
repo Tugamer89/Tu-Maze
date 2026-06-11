@@ -151,7 +151,7 @@ endif()
 # Configure CPack variables
 set(CPACK_GENERATOR "ZIP")
 set(CPACK_PACKAGE_NAME "tu-maze")
-set(CPACK_PACKAGE_VERSION "0.11.0") # x-release-please-version
+set(CPACK_PACKAGE_VERSION "0.12.0") # x-release-please-version
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 
 include(CPack)

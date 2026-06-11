@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.11.0...v0.12.0) (2026-06-11)
+
+
+### Features
+
+* implement asset loading system with task queue for improved efficiency ([d5f6c77](https://github.com/Tugamer89/Tu-Maze/commit/d5f6c772ab9e21601ec2884c2d71a20a8eedba2c))
+
 ## [0.11.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.10.0...v0.11.0) (2026-06-11)
 
 
