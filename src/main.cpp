@@ -84,7 +84,6 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
         scene.camera.processMouseMovement(dx, -dy);
-        scene.camera.projection();
         scene.lights.position(scene.camera.inv_v);
     }
 }
@@ -231,7 +230,6 @@ int main(int argc, char* argv[]) {
             bool camera_moved = scene.camera.update(dt);
 
             if (camera_moved) {
-                scene.camera.projection();
                 scene.lights.position(scene.camera.inv_v);
             }
         }

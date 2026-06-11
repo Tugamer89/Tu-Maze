@@ -1,6 +1,7 @@
 #ifndef CAMERA_HH
 #define CAMERA_HH
 
+#include <array>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
@@ -19,6 +20,7 @@ class Camera {
     glm::mat4 v;
     glm::mat4 inv_v;
     glm::mat4 vp;
+    std::array<glm::vec4, 6> frustumPlanes;
 
    private:
     GLint camera_pos_loc;
@@ -66,6 +68,27 @@ class Camera {
         if (direction == RIGHT) position += flatRight * velocity;
     }
 
+    void updateFrustumPlanes() {
+        // Extract matrix rows (GLM is column-major, so we manually build the rows)
+        glm::vec4 row0(vp[0][0], vp[1][0], vp[2][0], vp[3][0]);
+        glm::vec4 row1(vp[0][1], vp[1][1], vp[2][1], vp[3][1]);
+        glm::vec4 row2(vp[0][2], vp[1][2], vp[2][2], vp[3][2]);
+        glm::vec4 row3(vp[0][3], vp[1][3], vp[2][3], vp[3][3]);
+
+        frustumPlanes[0] = row3 + row0;  // Left
+        frustumPlanes[1] = row3 - row0;  // Right
+        frustumPlanes[2] = row3 + row1;  // Bottom
+        frustumPlanes[3] = row3 - row1;  // Top
+        frustumPlanes[4] = row3 + row2;  // Near
+        frustumPlanes[5] = row3 - row2;  // Far
+
+        // Normalize the planes (only the normal XYZ part dictates the scale)
+        for (auto& plane : frustumPlanes) {
+            float length = glm::length(glm::vec3(plane));
+            plane /= length;
+        }
+    }
+
    public:
     explicit Camera(const Shaders& shaders) {
         updateCameraVectors();
@@ -101,10 +124,16 @@ class Camera {
             moved = true;
         }
 
+        if (moved) {
+            projection();
+        }
+
         return moved;
     }
 
     void processMouseMovement(float xoffset, float yoffset) {
+        if (xoffset == 0 && yoffset == 0) return;
+
         xoffset *= mouseSensitivity;
         yoffset *= mouseSensitivity;
 
@@ -116,6 +145,9 @@ class Camera {
 
         // Update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();
+
+        // Update the view and projection matrices
+        projection();
     }
 
     void projection() {
@@ -128,6 +160,9 @@ class Camera {
 
         // Compute VP matrix
         vp = pr * v;
+
+        // Update the frustum planes for culling
+        updateFrustumPlanes();
 
         // Update the camera position uniform in the shader
         glUniform3fv(camera_pos_loc, 1, &position[0]);

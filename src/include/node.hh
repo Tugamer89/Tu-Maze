@@ -1,6 +1,8 @@
 #ifndef NODE_HH
 #define NODE_HH
 
+#include <algorithm>
+#include <cmath>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <vector>
@@ -34,18 +36,45 @@ class Node {
     }
 
     // Recursively draw this node and all its children
-    void draw(GLint model_loc, GLint tr_inv_model_loc) const {
+    void draw(GLint model_loc, GLint tr_inv_model_loc,
+              const std::array<glm::vec4, 6>& frustumPlanes) const {
         if (mesh) {
-            glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
-            glUniformMatrix3fv(tr_inv_model_loc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+            // Transform center point to world space
+            glm::vec3 worldCenter(globalMatrix * glm::vec4(mesh->center, 1.0f));
 
-            material.bind();
-            mesh->draw();
+            // Magnitude squared of the transformed basis vectors gives us the squared scaling
+            // factors
+            float scaleX2 = glm::dot(glm::vec3(globalMatrix[0]), glm::vec3(globalMatrix[0]));
+            float scaleY2 = glm::dot(glm::vec3(globalMatrix[1]), glm::vec3(globalMatrix[1]));
+            float scaleZ2 = glm::dot(glm::vec3(globalMatrix[2]), glm::vec3(globalMatrix[2]));
+
+            // Approximate maximum local scaling to apply to the radius of the bounding sphere
+            float maxScale = std::sqrt(std::max({scaleX2, scaleY2, scaleZ2}));
+
+            float worldRadius = mesh->extent * maxScale;
+
+            bool insideFrustum = true;
+            for (const auto& plane : frustumPlanes) {
+                // Check distance against the normal of the plane
+                if (glm::dot(glm::vec3(plane), worldCenter) + plane.w < -worldRadius) {
+                    insideFrustum = false;  // Outside viewing area!
+                    break;
+                }
+            }
+
+            // Only draw if inside the field of view
+            if (insideFrustum) {
+                glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
+                glUniformMatrix3fv(tr_inv_model_loc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+                material.bind();
+                mesh->draw();
+            }
         }
 
         // Recursively draw all children passing our computed global matrix as their parent matrix
         for (const Node& child : children) {
-            child.draw(model_loc, tr_inv_model_loc);
+            child.draw(model_loc, tr_inv_model_loc, frustumPlanes);
         }
     }
 };

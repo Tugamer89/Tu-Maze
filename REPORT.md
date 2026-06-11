@@ -77,6 +77,12 @@ Infine, il motore di rendering è stato bilanciato per favorire la fluidità e l
 * **Filtro Anisotropico**: È stato introdotto per contrastare la naturale perdita di dettaglio delle texture osservate con angolazioni oblique (situazione tipica dei lunghi corridoi in prima persona). Questa tecnica garantisce superfici distanti molto più nitide e leggibili.
 * **Micro-ottimizzazioni**: La sincronizzazione verticale (V-Sync) e l'Anti-Aliasing (AA) sono stati disabilitati di default. Questa scelta mira ad abbattere l'overhead computazionale, massimizzando gli FPS e garantendo un'esperienza di gioco estremamente fluida e reattiva.
 
+### Stage 8 (v0.9.x)
+
+In questa tappa ci si è concentrati un'altra volta sul rendere la renderizzazione più leggera, specialmente per computer con basse prestazioni. Per fare questo è stato introdotto il *Frustum culling* e una nuova impostazione di qualità delle texture con il default detectato automaticamente in base alle "performance" del computer e le impostazioni vengono salvate localmente.
+
+L'implementazione del *Frustum culling* ha aumentato le prestazioni di circa **1.4x in termini di FPS** mediamente, con un aumento ben maggiore in scene in cui si vedono poche cose.
+
 ## Crediti
 
 Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
@@ -85,6 +91,7 @@ Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, uti
 
 * **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata in maniera iterativa tramite stack come descritto nell'apposita [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
 * **Dal Mapping Triplanare al Box Mapping**: Inizialmente le texture venivano applicate tramite un approccio *Triplanar Mapping* (ispirato a [questo articolo](https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/)). Per risolvere severi colli di bottiglia prestazionali, l'approccio è stato convertito in un *Dominant-Axis Box Mapping*, un'ottimizzazione standard nei motori grafici basati su griglie ortogonali che proietta la texture su un singolo piano per evitare il costoso calcolo di interpolazione multi-asse. Maggiori dettagli su Wikipedia alla voce [Box Mapping](https://en.wikipedia.org/wiki/Texture_mapping#Box_mapping).
+* **Frustum Culling**: È stato considerato l'algoritmo presente su [questo sito](https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling) e su [quest'altro](https://bruop.github.io/frustum_culling/).
 
 ### Codice esterno
 
