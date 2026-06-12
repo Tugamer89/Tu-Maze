@@ -155,10 +155,6 @@ int main(int argc, char* argv[]) {
     loader.addTask("cobblestone pavement roughness map",
                    [&assets]() { assets.floorRough = std::make_unique<Texture>(floor_rough); });
 
-    loader.addTask("wall mesh",
-                   [&assets]() { assets.wallMesh = std::make_unique<GPUMesh>(wall_mesh); });
-    loader.addTask("floor mesh",
-                   [&assets]() { assets.floorMesh = std::make_unique<GPUMesh>(floor_mesh); });
     loader.addTask("player marker mesh", [&assets]() {
         assets.playerMesh = std::make_unique<GPUMesh>(player_marker_mesh);
     });
@@ -173,10 +169,21 @@ int main(int argc, char* argv[]) {
     loader.addTask("random maze", [&assets]() { assets.maze = std::make_unique<Maze>(15, 15); });
 
     loader.addTask("scene build", [&assets, &scene, &minimap]() {
+        Mesh cpuFloor(floor_mesh);
+        Mesh cpuWall(wall_mesh);
+
+        GPUMesh* batchedWalls = nullptr;
+        GPUMesh* batchedFloors = nullptr;
+
         Node mazeNode = assets.maze->populateSceneNode(
-            assets.floorMesh.get(), assets.wallMesh.get(), *assets.wallMat, *assets.floorMat);
+            cpuFloor, cpuWall, *assets.wallMat, *assets.floorMat, batchedWalls, batchedFloors);
+
+        assets.wallMesh.reset(batchedWalls);
+        assets.floorMesh.reset(batchedFloors);
+
         scene.root.children.push_back(std::move(mazeNode));
         scene.build_static_tree();
+
         minimap.playerMesh = assets.playerMesh.get();
     });
 

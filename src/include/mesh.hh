@@ -7,6 +7,7 @@
 #include <fstream>
 #include <glm/ext/vector_uint3.hpp>
 #include <glm/geometric.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/vec3.hpp>
 #include <iostream>
 #include <sstream>
@@ -24,6 +25,8 @@ class Mesh {
     std::vector<glm::uvec3> triangles = {};
 
    public:
+    Mesh() = default;
+
     explicit Mesh(const std::string& filename) {
         std::ifstream file(filename);
 
@@ -104,6 +107,30 @@ class Mesh {
 
         compute_scale();
         compute_normals();
+    }
+
+    void appendTransformed(const Mesh& source, const glm::mat4& transform) {
+        auto indexOffset = static_cast<unsigned int>(this->vertices.size());
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+
+        this->vertices.reserve(this->vertices.size() + source.vertices.size());
+        this->normals.reserve(this->normals.size() + source.normals.size());
+        this->triangles.reserve(this->triangles.size() + source.triangles.size());
+
+        for (const auto& v : source.vertices) {
+            glm::vec4 worldPos = transform * glm::vec4(v, 1.0f);
+            this->vertices.push_back(glm::vec3(worldPos));
+        }
+
+        for (const auto& n : source.normals) {
+            glm::vec3 worldNormal = normalMatrix * n;
+            this->normals.push_back(glm::normalize(worldNormal));
+        }
+
+        for (const auto& t : source.triangles) {
+            this->triangles.push_back(
+                glm::uvec3(t[0] + indexOffset, t[1] + indexOffset, t[2] + indexOffset));
+        }
     }
 
     void pack4gpu(std::vector<float>& points, std::vector<unsigned int>& indices) {

@@ -29,6 +29,12 @@ class GPUMesh {
    public:
     explicit GPUMesh(const std::string& filename) { load(filename); }
 
+    explicit GPUMesh(Mesh& cpuMesh)
+        : center(cpuMesh.center), extent(cpuMesh.extent), initialized(true) {
+        cpuMesh.pack4gpu(points, indices);
+        send_arrays_2a3f();
+    }
+
     ~GPUMesh() { clean(); }
 
     GPUMesh(const GPUMesh&) = delete;

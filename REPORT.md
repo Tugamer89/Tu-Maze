@@ -122,9 +122,17 @@ Questa riorganizzazione ha portato evidenti vantaggi sotto il cofano:
 * **Ottimizzazione della Memoria**: Sfruttando la semantica di spostamento (*move semantics* tramite `std::move`) nell'accodamento e nell'esecuzione dei task all'interno della `std::queue`, sono state eliminate copie superflue, garantendo un'occupazione di memoria strettamente necessaria e sicura.
 * **Scalabilità**: Questo sistema pone delle solide basi strutturali per le iterazioni future. Permetterà, ad esempio, di serializzare la coda di caricamento per istanziare livelli o biomi differenti partendo dalla lettura di file di configurazione esterni (es. formati JSON).
 
+### Stage 12 (v0.13.x)
+
+L'obiettivo di questa tappa è stato un radicale intervento di ottimizzazione architetturale mirato a minimizzare il sovraccarico della CPU durante il rendering della geometria statica.
+
+La struttura dello Scene Graph del labirinto è stata rivoluzionata implementando una tecnica di **Static Batching** (o *Mesh Merging*). In precedenza, la scena era composta da un nodo distinto per ogni singolo elemento della griglia ($N$ muri e $M$ celle calpestabili), il che costringeva l'applicazione a generare migliaia di *Draw Calls* individuali per ogni fotogramma. Con la nuova architettura, l'intera geometria viene analizzata in fase di inizializzazione e "fusa" matematicamente via software: tutti i vertici e le matrici dei muri vengono accorpati in un'unica enorme *mesh*, e lo stesso avviene per i pavimenti.
+
+Il risultato è un grafo estremamente snello che delega il rendering dell'intero labirinto a sole due *Draw Calls* globali. Spostando il carico computazionale interamente sulla GPU, il motore grafico ha registrato un salto prestazionale eccezionale, con un incremento di FPS di oltre 5 volte rispetto alle versioni precedenti.
+
 ## Crediti
 
-Lo sviluppo è stato supportato da **[Gemini](https://gemini.google.com/)**, utilizzato per la correzione e il miglioramento di testi e commenti (sia nel codice che nella documentazione), oltre che come assistente alla programmazione, specialmente per velocizzare la risoluzione di *Code Smells* e altre *Issue* architetturali segnalate da **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
+Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
 
 ### Soluzioni tecniche
 

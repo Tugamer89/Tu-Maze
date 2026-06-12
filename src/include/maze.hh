@@ -18,6 +18,7 @@
 #include "gpumesh.hh"
 #include "material.hh"
 #include "matrices.hh"
+#include "mesh.hh"
 #include "node.hh"
 
 struct Cell {
@@ -41,8 +42,9 @@ class Maze {
         generate();
     }
 
-    Node populateSceneNode(GPUMesh* floorMesh, GPUMesh* wallMesh, const Material& wallMat,
-                           const Material& floorMat) const {
+    Node populateSceneNode(const Mesh& baseFloorMesh, const Mesh& baseWallMesh,
+                           const Material& wallMat, const Material& floorMat,
+                           GPUMesh*& outBatchedWalls, GPUMesh*& outBatchedFloors) const {
         const float cellSize = 1.0f;
         const float wallThickness = 0.1f;
         const float wallHeight = 1.0f;
@@ -51,53 +53,63 @@ class Maze {
         const float offsetX = (static_cast<float>(width) * cellSize) * 0.5f;
         const float offsetZ = (static_cast<float>(height) * cellSize) * 0.5f;
 
-        Node mazeRoot;
-
-        auto addWall = [&wallMesh, &wallHeight, &wallMat](Node& parent, float tx, float tz,
-                                                          float sx, float sz) {
-            Node wallNode;
-            wallNode.mesh = wallMesh;
-            wallNode.material = wallMat;
-            wallNode.is_wall = true;
-            glm::mat4 local = glm::translate(glm::mat4(1.0f), glm::vec3(tx, 0.0f, tz));
-            wallNode.localMatrix = glm::scale(local, glm::vec3(sx, wallHeight, sz));
-            parent.children.push_back(std::move(wallNode));
-        };
+        Mesh combinedWalls;
+        Mesh combinedFloors;
 
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 const Cell& cell = grid[y * width + x];
 
-                // Create a parent node for this specific cell
-                Node cellNode;
-                // Center the cell relative to the origin
-                cellNode.localMatrix = glm::translate(
-                    glm::mat4(1.0f),
-                    glm::vec3((static_cast<float>(x) * cellSize) - offsetX + (cellSize * 0.5f),
-                              0.0f,
-                              (static_cast<float>(y) * cellSize) - offsetZ + (cellSize * 0.5f)));
+                float cx = (static_cast<float>(x) * cellSize) - offsetX + (cellSize * 0.5f);
+                float cz = (static_cast<float>(y) * cellSize) - offsetZ + (cellSize * 0.5f);
+                glm::mat4 cellTransform = glm::translate(glm::mat4(1.0f), glm::vec3(cx, 0.0f, cz));
 
-                // Add Floor (Relative to the cell, so Identity matrix)
-                Node floorNode;
-                floorNode.mesh = floorMesh;
-                floorNode.material = floorMat;
-                cellNode.children.push_back(std::move(floorNode));
+                // Add Floor
+                combinedFloors.appendTransformed(baseFloorMesh, cellTransform);
 
                 float wallLen = cellSize + wallThickness;
 
-                // Add Walls (Relative to the cell)
-                if (cell.wallTop && y == 0)
-                    addWall(cellNode, 0.0f, -cellSize / 2.0f, wallLen, wallThickness);
-                if (cell.wallBottom)
-                    addWall(cellNode, 0.0f, cellSize / 2.0f, wallLen, wallThickness);
-                if (cell.wallLeft && x == 0)
-                    addWall(cellNode, -cellSize / 2.0f, 0.0f, wallThickness, wallLen);
-                if (cell.wallRight)
-                    addWall(cellNode, cellSize / 2.0f, 0.0f, wallThickness, wallLen);
+                auto addWall = [&](float tx, float tz, float sx, float sz) {
+                    glm::mat4 local = glm::translate(glm::mat4(1.0f), glm::vec3(tx, 0.0f, tz));
+                    local = glm::scale(local, glm::vec3(sx, wallHeight, sz));
 
-                mazeRoot.children.push_back(std::move(cellNode));
+                    glm::mat4 globalTransform = cellTransform * local;
+                    combinedWalls.appendTransformed(baseWallMesh, globalTransform);
+                };
+
+                // Add Walls
+                if (cell.wallTop && y == 0) addWall(0.0f, -cellSize / 2.0f, wallLen, wallThickness);
+                if (cell.wallBottom) addWall(0.0f, cellSize / 2.0f, wallLen, wallThickness);
+                if (cell.wallLeft && x == 0)
+                    addWall(-cellSize / 2.0f, 0.0f, wallThickness, wallLen);
+                if (cell.wallRight) addWall(cellSize / 2.0f, 0.0f, wallThickness, wallLen);
             }
         }
+
+        // New Bounds
+        combinedWalls.compute_scale();
+        combinedFloors.compute_scale();
+
+        outBatchedWalls = new GPUMesh(combinedWalls);
+        outBatchedFloors = new GPUMesh(combinedFloors);
+
+        Node mazeRoot;
+
+        // Global Walls Node
+        Node wallsNode;
+        wallsNode.mesh = outBatchedWalls;
+        wallsNode.material = wallMat;
+        wallsNode.is_wall = true;
+
+        // Global Floors Node
+        Node floorsNode;
+        floorsNode.mesh = outBatchedFloors;
+        floorsNode.material = floorMat;
+        floorsNode.is_wall = false;
+
+        mazeRoot.children.push_back(std::move(wallsNode));
+        mazeRoot.children.push_back(std::move(floorsNode));
+
         return mazeRoot;
     }
 
