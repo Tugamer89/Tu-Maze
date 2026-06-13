@@ -172,9 +172,6 @@ int main(int argc, char* argv[]) {
         Mesh cpuFloor(floor_mesh);
         Mesh cpuWall(wall_mesh);
 
-        GPUMesh* batchedWalls = nullptr;
-        GPUMesh* batchedFloors = nullptr;
-
         Node mazeNode =
             assets.maze->populateSceneNode(cpuFloor, cpuWall, *assets.wallMat, *assets.floorMat,
                                            assets.wallMesh, assets.floorMesh);
