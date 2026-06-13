@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.12.0...v0.13.0) (2026-06-13)
+
+
+### Features
+
+* add SonarLint configuration for connected mode project ([fbd2e2c](https://github.com/Tugamer89/Tu-Maze/commit/fbd2e2cb804cafc7820745b48fd3ef36241b96ea))
+* optimize maze rendering by implementing static batching and enhancing mesh handling ([85525c7](https://github.com/Tugamer89/Tu-Maze/commit/85525c7ce1641682cd5c54f53aae9b85bd7df3cc))
+
+
+### Code Refactoring
+
+* improve memory management and safety in GPUMesh, Shaders and Maze classes ([49660f4](https://github.com/Tugamer89/Tu-Maze/commit/49660f4f58ddfd5a16a9c553c94169f58b92a615))
+* remove unused GPUMesh pointers ([2902ff0](https://github.com/Tugamer89/Tu-Maze/commit/2902ff00fc37fae050addc498965addf79f8371b))
+
 ## [0.12.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.11.0...v0.12.0) (2026-06-11)
 
 
