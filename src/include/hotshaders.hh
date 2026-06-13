@@ -7,6 +7,11 @@
 #include <iostream>
 #include <string>
 
+#ifndef GLAD_GL_IMPLEMENTATION
+#define GLAD_GL_IMPLEMENTATION
+#include "../glad/gl.h"
+#endif
+
 // returns a C++ string loaded with the contents of a whole file
 inline std::string read_file(const std::string& filename) {
     // open file
@@ -50,7 +55,7 @@ inline std::string getInfoLog(GLuint object, GetIvFunc get_iv, GetInfoLogFunc ge
 
 class Shaders {
    public:
-    GLuint program;
+    GLuint program = 0;
 
     Shaders() { load(); }
 
@@ -61,7 +66,7 @@ class Shaders {
     ~Shaders() { clean(); }
 
     Shaders(const Shaders&) = delete;
-    Shaders& operator=(Shaders&&) = delete;
+    Shaders& operator=(const Shaders&) = delete;
 
     void load() {
         const char* vertex_source =
@@ -94,7 +99,12 @@ class Shaders {
         }
     }
 
-    void clean() const { glDeleteProgram(program); }
+    void clean() {
+        if (program != 0) {
+            glDeleteProgram(program);
+            program = 0;
+        }
+    }
 
     void reload(const std::string& vertex_file, const std::string& fragment_file) {
         clean();
@@ -104,16 +114,15 @@ class Shaders {
     bool compile_attach_link(const char** vertex_source_ptr, const char** fragment_source_ptr) {
         int params = false;
 
-        // copmile vertex shader
+        // compile vertex shader
         GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex, 1, vertex_source_ptr, nullptr);
         glCompileShader(vertex);
-        // check for errors
-        params = -1;
         glGetShaderiv(vertex, GL_COMPILE_STATUS, &params);
         if (!params) {
             std::cerr << "Error compiling vertex shader: "
                       << getInfoLog(vertex, glGetShaderiv, glGetShaderInfoLog) << std::endl;
+            glDeleteShader(vertex);
             return false;
         }
 
@@ -121,11 +130,12 @@ class Shaders {
         GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment, 1, fragment_source_ptr, nullptr);
         glCompileShader(fragment);
-        // check for errors
         glGetShaderiv(fragment, GL_COMPILE_STATUS, &params);
         if (!params) {
             std::cerr << "Error compiling fragment shader: "
                       << getInfoLog(fragment, glGetShaderiv, glGetShaderInfoLog) << std::endl;
+            glDeleteShader(vertex);    // Clean up vertex
+            glDeleteShader(fragment);  // Clean up fragment
             return false;
         }
 
@@ -134,17 +144,21 @@ class Shaders {
         glAttachShader(program, fragment);
         glAttachShader(program, vertex);
         glLinkProgram(program);
-        // check for errors
+
+        // Check for link errors
         glGetProgramiv(program, GL_LINK_STATUS, &params);
+
+        // Once shaders are linked (or failed to link), they can be deleted from intermediate memory
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+
         if (!params) {
             std::cerr << "Error linking shaders: "
                       << getInfoLog(program, glGetProgramiv, glGetProgramInfoLog) << std::endl;
+            glDeleteProgram(program);
+            program = 0;
             return false;
         }
-
-        // once shaders are attached, they can be deleted to free up memory
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
 
         return true;
     }

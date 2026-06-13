@@ -3,16 +3,17 @@
 
 #include <algorithm>
 #include <array>
-#include <ctime>
+#include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <memory>
 #include <random>
 #include <stack>
 #include <vector>
 
 #ifndef GLAD_GL_IMPLEMENTATION
 #define GLAD_GL_IMPLEMENTATION
-#include "glad/gl.h"
+#include "../glad/gl.h"
 #endif
 
 #include "gpumesh.hh"
@@ -44,7 +45,8 @@ class Maze {
 
     Node populateSceneNode(const Mesh& baseFloorMesh, const Mesh& baseWallMesh,
                            const Material& wallMat, const Material& floorMat,
-                           GPUMesh*& outBatchedWalls, GPUMesh*& outBatchedFloors) const {
+                           std::unique_ptr<GPUMesh>& outBatchedWalls,
+                           std::unique_ptr<GPUMesh>& outBatchedFloors) const {
         const float cellSize = 1.0f;
         const float wallThickness = 0.1f;
         const float wallHeight = 1.0f;
@@ -90,20 +92,21 @@ class Maze {
         combinedWalls.compute_scale();
         combinedFloors.compute_scale();
 
-        outBatchedWalls = new GPUMesh(combinedWalls);
-        outBatchedFloors = new GPUMesh(combinedFloors);
+        // Instantiate using memory-safe unique pointers
+        outBatchedWalls = std::make_unique<GPUMesh>(combinedWalls);
+        outBatchedFloors = std::make_unique<GPUMesh>(combinedFloors);
 
         Node mazeRoot;
 
         // Global Walls Node
         Node wallsNode;
-        wallsNode.mesh = outBatchedWalls;
+        wallsNode.mesh = outBatchedWalls.get();
         wallsNode.material = wallMat;
         wallsNode.is_wall = true;
 
         // Global Floors Node
         Node floorsNode;
-        floorsNode.mesh = outBatchedFloors;
+        floorsNode.mesh = outBatchedFloors.get();
         floorsNode.material = floorMat;
         floorsNode.is_wall = false;
 

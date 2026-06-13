@@ -175,11 +175,9 @@ int main(int argc, char* argv[]) {
         GPUMesh* batchedWalls = nullptr;
         GPUMesh* batchedFloors = nullptr;
 
-        Node mazeNode = assets.maze->populateSceneNode(
-            cpuFloor, cpuWall, *assets.wallMat, *assets.floorMat, batchedWalls, batchedFloors);
-
-        assets.wallMesh.reset(batchedWalls);
-        assets.floorMesh.reset(batchedFloors);
+        Node mazeNode =
+            assets.maze->populateSceneNode(cpuFloor, cpuWall, *assets.wallMat, *assets.floorMat,
+                                           assets.wallMesh, assets.floorMesh);
 
         scene.root.children.push_back(std::move(mazeNode));
         scene.build_static_tree();

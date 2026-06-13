@@ -141,6 +141,9 @@ class Minimap {
     Minimap(const std::string& vert_path, const std::string& frag_path)
         : shaders(vert_path, frag_path) {}
 
+    Minimap(const Minimap&) = delete;
+    Minimap& operator=(const Minimap&) = delete;
+
     ~Minimap() {
         if (fbo != 0) glDeleteFramebuffers(1, &fbo);
         if (rboColor != 0) glDeleteRenderbuffers(1, &rboColor);
