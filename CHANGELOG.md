@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.14.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.13.0...v0.14.0) (2026-06-14)
+
+
+### Features
+
+* enhance build system with cross-compilation support for Windows ([fde10b9](https://github.com/Tugamer89/Tu-Maze/commit/fde10b92baa6dfbb2f54a3c537c89bf0b669457d))
+
+
+### Bug Fixes
+
+* ensure keyboard capture only when window is focused ([66fd319](https://github.com/Tugamer89/Tu-Maze/commit/66fd319bf1058bdf723cf1629b024a1ab7f62b2d)), closes [#15](https://github.com/Tugamer89/Tu-Maze/issues/15)
+* initialize GPUMesh in constructor for better safety ([65ee23e](https://github.com/Tugamer89/Tu-Maze/commit/65ee23e8e3dce4ff43b5962b122a496b4153dc47))
+* MSAA handling in GUI and Minimap ([5f20149](https://github.com/Tugamer89/Tu-Maze/commit/5f201499ecbd64e911a8929fd7f7cb82669b6a09)), closes [#14](https://github.com/Tugamer89/Tu-Maze/issues/14)
+
+
+### Documentation
+
+* remove cloning instructions from README.md for clarity ([1a2d918](https://github.com/Tugamer89/Tu-Maze/commit/1a2d91842678b61e74c47a09ae1cdc8e66020344))
+* updated REPORT.md to stage 13 ([b30b74f](https://github.com/Tugamer89/Tu-Maze/commit/b30b74f74adcd58b16dd157bcd743b98bf38a442))
+
 ## [0.13.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.12.0...v0.13.0) (2026-06-13)
 
 
