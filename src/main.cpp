@@ -134,8 +134,7 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
 // Asset Loading //
 ///////////////////
 
-void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap,
-                          const std::function<void()>& regenerateMaze) {
+void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap) {
     loader.addTask("mossy bricks texture",
                    [&assets]() { assets.wallDiff = std::make_unique<Texture>(wall_diff, true); });
     loader.addTask("mossy bricks normals map",
@@ -187,15 +186,12 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
             .ambient_color = {0.3f, 1.0f, 0.4f},
             .specular_color = {1.0f, 1.0f, 1.0f},
             .shininess = 128.0f,
+            .alpha = 0.4f,
             .use_textures = false,
         };
     });
 
-    loader.addTask("random maze", [&assets]() { assets.maze = std::make_unique<Maze>(15, 15); });
-
-    loader.addTask("scene build", [&assets, &scene, &minimap, regenerateMaze]() {
-        regenerateMaze();
-
+    loader.addTask("scene build", [&assets, &scene, &minimap]() {
         scene.goalNode.mesh = assets.goalMesh.get();
         scene.goalNode.material = *assets.goalMat;
         scene.goalNode.is_goal = true;
@@ -246,7 +242,7 @@ int main(int argc, char* argv[]) {
 
     //// Loading Setup ////
     AssetLoader loader;
-    register_asset_tasks(loader, assets, scene, minimap, regenerateMaze);
+    register_asset_tasks(loader, assets, scene, minimap);
 
     //// Main Loop ////
     sf::Clock deltaClock;
