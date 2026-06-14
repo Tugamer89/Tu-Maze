@@ -49,6 +49,7 @@ class Scene {
         mat_locs.ambient_loc = glGetUniformLocation(shaders.program, "material.ambient");
         mat_locs.specular_loc = glGetUniformLocation(shaders.program, "material.specular");
         mat_locs.shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
+        mat_locs.alpha_loc = glGetUniformLocation(shaders.program, "material.alpha");
 
         mat_locs.use_textures_loc = glGetUniformLocation(shaders.program, "useTextures");
 

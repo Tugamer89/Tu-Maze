@@ -15,6 +15,7 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    float alpha;
 };
 uniform Material material;
 
@@ -42,6 +43,7 @@ void main() {
 
     vec3 albedo;
     float roughness;
+    float final_alpha = material.alpha;
 
     if (useTextures == 1) {
         // --- BOX MAPPING ---
@@ -60,6 +62,7 @@ void main() {
 
         albedo = texture(diffuseMap, uv).rgb;
         roughness = texture(roughnessMap, uv).r;
+        final_alpha *= texture(diffuseMap, uv).a;
     } else {
         // --- SOLID COLOR MODE ---
         albedo = vec3(1.0);
@@ -88,5 +91,5 @@ void main() {
     // Gamma correction
     result = pow(result, vec3(1.0 / 2.2));
 
-    fragment_color = clamp4(vec4(result, 1.0));
+    fragment_color = clamp4(vec4(result, final_alpha));
 }

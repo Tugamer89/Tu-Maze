@@ -15,6 +15,7 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    float alpha;
 };
 uniform Material material;
 
@@ -40,6 +41,7 @@ void main() {
     vec3 albedo;
     float roughness;
     vec3 final_normal;
+    float final_alpha = material.alpha;
 
     if (useTextures == 1) {
         // --- BOX MAPPING ---
@@ -63,6 +65,7 @@ void main() {
         // Single sample per texture
         albedo = texture(diffuseMap, uv).rgb;
         roughness = texture(roughnessMap, uv).r;
+        final_alpha *= texture(diffuseMap, uv).a;
         vec3 tnorm = texture(normalMap, uv).rgb * 2.0 - 1.0;
 
         vec3 axis_sign = sign(flat_normal);
@@ -110,5 +113,5 @@ void main() {
     // Gamma correction
     result = pow(result, vec3(1.0 / 2.2));
 
-    fragment_color = vec4(result, 1.0);
+    fragment_color = vec4(result, final_alpha);
 }
