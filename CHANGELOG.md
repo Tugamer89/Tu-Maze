@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.15.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.14.0...v0.15.0) (2026-06-14)
+
+
+### Features
+
+* **graphics:** implement per-object materials and gloomy dungeon lighting ([e3708b8](https://github.com/Tugamer89/Tu-Maze/commit/e3708b886ff879f5ef94b9e0647c69f436129949))
+
+
+### Bug Fixes
+
+* **lights:** adjust light color values for better ambiance ([e1f82c8](https://github.com/Tugamer89/Tu-Maze/commit/e1f82c8adcc640aca5cd614947b47d104b10b6dc))
+* update SARIF filter patterns to exclude additional directories ([5463cd6](https://github.com/Tugamer89/Tu-Maze/commit/5463cd6bfea523e26eb4de4f9e10ef50871a20be))
+
+
+### Code Refactoring
+
+* **main:** remove commented code for clarity ([c8a3919](https://github.com/Tugamer89/Tu-Maze/commit/c8a3919e9963d67e679bb605d2cb28f94a8f297a))
+
+
+### Documentation
+
+* **report:** add Stage 14 section for upcoming features and improvements ([d3fab65](https://github.com/Tugamer89/Tu-Maze/commit/d3fab65806e573888407f618ac284a96b80ad609))
+
 ## [0.14.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.13.0...v0.14.0) (2026-06-14)
 
 
