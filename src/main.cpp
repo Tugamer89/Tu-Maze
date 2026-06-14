@@ -55,12 +55,28 @@ const std::string floor_rough = "resources/textures/cobblestone_pavement_rough_4
 
 struct GameAssets {
     // Textures
-    std::unique_ptr<Texture> wallDiff, wallNorm, wallRough;     // NOSONAR
-    std::unique_ptr<Texture> floorDiff, floorNorm, floorRough;  // NOSONAR
+    std::unique_ptr<Texture> wallDiff;
+    std::unique_ptr<Texture> wallNorm;
+    std::unique_ptr<Texture> wallRough;
+    std::unique_ptr<Texture> floorDiff;
+    std::unique_ptr<Texture> floorNorm;
+    std::unique_ptr<Texture> floorRough;
+
+    // Base CPU Meshes
+    std::unique_ptr<Mesh> baseCpuFloor;
+    std::unique_ptr<Mesh> baseCpuWall;
+
     // Meshes
-    std::unique_ptr<GPUMesh> floorMesh, wallMesh, playerMesh, goalMesh;  // NOSONAR
+    std::unique_ptr<GPUMesh> floorMesh;
+    std::unique_ptr<GPUMesh> wallMesh;
+    std::unique_ptr<GPUMesh> playerMesh;
+    std::unique_ptr<GPUMesh> goalMesh;
+
     // Materials
-    std::optional<Material> wallMat, floorMat, goalMat;  // NOSONAR
+    std::optional<Material> wallMat;
+    std::optional<Material> floorMat;
+    std::optional<Material> goalMat;
+
     // Gameplay
     std::unique_ptr<Maze> maze;
 };
@@ -118,7 +134,8 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
 // Asset Loading //
 ///////////////////
 
-void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap) {
+void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap,
+                          const std::function<void()>& regenerateMaze) {
     loader.addTask("mossy bricks texture",
                    [&assets]() { assets.wallDiff = std::make_unique<Texture>(wall_diff, true); });
     loader.addTask("mossy bricks normals map",
@@ -133,12 +150,12 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
     loader.addTask("cobblestone pavement roughness map",
                    [&assets]() { assets.floorRough = std::make_unique<Texture>(floor_rough); });
 
-    loader.addTask("player marker mesh", [&assets]() {
+    loader.addTask("world meshes", [&assets]() {
+        assets.baseCpuFloor = std::make_unique<Mesh>(floor_mesh);
+        assets.baseCpuWall = std::make_unique<Mesh>(wall_mesh);
         assets.playerMesh = std::make_unique<GPUMesh>(player_marker_mesh);
+        assets.goalMesh = std::make_unique<GPUMesh>(goal_marker_mesh);
     });
-
-    loader.addTask("goal marker mesh",
-                   [&assets]() { assets.goalMesh = std::make_unique<GPUMesh>(goal_marker_mesh); });
 
     loader.addTask("wall material", [&assets]() {
         assets.wallMat = Material{
@@ -176,21 +193,13 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
 
     loader.addTask("random maze", [&assets]() { assets.maze = std::make_unique<Maze>(15, 15); });
 
-    loader.addTask("scene build", [&assets, &scene, &minimap]() {
-        Mesh cpuFloor(floor_mesh);
-        Mesh cpuWall(wall_mesh);
-
-        Node mazeNode =
-            assets.maze->populateSceneNode(cpuFloor, cpuWall, *assets.wallMat, *assets.floorMat,
-                                           assets.wallMesh, assets.floorMesh);
-
-        scene.root.children.push_back(std::move(mazeNode));
+    loader.addTask("scene build", [&assets, &scene, &minimap, regenerateMaze]() {
+        regenerateMaze();
 
         scene.goalNode.mesh = assets.goalMesh.get();
         scene.goalNode.material = *assets.goalMat;
         scene.goalNode.is_goal = true;
-
-        scene.build_static_tree();
+        scene.goalNode.updateTransforms();
 
         minimap.playerMesh = assets.playerMesh.get();
     });
@@ -223,16 +232,29 @@ int main(int argc, char* argv[]) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    auto regenerateMaze = [&scene, &assets]() {
+        scene.root.children.clear();
+
+        assets.maze = std::make_unique<Maze>(15, 15);
+        Node mazeNode = assets.maze->populateSceneNode(*assets.baseCpuFloor, *assets.baseCpuWall,
+                                                       *assets.wallMat, *assets.floorMat,
+                                                       assets.wallMesh, assets.floorMesh);
+
+        scene.root.children.push_back(std::move(mazeNode));
+        scene.build_static_tree();
+    };
+
     //// Loading Setup ////
     AssetLoader loader;
-    register_asset_tasks(loader, assets, scene, minimap);
+    register_asset_tasks(loader, assets, scene, minimap, regenerateMaze);
 
     //// Main Loop ////
     sf::Clock deltaClock;
     bool running = true;
     bool game_initialized = false;
 
-    auto restartGame = [&scene, &assets, &gui]() {
+    auto restartGame = [&scene, &assets, &gui, regenerateMaze]() {
+        regenerateMaze();
         scene.camera.setPosition(assets.maze->getStartWorldPosition());
         scene.camera.setYaw(135.0f);  // Face inward towards the bottom-left
         scene.camera.setPitch(0.0f);

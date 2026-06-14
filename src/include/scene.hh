@@ -72,7 +72,7 @@ class Scene {
     void update_gameplay(sf::Time dt, const glm::vec3& goalWorldPos) {
         static float bobAngle = 0.0f;
         static float rotAngle = 0.0f;
-        const float TWO_PI = 6.2831853f;
+        const float TWO_PI = 2.0f * glm::pi<float>();
 
         bobAngle += dt.asSeconds() * 3.0f;
         rotAngle += dt.asSeconds() * 2.0f;
@@ -84,7 +84,7 @@ class Scene {
         glm::mat4 goalTransform = glm::translate(
             glm::mat4(1.0f), goalWorldPos + glm::vec3(0.0f, std::sin(bobAngle) * 0.1f, 0.0f));
         goalTransform = glm::rotate(goalTransform, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-        goalTransform = glm::scale(goalTransform, glm::vec3(0.5f));
+        goalTransform = glm::scale(goalTransform, glm::vec3(0.4f));
 
         goalNode.localMatrix = goalTransform;
         goalNode.updateTransforms();  // Apply rotation/position safely
