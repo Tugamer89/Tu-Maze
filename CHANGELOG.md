@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.17.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.16.0...v0.17.0) (2026-06-14)
+
+
+### Features
+
+* add gameplay update logic and win condition check ([779880d](https://github.com/Tugamer89/Tu-Maze/commit/779880d70cdf24306b75ac159f9c2d7c121a4968))
+* dynamically rename CMake target to avoid conflicts in build tree ([a94c5c5](https://github.com/Tugamer89/Tu-Maze/commit/a94c5c51cc244ac1d2e14ab2e4048bdb8eb0d4eb))
+* enable parallel build execution in compile_command function ([613f795](https://github.com/Tugamer89/Tu-Maze/commit/613f79557b318cd3338f9030b8102ad21a5750d3))
+* implement gameplay and victory condition, add goal marker and animations ([4df1509](https://github.com/Tugamer89/Tu-Maze/commit/4df150944576d3bf224cc13474dbc7b8250719fb))
+
+
+### Bug Fixes
+
+* standardize use of texture uniform variable naming in shaders and scene management ([d6c53c9](https://github.com/Tugamer89/Tu-Maze/commit/d6c53c9056baec44b09457f5a74053c0921422e2))
+* update build commands in README and export script for consistency ([598631f](https://github.com/Tugamer89/Tu-Maze/commit/598631fc59f8cd4b7971711aaee2a667278abb37))
+
+
+### Code Refactoring
+
+* improve gameplay update logic and asset registration ([615082d](https://github.com/Tugamer89/Tu-Maze/commit/615082d93728ad9f43d248553ae883ad2a0d692a))
+
 ## [0.16.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.15.0...v0.16.0) (2026-06-14)
 
 
