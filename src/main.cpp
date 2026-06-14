@@ -160,7 +160,6 @@ int main(int argc, char* argv[]) {
     });
 
     loader.addTask("materials", [&assets]() {
-        // C++20 designated initializers make assigning realistic properties incredibly clean
         assets.wallMat = Material{
             .diffuse = assets.wallDiff.get(),
             .normal = assets.wallNorm.get(),
