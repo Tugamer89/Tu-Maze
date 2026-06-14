@@ -15,6 +15,7 @@ struct MaterialLocations {
     GLint ambient_loc = -1;
     GLint specular_loc = -1;
     GLint shininess_loc = -1;
+    GLint use_textures_loc = -1;
 };
 
 struct Material {
@@ -28,6 +29,8 @@ struct Material {
     glm::vec3 specular_color = {1.0f, 1.0f, 1.0f};
     float shininess = 32.0f;
 
+    bool use_textures = true;
+
     void bind(const MaterialLocations& locs) const {
         if (diffuse) diffuse->bind(0);
         if (normal) normal->bind(1);
@@ -38,6 +41,14 @@ struct Material {
         if (locs.ambient_loc != -1) glUniform3fv(locs.ambient_loc, 1, &ambient_color[0]);
         if (locs.specular_loc != -1) glUniform3fv(locs.specular_loc, 1, &specular_color[0]);
         if (locs.shininess_loc != -1) glUniform1f(locs.shininess_loc, shininess);
+
+        glUniform1i(locs.use_textures_loc, use_textures ? 1 : 0);
+    }
+
+    void unbind() const {
+        if (diffuse) diffuse->unbind();
+        if (normal) normal->unbind();
+        if (roughness) roughness->unbind();
     }
 };
 

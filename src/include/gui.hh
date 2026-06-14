@@ -7,6 +7,7 @@
 
 #include <SFML/Window.hpp>
 #include <SFML/Window/Event.hpp>
+#include <concepts>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -21,6 +22,7 @@ class Gui {
     bool minimap_enabled = true;
     bool minimap_fix_north = true;
     float minimap_zoom = 8.0f;
+    bool hasWon = false;
 
    private:
     bool vsync_enabled = true;
@@ -197,7 +199,7 @@ class Gui {
         ImGui::SFML::Update(sf::Mouse::getPosition(window), sf::Vector2f(window.getSize()), dt);
     }
 
-    void render(Scene& scene, sf::Window& window) {
+    void render(Scene& scene, sf::Window& window, std::invocable auto onRestart) {
         ImGui::Begin("Engine Settings");
 
         // --- SECTION: VIDEO & PERFORMANCE ---
@@ -216,6 +218,26 @@ class Gui {
         }
 
         ImGui::End();
+
+        // Overlay Victory Modal
+        if (hasWon) {
+            ImGui::SetNextWindowPos(
+                ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
+                ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+            ImGui::Begin("Victory!", nullptr,
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoMove);
+
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Congratulations!");
+            ImGui::Text("You successfully navigated out of the maze.");
+            ImGui::Separator();
+
+            if (ImGui::Button("Play Again", ImVec2(120, 0))) {
+                hasWon = false;
+                onRestart();
+            }
+            ImGui::End();
+        }
 
         if (static bool isFirstFrame = true; isFirstFrame) {
             scene.camera.setFov(camera_fov);

@@ -20,7 +20,10 @@ class Scene {
    public:
     Camera camera;
     Lights lights;
+
+    // Core Scene Graph
     Node root;
+    Node goalNode;  // Special node for gameplay
 
    private:
     GLint model_loc;
@@ -47,6 +50,8 @@ class Scene {
         mat_locs.specular_loc = glGetUniformLocation(shaders.program, "material.specular");
         mat_locs.shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
 
+        mat_locs.use_textures_loc = glGetUniformLocation(shaders.program, "u_useTextures");
+
         glUniform1i(glGetUniformLocation(shaders.program, "diffuseMap"), 0);
         glUniform1i(glGetUniformLocation(shaders.program, "normalMap"), 1);
         glUniform1i(glGetUniformLocation(shaders.program, "roughnessMap"), 2);
@@ -58,12 +63,16 @@ class Scene {
         lights.position(camera.inv_v);
     }
 
-    void build_static_tree() { root.updateTransforms(); }
+    void build_static_tree() {
+        root.updateTransforms();
+        goalNode.updateTransforms();
+    }
 
     void draw() {
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.vp));
 
         root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs);
+        goalNode.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs);
     }
 };
 

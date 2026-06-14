@@ -25,6 +25,7 @@ class Node {
     std::vector<Node> children;
 
     bool is_wall = false;
+    bool is_goal = false;
 
     Node() = default;
 
@@ -55,7 +56,9 @@ class Node {
             if (distSq < (maxRenderDist * maxRenderDist)) {
                 glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
 
-                if (is_wall)
+                if (is_goal)
+                    glUniform3f(color_loc, 0.2f, 0.9f, 0.3f);  // Bright neon green goal
+                else if (is_wall)
                     glUniform3f(color_loc, 0.85f, 0.85f, 0.85f);  // Light grey
                 else
                     glUniform3f(color_loc, 0.15f, 0.15f, 0.15f);  // Dark grey
@@ -104,6 +107,7 @@ class Node {
 
                 material.bind(mat_locs);
                 mesh->draw();
+                material.unbind();
             }
         }
 

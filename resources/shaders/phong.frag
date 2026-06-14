@@ -1,6 +1,7 @@
 #version 410 core
 
 uniform vec3 camera_pos;
+uniform int u_useTextures;
 
 struct Light {
     vec3 direct_pos;
@@ -36,44 +37,54 @@ void main() {
     vec3 dy = dFdy(pos);
     vec3 flat_normal = normalize(cross(dx, dy));
 
-    // --- BOX MAPPING ---
-    vec3 abs_normal = abs(flat_normal);
-    vec2 uv;
-    int axis = 0;  // 0 = X, 1 = Y, 2 = Z
-
-    if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z) {
-        uv = pos.zy;
-        axis = 0;
-    } else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z) {
-        uv = pos.xz;
-        axis = 1;
-    } else {
-        uv = pos.xy;
-        axis = 2;
-    }
-
-    uv *= uv_scale;
-
-    // Single sample per texture
-    vec3 albedo = texture(diffuseMap, uv).rgb;
-    float roughness = texture(roughnessMap, uv).r;
-    vec3 tnorm = texture(normalMap, uv).rgb * 2.0 - 1.0;
-
-    vec3 axis_sign = sign(flat_normal);
+    vec3 albedo;
+    float roughness;
     vec3 final_normal;
 
-    if (axis == 0) {
-        tnorm.z *= axis_sign.x;
-        final_normal = vec3(tnorm.z, tnorm.y, -tnorm.x);
-    } else if (axis == 1) {
-        tnorm.z *= axis_sign.y;
-        final_normal = vec3(tnorm.x, tnorm.z, -tnorm.y);
-    } else {
-        tnorm.z *= axis_sign.z;
-        final_normal = vec3(tnorm.x, tnorm.y, tnorm.z);
-    }
+    if (u_useTextures == 1) {
+        // --- BOX MAPPING ---
+        vec3 abs_normal = abs(flat_normal);
+        vec2 uv;
+        int axis = 0;  // 0 = X, 1 = Y, 2 = Z
 
-    final_normal = normalize(final_normal);
+        if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z) {
+            uv = pos.zy;
+            axis = 0;
+        } else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z) {
+            uv = pos.xz;
+            axis = 1;
+        } else {
+            uv = pos.xy;
+            axis = 2;
+        }
+
+        uv *= uv_scale;
+
+        // Single sample per texture
+        albedo = texture(diffuseMap, uv).rgb;
+        roughness = texture(roughnessMap, uv).r;
+        vec3 tnorm = texture(normalMap, uv).rgb * 2.0 - 1.0;
+
+        vec3 axis_sign = sign(flat_normal);
+
+        if (axis == 0) {
+            tnorm.z *= axis_sign.x;
+            final_normal = vec3(tnorm.z, tnorm.y, -tnorm.x);
+        } else if (axis == 1) {
+            tnorm.z *= axis_sign.y;
+            final_normal = vec3(tnorm.x, tnorm.z, -tnorm.y);
+        } else {
+            tnorm.z *= axis_sign.z;
+            final_normal = vec3(tnorm.x, tnorm.y, tnorm.z);
+        }
+
+        final_normal = normalize(final_normal);
+    } else {
+        // --- SOLID COLOR MODE ---
+        albedo = vec3(1.0);
+        roughness = 0.1;
+        final_normal = normalize(interpolated_normal);
+    }
 
     // --- PHONG SHADING ---
 

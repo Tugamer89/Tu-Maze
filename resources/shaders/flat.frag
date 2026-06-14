@@ -1,6 +1,7 @@
 #version 410 core
 
 uniform vec3 camera_pos;
+uniform int u_useTextures;
 
 struct Light {
     vec3 direct_pos;
@@ -39,22 +40,31 @@ void main() {
     vec3 dy = dFdy(pos);
     vec3 geom_normal = normalize(cross(dx, dy));
 
-    // --- BOX MAPPING ---
-    vec3 abs_normal = abs(geom_normal);
-    vec2 uv;
+    vec3 albedo;
+    float roughness;
 
-    if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z) {
-        uv = pos.zy;
-    } else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z) {
-        uv = pos.xz;
+    if (u_useTextures == 1) {
+        // --- BOX MAPPING ---
+        vec3 abs_normal = abs(geom_normal);
+        vec2 uv;
+
+        if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z) {
+            uv = pos.zy;
+        } else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z) {
+            uv = pos.xz;
+        } else {
+            uv = pos.xy;
+        }
+
+        uv *= uv_scale;
+
+        albedo = texture(diffuseMap, uv).rgb;
+        roughness = texture(roughnessMap, uv).r;
     } else {
-        uv = pos.xy;
+        // --- SOLID COLOR MODE ---
+        albedo = vec3(1.0);
+        roughness = 0.1;
     }
-
-    uv *= uv_scale;
-
-    vec3 albedo = texture(diffuseMap, uv).rgb;
-    float roughness = texture(roughnessMap, uv).r;
 
     // --- PHONG SHADING ---
 

@@ -157,6 +157,18 @@ Dal punto di vista tecnico, il rilevamento degli ostacoli è stato implementato 
 
 Parallelamente, è stata introdotta la possibilità di correre mantenendo premuto uno dei tasti `Shift`. L'input applica dinamicamente un moltiplicatore alla velocità di base, accuratamente pesato tramite il calcolo del *delta-time* per mantenere il movimento coerente a prescindere dal framerate.
 
+### Stage 16 (v0.17.x)
+
+L'obiettivo principale di questa tappa è stata l'evoluzione del progetto da semplice *tech demo* esplorativa a un vero e proprio ecosistema di gioco, introducendo un *Game Loop* completo e una chiara condizione di vittoria.
+
+Le meccaniche di base sono state formalizzate: il giocatore viene ora istanziato (*spawn*) nel vertice in alto a destra del labirinto e deve orientarsi per raggiungere l'uscita posizionata all'estremità opposta (in basso a sinistra). Il punto di arrivo è stato fisicamente inserito all'interno della scena 3D sotto forma di un cristallo fluttuante e luminoso, oltre a essere tracciato dinamicamente in verde sulla minimappa bidimensionale.
+
+Dal punto di vista della logica di gioco, sono state implementate diverse migliorie architetturali:
+
+* **Game State e Vittoria**: Il calcolo continuo della distanza euclidea tra il giocatore e il traguardo permette di innescare uno stato di "Vittoria". Questo evento sospende i comandi di navigazione e presenta all'utente un pop-up modale (tramite la GUI) che offre la possibilità di avviare una nuova partita. La funzione di *reset* ripristina la posizione della telecamera, aggiornando in sincrono anche le coordinate della luce dinamica.
+* **Animazioni Frame-Independent**: L'animazione di oscillazione e rotazione del cristallo è stata svincolata dal tempo assoluto di esecuzione. Sfruttando l'accumulo incrementale del *delta-time* combinato con un *wrapping* matematico degli angoli, sono state eliminate le perdite di precisione della mantissa dei *float*, garantendo animazioni fluide e prive di microscatti (o salti temporali dovuti alla perdita di focus della finestra).
+* **Material Flags (Uber Shader)**: Poiché la tecnica di *Box Mapping* (ottimizzata nello Stage 6) causa una illuminazione errata delle texture se applicata a modelli non allineati agli assi o in rotazione libera, è stato introdotto un approccio architetturale basato su *flag*. La classe `Material` invia ora un *uniform* booleano allo shader (`u_useTextures`) per indicare la natura dell'oggetto. Sfruttando il *branching* condizionale, i *Fragment Shader* ignorano il calcolo delle coordinate UV per il cristallo, renderizzandolo istantaneamente come un solido puro pur applicando correttamente l'illuminazione Phong e la riflessione speculare sulle facce inclinate.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.

@@ -83,11 +83,8 @@ class Camera {
         float offsetX = (static_cast<float>(maze.width) * Maze::CELL_SIZE) * 0.5f;
         float offsetZ = (static_cast<float>(maze.height) * Maze::CELL_SIZE) * 0.5f;
 
-        // Current grid cell estimation
         auto cellX = static_cast<int>(std::floor(pos.x + offsetX) / Maze::CELL_SIZE);
         auto cellY = static_cast<int>(std::floor(pos.z + offsetZ) / Maze::CELL_SIZE);
-
-        glm::vec2 center(pos.x, pos.z);
 
         // true if player AABB intersects with wall AABB
         auto checkAABB = [&](float minX, float maxX, float minZ, float maxZ) {
@@ -141,6 +138,23 @@ class Camera {
     const glm::vec3& getPosition() const { return position; }
     const glm::vec3& getFront() const { return front; }
     float getYaw() const { return yaw; }
+
+    void setPosition(const glm::vec3& pos) {
+        position = pos;
+        projection();
+    }
+
+    void setYaw(float p_yaw) {
+        yaw = p_yaw;
+        updateCameraVectors();
+        projection();
+    }
+
+    void setPitch(float p_pitch) {
+        pitch = p_pitch;
+        updateCameraVectors();
+        projection();
+    }
 
     void locations(const Shaders& shaders) {
         camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");
@@ -211,7 +225,6 @@ class Camera {
         yaw += xoffset;
         pitch += yoffset;
 
-        // Make sure that when pitch is out of bounds, screen doesn't get flipped
         pitch = std::clamp(pitch, -89.0f, 89.0f);
 
         // Update Front, Right and Up Vectors using the updated Euler angles

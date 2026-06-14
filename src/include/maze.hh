@@ -47,11 +47,31 @@ class Maze {
         generate();
     }
 
+    // Returns the exact center world coordinate of a specific cell grid coordinate
+    glm::vec3 getCellWorldPosition(int x, int y) const {
+        float offsetX = (static_cast<float>(width) * CELL_SIZE) * 0.5f;
+        float offsetZ = (static_cast<float>(height) * CELL_SIZE) * 0.5f;
+
+        float cx = (static_cast<float>(x) * CELL_SIZE) - offsetX + (CELL_SIZE * 0.5f);
+        float cz = (static_cast<float>(y) * CELL_SIZE) - offsetZ + (CELL_SIZE * 0.5f);
+
+        return {cx, 0.5f, cz};  // Y=0.5 is exactly halfway up the walls (player height)
+    }
+
+    glm::vec3 getStartWorldPosition() const {
+        // Top-Right: x = width - 1, y = 0
+        return getCellWorldPosition(width - 1, 0);
+    }
+
+    glm::vec3 getGoalWorldPosition() const {
+        // Bottom-Left: x = 0, y = height - 1
+        return getCellWorldPosition(0, height - 1);
+    }
+
     Node populateSceneNode(const Mesh& baseFloorMesh, const Mesh& baseWallMesh,
                            const Material& wallMat, const Material& floorMat,
                            std::unique_ptr<GPUMesh>& outBatchedWalls,
                            std::unique_ptr<GPUMesh>& outBatchedFloors) const {
-        // Calculate offsets to center the maze at the origin
         const float offsetX = (static_cast<float>(width) * CELL_SIZE) * 0.5f;
         const float offsetZ = (static_cast<float>(height) * CELL_SIZE) * 0.5f;
 
@@ -89,11 +109,9 @@ class Maze {
             }
         }
 
-        // New Bounds
         combinedWalls.compute_scale();
         combinedFloors.compute_scale();
 
-        // Instantiate using memory-safe unique pointers
         outBatchedWalls = std::make_unique<GPUMesh>(combinedWalls);
         outBatchedFloors = std::make_unique<GPUMesh>(combinedFloors);
 

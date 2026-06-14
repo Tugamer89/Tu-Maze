@@ -208,6 +208,7 @@ class Minimap {
 
         float cullRadius = gui.minimap_zoom * 1.5f;
         scene.root.drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
+        scene.goalNode.drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
         drawPlayerMarker(scene, gui, modelLoc, colorLoc, camPos);
 
         // Resolve to screen
