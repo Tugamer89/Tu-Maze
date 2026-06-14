@@ -68,6 +68,34 @@ class Scene {
         goalNode.updateTransforms();
     }
 
+    // Handles logic that changes over time (animations)
+    void update_gameplay(sf::Time dt, const glm::vec3& goalWorldPos) {
+        static float bobAngle = 0.0f;
+        static float rotAngle = 0.0f;
+        const float TWO_PI = 6.2831853f;
+
+        bobAngle += dt.asSeconds() * 3.0f;
+        rotAngle += dt.asSeconds() * 2.0f;
+
+        if (bobAngle > TWO_PI) bobAngle -= TWO_PI;
+        if (rotAngle > TWO_PI) rotAngle -= TWO_PI;
+
+        // Animate the goal marker
+        glm::mat4 goalTransform = glm::translate(
+            glm::mat4(1.0f), goalWorldPos + glm::vec3(0.0f, std::sin(bobAngle) * 0.1f, 0.0f));
+        goalTransform = glm::rotate(goalTransform, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+        goalTransform = glm::scale(goalTransform, glm::vec3(0.5f));
+
+        goalNode.localMatrix = goalTransform;
+        goalNode.updateTransforms();  // Apply rotation/position safely
+    }
+
+    // Checks game rules against scene state
+    bool check_win_condition(const glm::vec3& goalPos) const {
+        float distToGoal = glm::distance(camera.getPosition(), goalPos);
+        return distToGoal <= Maze::CELL_SIZE;
+    }
+
     void draw() {
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.vp));
 

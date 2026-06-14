@@ -114,6 +114,88 @@ void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
     }
 }
 
+///////////////////
+// Asset Loading //
+///////////////////
+
+void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap) {
+    loader.addTask("mossy bricks texture",
+                   [&assets]() { assets.wallDiff = std::make_unique<Texture>(wall_diff, true); });
+    loader.addTask("mossy bricks normals map",
+                   [&assets]() { assets.wallNorm = std::make_unique<Texture>(wall_norm); });
+    loader.addTask("mossy bricks roughness map",
+                   [&assets]() { assets.wallRough = std::make_unique<Texture>(wall_rough); });
+
+    loader.addTask("cobblestone pavement texture",
+                   [&assets]() { assets.floorDiff = std::make_unique<Texture>(floor_diff, true); });
+    loader.addTask("cobblestone pavement normals map",
+                   [&assets]() { assets.floorNorm = std::make_unique<Texture>(floor_norm); });
+    loader.addTask("cobblestone pavement roughness map",
+                   [&assets]() { assets.floorRough = std::make_unique<Texture>(floor_rough); });
+
+    loader.addTask("player marker mesh", [&assets]() {
+        assets.playerMesh = std::make_unique<GPUMesh>(player_marker_mesh);
+    });
+
+    loader.addTask("goal marker mesh",
+                   [&assets]() { assets.goalMesh = std::make_unique<GPUMesh>(goal_marker_mesh); });
+
+    loader.addTask("wall material", [&assets]() {
+        assets.wallMat = Material{
+            .diffuse = assets.wallDiff.get(),
+            .normal = assets.wallNorm.get(),
+            .roughness = assets.wallRough.get(),
+            .diffuse_color = {0.55f, 0.55f, 0.55f},
+            .ambient_color = {0.15f, 0.18f, 0.15f},
+            .specular_color = {0.45f, 0.45f, 0.40f},
+            .shininess = 64.0f,
+        };
+    });
+
+    loader.addTask("floor material", [&assets]() {
+        assets.floorMat = Material{
+            .diffuse = assets.floorDiff.get(),
+            .normal = assets.floorNorm.get(),
+            .roughness = assets.floorRough.get(),
+            .diffuse_color = {0.5f, 0.5f, 0.5f},
+            .ambient_color = {0.12f, 0.12f, 0.15f},
+            .specular_color = {0.15f, 0.15f, 0.15f},
+            .shininess = 16.0f,
+        };
+    });
+
+    loader.addTask("goal marker material", [&assets]() {
+        assets.goalMat = Material{
+            .diffuse_color = {0.1f, 0.9f, 0.2f},
+            .ambient_color = {0.3f, 1.0f, 0.4f},
+            .specular_color = {1.0f, 1.0f, 1.0f},
+            .shininess = 128.0f,
+            .use_textures = false,
+        };
+    });
+
+    loader.addTask("random maze", [&assets]() { assets.maze = std::make_unique<Maze>(15, 15); });
+
+    loader.addTask("scene build", [&assets, &scene, &minimap]() {
+        Mesh cpuFloor(floor_mesh);
+        Mesh cpuWall(wall_mesh);
+
+        Node mazeNode =
+            assets.maze->populateSceneNode(cpuFloor, cpuWall, *assets.wallMat, *assets.floorMat,
+                                           assets.wallMesh, assets.floorMesh);
+
+        scene.root.children.push_back(std::move(mazeNode));
+
+        scene.goalNode.mesh = assets.goalMesh.get();
+        scene.goalNode.material = *assets.goalMat;
+        scene.goalNode.is_goal = true;
+
+        scene.build_static_tree();
+
+        minimap.playerMesh = assets.playerMesh.get();
+    });
+}
+
 //////////
 // Main //
 //////////
@@ -142,86 +224,10 @@ int main(int argc, char* argv[]) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //// Loading Setup ////
-
     AssetLoader loader;
-
-    loader.addTask("mossy bricks texture",
-                   [&assets]() { assets.wallDiff = std::make_unique<Texture>(wall_diff, true); });
-    loader.addTask("mossy bricks normals map",
-                   [&assets]() { assets.wallNorm = std::make_unique<Texture>(wall_norm); });
-    loader.addTask("mossy bricks roughness map",
-                   [&assets]() { assets.wallRough = std::make_unique<Texture>(wall_rough); });
-
-    loader.addTask("cobblestone pavement texture",
-                   [&assets]() { assets.floorDiff = std::make_unique<Texture>(floor_diff, true); });
-    loader.addTask("cobblestone pavement normals map",
-                   [&assets]() { assets.floorNorm = std::make_unique<Texture>(floor_norm); });
-    loader.addTask("cobblestone pavement roughness map",
-                   [&assets]() { assets.floorRough = std::make_unique<Texture>(floor_rough); });
-
-    loader.addTask("player marker mesh", [&assets]() {
-        assets.playerMesh = std::make_unique<GPUMesh>(player_marker_mesh);
-    });
-
-    loader.addTask("goal marker mesh",
-                   [&assets]() { assets.goalMesh = std::make_unique<GPUMesh>(goal_marker_mesh); });
-
-    loader.addTask("wall material", [&assets]() {
-        assets.wallMat = Material{
-            .diffuse = assets.wallDiff.get(),
-            .normal = assets.wallNorm.get(),
-            .roughness = assets.wallRough.get(),
-            .diffuse_color = {0.55f, 0.55f, 0.55f},   // Base color (texture does the heavy lifting)
-            .ambient_color = {0.15f, 0.18f, 0.15f},   // Ambient with a slight green tint from moss
-            .specular_color = {0.45f, 0.45f, 0.40f},  // Slightly reflective in wet/moss patches
-            .shininess = 64.0f                        // Roughish surface
-        };
-    });
-
-    loader.addTask("floor material", [&assets]() {
-        assets.floorMat = Material{
-            .diffuse = assets.floorDiff.get(),
-            .normal = assets.floorNorm.get(),
-            .roughness = assets.floorRough.get(),
-            .diffuse_color = {0.5f, 0.5f, 0.5f},      // Base color
-            .ambient_color = {0.12f, 0.12f, 0.15f},   // Neutral ambient footprint
-            .specular_color = {0.15f, 0.15f, 0.15f},  // Very dull, dry cobblestone reflection
-            .shininess = 16.0f                        // Extremely dull light spread
-        };
-    });
-
-    loader.addTask("goal marker material", [&assets]() {
-        assets.goalMat =
-            Material{.diffuse_color = {0.1f, 0.9f, 0.2f},  // Neon green
-                     .ambient_color = {0.3f, 1.0f, 0.4f},  // Highly emissive/glowing in dark
-                     .specular_color = {1.0f, 1.0f, 1.0f},
-                     .shininess = 128.0f,
-                     .use_textures = false};
-    });
-
-    loader.addTask("random maze", [&assets]() { assets.maze = std::make_unique<Maze>(15, 15); });
-
-    loader.addTask("scene build", [&assets, &scene, &minimap]() {
-        Mesh cpuFloor(floor_mesh);
-        Mesh cpuWall(wall_mesh);
-
-        Node mazeNode =
-            assets.maze->populateSceneNode(cpuFloor, cpuWall, *assets.wallMat, *assets.floorMat,
-                                           assets.wallMesh, assets.floorMesh);
-
-        scene.root.children.push_back(std::move(mazeNode));
-
-        scene.goalNode.mesh = assets.goalMesh.get();
-        scene.goalNode.material = *assets.goalMat;
-        scene.goalNode.is_goal = true;
-
-        scene.build_static_tree();
-
-        minimap.playerMesh = assets.playerMesh.get();
-    });
+    register_asset_tasks(loader, assets, scene, minimap);
 
     //// Main Loop ////
-
     sf::Clock deltaClock;
     bool running = true;
     bool game_initialized = false;
@@ -237,6 +243,7 @@ int main(int argc, char* argv[]) {
     while (running) {
         sf::Time dt = deltaClock.restart();
 
+        // Process Events
         while (const std::optional event = window.pollEvent()) {
             gui.process_event(window, *event);
 
@@ -257,11 +264,11 @@ int main(int argc, char* argv[]) {
 
         gui.update(window, dt);
 
-        // clear the buffers
+        // Clear Buffers
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Loading game
+        // Handle Loading Phase
         if (!loader.isFinished()) {
             std::string what = loader.processNext();
             gui.renderLoading(window, what, loader.getProgress());
@@ -269,53 +276,31 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // Initialize camera at spawn
         if (!game_initialized) {
             restartGame();
             game_initialized = true;
         }
 
-        // Movements
+        // Update Game State
         if (window.hasFocus() && !gui.wants_capture_keyboard() && !gui.hasWon) {
             bool camera_moved = scene.camera.update(dt, *assets.maze.get());
-
             if (camera_moved) {
                 scene.lights.position(scene.camera.inv_v);
             }
         }
 
-        // Handle Gameplay state (Animations & Win Cond.)
-        static float bobAngle = 0.0f;
-        static float rotAngle = 0.0f;
-        const float TWO_PI = 6.2831853f;
-
-        bobAngle += dt.asSeconds() * 3.0f;
-        rotAngle += dt.asSeconds() * 2.0f;
-
-        if (bobAngle > TWO_PI) bobAngle -= TWO_PI;
-        if (rotAngle > TWO_PI) rotAngle -= TWO_PI;
-
+        // Handle Animations & Win Condition
         glm::vec3 goalPos = assets.maze->getGoalWorldPosition();
+        scene.update_gameplay(dt, goalPos);
 
-        // Animate the goal marker
-        glm::mat4 goalTransform = glm::translate(
-            glm::mat4(1.0f), goalPos + glm::vec3(0.0f, std::sin(bobAngle) * 0.1f, 0.0f));
-        goalTransform = glm::rotate(goalTransform, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-        goalTransform = glm::scale(goalTransform, glm::vec3(0.5f));
-        scene.goalNode.localMatrix = goalTransform;
-        scene.goalNode.updateTransforms();  // Apply rotation/position safely
-
-        // Check if player reached the goal
-        if (!gui.hasWon) {
-            float distToGoal = glm::distance(scene.camera.getPosition(), goalPos);
-            if (distToGoal <= Maze::CELL_SIZE) {
-                gui.hasWon = true;
-            }
+        if (!gui.hasWon && scene.check_win_condition(goalPos)) {
+            gui.hasWon = true;
         }
 
         // Render
         scene.draw();
         minimap.draw(scene, gui, window);
+
         shaders.use();
         gui.render(scene, window, restartGame);
 
@@ -323,6 +308,5 @@ int main(int argc, char* argv[]) {
     }
 
     window.close();
-
     return 0;
 }
