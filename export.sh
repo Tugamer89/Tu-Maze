@@ -38,9 +38,9 @@ check_gitignore() {
         exit 1
     fi
 
-    if ! grep -q "^FCG_Stages$" .gitignore; then
+    if ! grep -qE "^FCG_Stages/?$" .gitignore; then
         print_warning "FCG_Stages not found in .gitignore, adding it..."
-        echo "FCG_Stages" >> .gitignore
+        echo "FCG_Stages/" >> .gitignore
     fi
     return 0
 }
