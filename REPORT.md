@@ -149,6 +149,14 @@ L'aspetto visivo è stato radicalmente trasformato. I controlli manuali dei mate
 
 Infine, l'illuminazione della scena è stata bilanciata in ottica *dark-fantasy*: la luce dinamica del giocatore emette ora un fascio caldo e focale tipico di una torcia a fiamma, mentre l'illuminazione ambientale è stata drasticamente ridotta e virata su toni molto freddi e bluastri. Questo netto contrasto cromatico permette di leggere la conformazione del labirinto in lontananza e orientarsi, mantenendo però intatto il senso di oscurità e tensione esplorativa dei corridoi vicini.
 
+### Stage 15 (v0.16.x)
+
+L'obiettivo di questa tappa è stato l'introduzione di un sistema di collisioni fisiche e l'espansione delle meccaniche di navigazione del giocatore.
+
+Dal punto di vista tecnico, il rilevamento degli ostacoli è stato implementato adottando un approccio **AABB vs AABB** (Axis-Aligned Bounding Box), che tratta l'ingombro del giocatore e le celle dei muri come volumi di collisione ortogonali. Per garantire un'esplorazione fluida, la valutazione delle collisioni è stata scissa sui singoli assi X e Z: in caso di impatto, viene azzerata esclusivamente la componente vettoriale interessata, permettendo al giocatore di scivolare in modo naturale lungo le pareti senza il rischio di incastrarsi ("gradino") sugli spigoli geometrici.
+
+Parallelamente, è stata introdotta la possibilità di correre mantenendo premuto uno dei tasti `Shift`. L'input applica dinamicamente un moltiplicatore alla velocità di base, accuratamente pesato tramite il calcolo del *delta-time* per mantenere il movimento coerente a prescindere dal framerate.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
@@ -160,6 +168,7 @@ Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google
 * **Frustum Culling**: L'implementazione del culling spaziale per l'esclusione della geometria non visibile sfrutta l'estrazione dei sei piani del *frustum* (piramide di vista) a partire dalle matrici di vista e proiezione combinate. La logica matematica per il calcolo e il test delle intersezioni con i volumi delimitatori (*Axis-Aligned Bounding Box*, AABB) dei muri è stata sviluppata studiando e riadattando le architetture descritte negli articoli tecnici di [LearnOpenGL](https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling) e del blog [Bruop](https://bruop.github.io/frustum_culling/).
 * **Distance Culling 2D (Minimappa)**: A differenza del *Frustum Culling* tridimensionale, l'ottimizzazione implementata per la telecamera ortogonale dall'alto calcola la distanza euclidea al quadrato sul piano cartesiano XZ. Valutare la distanza ignorando il calcolo della radice quadrata (`sqrt`) garantisce cicli di *traversal* dell'albero di scena estremamente rapidi.
 * **Anti-Aliasing Frazionato (MSAA FBO)**: Per separare l'estetica nativa della GUI 2D da quella dell'engine 3D, è stato impiegato un render off-screen (*Framebuffer Object*) multisamplato pre-allocato esclusivamente per la Viewport della minimappa. L'immagine finale viene elaborata e impressa sul *Default Framebuffer* ricorrendo alla chiamata `glBlitFramebuffer`, la quale esegue contestualmente il *resolve* (downsampling) anti-alias dell'immagine limitando drasticamente i costi in VRAM.
+* **Collisioni (AABB)**: Il sistema di collisioni ortogonali e la logica di scivolamento sui muri tramite separazione degli assi vettoriali si basano sui concetti standard di intersezione geometrica AABB. Un'ottima base teorica per la matematica delle *bounding box* è disponibile nella sezione dedicata alle collisioni di [LearnOpenGL](https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-detection).
 
 ### Codice esterno
 

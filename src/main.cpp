@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (window.hasFocus() && !gui.wants_capture_keyboard()) {
-            bool camera_moved = scene.camera.update(dt);
+            bool camera_moved = scene.camera.update(dt, *assets.maze.get());
 
             if (camera_moved) {
                 scene.lights.position(scene.camera.inv_v);

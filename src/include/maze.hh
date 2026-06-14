@@ -34,6 +34,10 @@ struct Cell {
 
 class Maze {
    public:
+    static constexpr float CELL_SIZE = 1.0f;
+    static constexpr float WALL_THICKNESS = 0.1f;
+    static constexpr float WALL_HEIGHT = 1.0f;
+
     int width;
     int height;
     std::vector<Cell> grid;
@@ -47,13 +51,9 @@ class Maze {
                            const Material& wallMat, const Material& floorMat,
                            std::unique_ptr<GPUMesh>& outBatchedWalls,
                            std::unique_ptr<GPUMesh>& outBatchedFloors) const {
-        const float cellSize = 1.0f;
-        const float wallThickness = 0.1f;
-        const float wallHeight = 1.0f;
-
         // Calculate offsets to center the maze at the origin
-        const float offsetX = (static_cast<float>(width) * cellSize) * 0.5f;
-        const float offsetZ = (static_cast<float>(height) * cellSize) * 0.5f;
+        const float offsetX = (static_cast<float>(width) * CELL_SIZE) * 0.5f;
+        const float offsetZ = (static_cast<float>(height) * CELL_SIZE) * 0.5f;
 
         Mesh combinedWalls;
         Mesh combinedFloors;
@@ -62,29 +62,30 @@ class Maze {
             for (int x = 0; x < width; ++x) {
                 const Cell& cell = grid[y * width + x];
 
-                float cx = (static_cast<float>(x) * cellSize) - offsetX + (cellSize * 0.5f);
-                float cz = (static_cast<float>(y) * cellSize) - offsetZ + (cellSize * 0.5f);
+                float cx = (static_cast<float>(x) * CELL_SIZE) - offsetX + (CELL_SIZE * 0.5f);
+                float cz = (static_cast<float>(y) * CELL_SIZE) - offsetZ + (CELL_SIZE * 0.5f);
                 glm::mat4 cellTransform = glm::translate(glm::mat4(1.0f), glm::vec3(cx, 0.0f, cz));
 
                 // Add Floor
                 combinedFloors.appendTransformed(baseFloorMesh, cellTransform);
 
-                float wallLen = cellSize + wallThickness;
+                float wallLen = CELL_SIZE + WALL_THICKNESS;
 
                 auto addWall = [&](float tx, float tz, float sx, float sz) {
                     glm::mat4 local = glm::translate(glm::mat4(1.0f), glm::vec3(tx, 0.0f, tz));
-                    local = glm::scale(local, glm::vec3(sx, wallHeight, sz));
+                    local = glm::scale(local, glm::vec3(sx, WALL_HEIGHT, sz));
 
                     glm::mat4 globalTransform = cellTransform * local;
                     combinedWalls.appendTransformed(baseWallMesh, globalTransform);
                 };
 
                 // Add Walls
-                if (cell.wallTop && y == 0) addWall(0.0f, -cellSize / 2.0f, wallLen, wallThickness);
-                if (cell.wallBottom) addWall(0.0f, cellSize / 2.0f, wallLen, wallThickness);
+                if (cell.wallTop && y == 0)
+                    addWall(0.0f, -CELL_SIZE / 2.0f, wallLen, WALL_THICKNESS);
+                if (cell.wallBottom) addWall(0.0f, CELL_SIZE / 2.0f, wallLen, WALL_THICKNESS);
                 if (cell.wallLeft && x == 0)
-                    addWall(-cellSize / 2.0f, 0.0f, wallThickness, wallLen);
-                if (cell.wallRight) addWall(cellSize / 2.0f, 0.0f, wallThickness, wallLen);
+                    addWall(-CELL_SIZE / 2.0f, 0.0f, WALL_THICKNESS, wallLen);
+                if (cell.wallRight) addWall(CELL_SIZE / 2.0f, 0.0f, WALL_THICKNESS, wallLen);
             }
         }
 

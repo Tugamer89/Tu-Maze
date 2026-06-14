@@ -13,8 +13,7 @@
 #endif
 
 #include "hotshaders.hh"
-
-enum class Camera_Movement { FORWARD, BACKWARD, LEFT, RIGHT };
+#include "maze.hh"
 
 class Camera {
    public:
@@ -38,10 +37,14 @@ class Camera {
     float pitch = 0.0f;
 
     // Camera options
-    float movementSpeed = 2.5f;  // Units per second
+    float baseMovementSpeed = 2.5f;  // Units per second
+    float sprintMultiplier = 1.6f;
     float mouseSensitivity = 0.2f;
     float fov = 60.0f;
     float aspectRatio = 1.0f;
+
+    // Player collision size
+    float collisionRadius = 0.20f;
 
     void updateCameraVectors() {
         glm::vec3 newFront;
@@ -54,23 +57,8 @@ class Camera {
         up = glm::normalize(glm::cross(right, front));
     }
 
-    void move(Camera_Movement direction, float deltaTime) {
-        using enum Camera_Movement;
-
-        float velocity = movementSpeed * deltaTime;
-
-        // Project the front vector onto the XZ plane to prevent flying
-        glm::vec3 flatFront = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
-        glm::vec3 flatRight = glm::normalize(glm::vec3(right.x, 0.0f, right.z));
-
-        if (direction == FORWARD) position += flatFront * velocity;
-        if (direction == BACKWARD) position -= flatFront * velocity;
-        if (direction == LEFT) position -= flatRight * velocity;
-        if (direction == RIGHT) position += flatRight * velocity;
-    }
-
     void updateFrustumPlanes() {
-        // Extract matrix rows (GLM is column-major, so we manually build the rows)
+        // Extract matrix rows
         glm::vec4 row0(vp[0][0], vp[1][0], vp[2][0], vp[3][0]);
         glm::vec4 row1(vp[0][1], vp[1][1], vp[2][1], vp[3][1]);
         glm::vec4 row2(vp[0][2], vp[1][2], vp[2][2], vp[3][2]);
@@ -83,11 +71,65 @@ class Camera {
         frustumPlanes[4] = row3 + row2;  // Near
         frustumPlanes[5] = row3 - row2;  // Far
 
-        // Normalize the planes (only the normal XYZ part dictates the scale)
+        // Normalize the planes
         for (auto& plane : frustumPlanes) {
             float length = glm::length(glm::vec3(plane));
             plane /= length;
         }
+    }
+
+    // Accurate Circle vs AABB collision detection to prevent corner snagging
+    bool checkCollision(const glm::vec3& pos, const Maze& maze) const {
+        float offsetX = (static_cast<float>(maze.width) * Maze::CELL_SIZE) * 0.5f;
+        float offsetZ = (static_cast<float>(maze.height) * Maze::CELL_SIZE) * 0.5f;
+
+        // Current grid cell estimation
+        auto cellX = static_cast<int>(std::floor(pos.x + offsetX) / Maze::CELL_SIZE);
+        auto cellY = static_cast<int>(std::floor(pos.z + offsetZ) / Maze::CELL_SIZE);
+
+        glm::vec2 center(pos.x, pos.z);
+
+        // true if player AABB intersects with wall AABB
+        auto checkAABB = [&](float minX, float maxX, float minZ, float maxZ) {
+            bool intersectX = (pos.x + collisionRadius > minX) && (pos.x - collisionRadius < maxX);
+            bool intersectZ = (pos.z + collisionRadius > minZ) && (pos.z - collisionRadius < maxZ);
+            return intersectX && intersectZ;
+        };
+
+        float halfCell = Maze::CELL_SIZE * 0.5f;
+        float halfWall = Maze::WALL_THICKNESS * 0.5f;
+        float outer = halfCell + halfWall;
+        float inner = halfCell - halfWall;
+
+        // Check a 3x3 grid around the player to guarantee we catch corner walls
+        for (int y = std::max(0, cellY - 1); y <= std::min(maze.height - 1, cellY + 1); ++y) {
+            for (int x = std::max(0, cellX - 1); x <= std::min(maze.width - 1, cellX + 1); ++x) {
+                const Cell& cell = maze.grid[y * maze.width + x];
+
+                float cx = (static_cast<float>(x) * Maze::CELL_SIZE) - offsetX + halfCell;
+                float cz = (static_cast<float>(y) * Maze::CELL_SIZE) - offsetZ + halfCell;
+
+                // Wall bounds
+                if (cell.wallTop && y == 0 &&
+                    checkAABB(cx - outer, cx + outer, cz - outer, cz - inner))
+                    return true;
+                if (cell.wallBottom && checkAABB(cx - outer, cx + outer, cz + inner, cz + outer))
+                    return true;
+                if (cell.wallLeft && x == 0 &&
+                    checkAABB(cx - outer, cx - inner, cz - outer, cz + outer))
+                    return true;
+                if (cell.wallRight && checkAABB(cx + inner, cx + outer, cz - outer, cz + outer))
+                    return true;
+            }
+        }
+
+        // Restrict to absolute outer maze boundaries
+        if (pos.x - collisionRadius < -offsetX || pos.x + collisionRadius > offsetX ||
+            pos.z - collisionRadius < -offsetZ || pos.z + collisionRadius > offsetZ) {
+            return true;
+        }
+
+        return false;
     }
 
    public:
@@ -114,34 +156,50 @@ class Camera {
         projection();
     };
 
-    bool update(sf::Time dt) {
-        using enum Camera_Movement;
-
-        bool moved = false;
+    bool update(sf::Time dt, const Maze& maze) {
         float dt_secs = dt.asSeconds();
+        float currentSpeed = baseMovementSpeed;
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-            move(FORWARD, dt_secs);
-            moved = true;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-            move(BACKWARD, dt_secs);
-            moved = true;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-            move(LEFT, dt_secs);
-            moved = true;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-            move(RIGHT, dt_secs);
-            moved = true;
+        // Sprint
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) ||
+            sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RShift)) {
+            currentSpeed *= sprintMultiplier;
         }
 
-        if (moved) {
+        float velocity = currentSpeed * dt_secs;
+
+        glm::vec3 flatFront = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
+        glm::vec3 flatRight = glm::normalize(glm::vec3(right.x, 0.0f, right.z));
+
+        glm::vec3 movement(0.0f);
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) movement += flatFront;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) movement -= flatFront;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) movement -= flatRight;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) movement += flatRight;
+
+        if (glm::length(movement) > 0.0f) {
+            movement = glm::normalize(movement) * velocity;
+
+            // X-Axis separated collision check
+            glm::vec3 nextPosX = position;
+            nextPosX.x += movement.x;
+            if (!checkCollision(nextPosX, maze)) {
+                position.x = nextPosX.x;
+            }
+
+            // Z-Axis separated collision check
+            glm::vec3 nextPosZ = position;
+            nextPosZ.z += movement.z;
+            if (!checkCollision(nextPosZ, maze)) {
+                position.z = nextPosZ.z;
+            }
+
             projection();
+            return true;
         }
 
-        return moved;
+        return false;
     }
 
     void processMouseMovement(float xoffset, float yoffset) {

@@ -13,7 +13,7 @@
 class Lights {
    public:
     // Placed slightly to the right, down, and forward (like a held torch)
-    glm::vec3 light_direct_pos = {0.25f, -0.15f, -0.3f};
+    glm::vec3 light_direct_pos = {0.12f, -0.1f, -0.18f};
 
     // Warm, orange/yellow fire light
     glm::vec3 light_direct_val = {0.85f, 0.55f, 0.25f};
