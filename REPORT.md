@@ -130,6 +130,15 @@ La struttura dello Scene Graph del labirinto è stata rivoluzionata implementand
 
 Il risultato è un grafo estremamente snello che delega il rendering dell'intero labirinto a sole due *Draw Calls* globali. Spostando il carico computazionale interamente sulla GPU, il motore grafico ha registrato un salto prestazionale eccezionale, con un incremento di FPS di oltre 5 volte rispetto alle versioni precedenti.
 
+### Stage 13 (v0.14.x)
+
+L'obiettivo di questa tappa è stato il consolidamento del motore grafico e dell'interazione utente, tramite una sessione mirata di bug fixing per risolvere alcuni problemi legati al sistema di anti-aliasing multiplo e alla gestione dell'input.
+
+![Bug visivo, stage 13](resources/screenshots/stage13.png)
+
+* **Risoluzione artefatti MSAA**: L'attivazione del Multi-Sample Anti-Aliasing causava la scomparsa della minimappa (schermo parzialmente colorato) e una fastidiosa sfocatura dei font dell'interfaccia utente. Il problema della minimappa è stato risolto introducendo un Resolve Framebuffer intermedio: l'immagine multisamplata generata *off-screen* viene ora "appiattita" su un FBO standard prima di essere trasferita sul *Default Framebuffer* (tramite operazione di *blitting*), garantendo il corretto trasferimento dei pixel. Per la GUI, è stato sufficiente disabilitare temporaneamente lo stato `GL_MULTISAMPLE` prima del rendering di ImGui (che implementa già un proprio anti-aliasing vettoriale), ripristinandolo subito dopo a costo computazionale nullo grazie allo state filtering dei driver OpenGL.
+* **Gestione del Focus e dell'Input**: È stato corretto un difetto per cui il giocatore continuava a muoversi nel labirinto anche quando la finestra perdeva il focus o veniva ridotta a icona. Poiché la libreria interroga lo stato globale dell'hardware della tastiera, la logica di aggiornamento della telecamera è stata revisionata vincolando la lettura degli input esclusivamente ai momenti in cui l'applicativo risulta attivamente in primo piano, prevenendo così movimenti accidentali in background.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
