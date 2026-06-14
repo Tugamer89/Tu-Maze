@@ -239,9 +239,17 @@ class Gui {
             isFirstFrame = false;
         }
 
-        // Generate draw data and use OpenGL3 to render them
+        // Generate draw data
         ImGui::Render();
+
+        // Disable MSAA
+        glDisable(GL_MULTISAMPLE);
+
+        // Draw
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // Enable MSAA if necessary
+        if (active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
     }
 
     void renderLoading(const sf::Window& window, const std::string& what, float progress) const {
@@ -301,7 +309,14 @@ class Gui {
         ImGui::PopStyleColor();
 
         ImGui::Render();
+
+        // Disable MSAA
+        glDisable(GL_MULTISAMPLE);
+
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // Enable MSAA if necessary
+        if (active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
     }
 };
 

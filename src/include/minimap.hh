@@ -28,9 +28,15 @@ class Minimap {
 
     Shaders shaders;
 
+    // FBO Multisampled
     GLuint fbo = 0;
     GLuint rboColor = 0;
     GLuint rboDepth = 0;
+
+    // FBO to resolve MSAA conflicts
+    GLuint fboResolve = 0;
+    GLuint texColorResolve = 0;
+
     int currentSize = 0;
     const int msaaSamples = 8;
 
@@ -39,20 +45,30 @@ class Minimap {
             glGenFramebuffers(1, &fbo);
             glGenRenderbuffers(1, &rboColor);
             glGenRenderbuffers(1, &rboDepth);
+
+            glGenFramebuffers(1, &fboResolve);
+            glGenTextures(1, &texColorResolve);
         }
 
+        // Setup MSAA FBO
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-        // Renderbuffer Color with MSAA
         glBindRenderbuffer(GL_RENDERBUFFER, rboColor);
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_RGB8, newSize, newSize);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rboColor);
 
-        // Renderbuffer Depth with MSAA
         glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH_COMPONENT24,
                                          newSize, newSize);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+        // Setup Resolve FBO (Non-MSAA)
+        glBindFramebuffer(GL_FRAMEBUFFER, fboResolve);
+        glBindTexture(GL_TEXTURE_2D, texColorResolve);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, newSize, newSize, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                     nullptr);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorResolve,
+                               0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         currentSize = newSize;
@@ -123,9 +139,15 @@ class Minimap {
     }
 
     void blitToScreenAndRestore(const MinimapMetrics& metrics) const {
+        // Resolve MSAA from FBO Multisampled
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboResolve);
+        glBlitFramebuffer(0, 0, metrics.size, metrics.size, 0, 0, metrics.size, metrics.size,
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
+        // Copy FBO Resolved to Main Framebuffer
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fboResolve);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, metrics.size, metrics.size, metrics.x, metrics.y,
                           metrics.x + metrics.size, metrics.y + metrics.size, GL_COLOR_BUFFER_BIT,
                           GL_NEAREST);
@@ -148,6 +170,9 @@ class Minimap {
         if (fbo != 0) glDeleteFramebuffers(1, &fbo);
         if (rboColor != 0) glDeleteRenderbuffers(1, &rboColor);
         if (rboDepth != 0) glDeleteRenderbuffers(1, &rboDepth);
+
+        if (fboResolve != 0) glDeleteFramebuffers(1, &fboResolve);
+        if (texColorResolve != 0) glDeleteTextures(1, &texColorResolve);
     }
 
     void reloadShaders(const std::string& vert_path, const std::string& frag_path) {
