@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.17.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.17.0...v0.17.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* remove inexistent Material parameter ([1ea443c](https://github.com/Tugamer89/Tu-Maze/commit/1ea443c74ce6ec841e9050735defd4056b184185))
+* remove unnecessary alpha parameter from asset registration ([9092928](https://github.com/Tugamer89/Tu-Maze/commit/90929282a88a7253ea8e6674f4b4884a1e784335))
+
+
+### Code Refactoring
+
+* simplify asset registration by removing unnecessary parameters ([a6fdbb3](https://github.com/Tugamer89/Tu-Maze/commit/a6fdbb3a84e25dca3ba70a88aa56bdacc832f7b3))
+
 ## [0.17.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.16.0...v0.17.0) (2026-06-14)
 
 
