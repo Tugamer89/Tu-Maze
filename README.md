@@ -141,7 +141,7 @@ cd ../Stage_02
 ### Keyboard Controls v0.16
 
 * **`Escape`**: Closes the application and shuts down the rendering loop immediately.
-* **`Left Shift` or `Right Shift`**: To sprint.
+* **`Left Shift` or `Right Shift`**: Sprint.
 * **`P`**: Use Phong shaders.
 * **`F`**: Use Flat shaders.
 * **`W`**: Move forward.
