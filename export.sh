@@ -164,6 +164,20 @@ export_command() {
             cp "$file" "$stage_dir/$file"
         done
 
+        # Dynamically rename the target to avoid conflicts in the CMake build tree
+        local stage_cmake="$stage_dir/CMakeLists.txt"
+        if [[ -f "$stage_cmake" ]]; then
+            # Extract the target name by parsing the add_executable declaration
+            local target_name=$(awk -F'[()]' '/add_executable/ {print $2; exit}' "$stage_cmake" | awk '{print $1}')
+            
+            # If a target name was successfully found, proceed with renaming
+            if [[ -n "$target_name" ]]; then
+                # Append the stage number to the target name (e.g., target -> target_01).
+                sed -i.bak "s/${target_name}/${target_name}_${stage_num}/g" "$stage_cmake"
+                rm -f "${stage_cmake}.bak"
+            fi
+        fi
+
         count=$((count + 1))
     done
 
