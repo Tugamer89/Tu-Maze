@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.16.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.15.0...v0.16.0) (2026-06-14)
+
+
+### Features
+
+* add Stage 15 keyboard and mouse controls to README and REPORT, implement collision detection and sprint mechanics in camera movement and replace hardcoded values with constants for cell size and wall dimensions ([da85f8e](https://github.com/Tugamer89/Tu-Maze/commit/da85f8e73122d05f9a478e01bf251f7abcd09427))
+
+
+### Bug Fixes
+
+* update .gitignore entry for FCG_Stages to include trailing slash ([c2952d4](https://github.com/Tugamer89/Tu-Maze/commit/c2952d49d75efaa745188524f56e1c7165c21ab7))
+
+
+### Documentation
+
+* **README:** update keyboard controls section for clarity ([29ee5c2](https://github.com/Tugamer89/Tu-Maze/commit/29ee5c20cfe494c84b9edc012d35cd2bc9eb11d6))
+
 ## [0.15.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.14.0...v0.15.0) (2026-06-14)
 
 
