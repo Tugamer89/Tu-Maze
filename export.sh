@@ -228,8 +228,8 @@ compile_command() {
     cd FCG_Stages || exit 1
 
     # Configure CMake build tree
-    print_info "Running: cmake -B build -D CMAKE_BUILD_TYPE=Release"
-    cmake -B build -D CMAKE_BUILD_TYPE=Release
+    print_info "Running: make configure"
+    make configure
     if [[ $? -ne 0 ]]; then
         print_error "CMake configuration failed for FCG_Stages."
         cd "$original_dir"
@@ -237,8 +237,8 @@ compile_command() {
     fi
 
     # Execute build step
-    print_info "Running: cmake --build build --parallel"
-    cmake --build build --parallel
+    print_info "Running: make build"
+    make build
     if [[ $? -ne 0 ]]; then
         print_error "Build compilation cycle failed!"
         cd "$original_dir"

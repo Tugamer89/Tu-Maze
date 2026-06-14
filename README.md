@@ -40,7 +40,7 @@ Upon successful compilation, the compiled standalone binary along with its asset
 Alternatively, you can chain all the previuos steps in one single command:
 
 ```bash
-make all
+make configure build run
 ```
 
 ## Managing and Compiling Project Stages (Export Workflow)
@@ -81,11 +81,11 @@ Once compiled via the centralized multi-stage workspace, the independent executa
 ```bash
 # To run Stage 1
 cd FCG_Stages/build/bin/Stage_01
-./tu-maze
+./tu-maze_01
 
 # To run Stage 2
 cd ../Stage_02
-./tu-maze
+./tu-maze_02
 
 # And so on...
 ```
