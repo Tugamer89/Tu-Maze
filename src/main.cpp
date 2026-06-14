@@ -165,20 +165,20 @@ int main(int argc, char* argv[]) {
             .diffuse = assets.wallDiff.get(),
             .normal = assets.wallNorm.get(),
             .roughness = assets.wallRough.get(),
-            .diffuse_color = {0.6f, 0.6f, 0.6f},     // Base color (texture does the heavy lifting)
-            .ambient_color = {0.18f, 0.22f, 0.18f},  // Ambient with a slight green tint from moss
-            .specular_color = {0.25f, 0.25f, 0.2f},  // Slightly reflective in wet/moss patches
-            .shininess = 16.0f                       // Roughish surface
+            .diffuse_color = {0.55f, 0.55f, 0.55f},   // Base color (texture does the heavy lifting)
+            .ambient_color = {0.15f, 0.18f, 0.15f},   // Ambient with a slight green tint from moss
+            .specular_color = {0.45f, 0.45f, 0.40f},  // Slightly reflective in wet/moss patches
+            .shininess = 64.0f                        // Roughish surface
         };
 
         assets.floorMat = Material{
             .diffuse = assets.floorDiff.get(),
             .normal = assets.floorNorm.get(),
             .roughness = assets.floorRough.get(),
-            .diffuse_color = {0.6f, 0.6f, 0.6f},   // Base color
-            .ambient_color = {0.2f, 0.2f, 0.2f},   // Neutral ambient footprint
-            .specular_color = {0.1f, 0.1f, 0.1f},  // Very dull, dry cobblestone reflection
-            .shininess = 8.0f                      // Extremely dull light spread
+            .diffuse_color = {0.5f, 0.5f, 0.5f},      // Base color
+            .ambient_color = {0.12f, 0.12f, 0.15f},   // Neutral ambient footprint
+            .specular_color = {0.15f, 0.15f, 0.15f},  // Very dull, dry cobblestone reflection
+            .shininess = 16.0f                        // Extremely dull light spread
         };
     });
 

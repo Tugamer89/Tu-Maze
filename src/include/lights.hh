@@ -16,10 +16,10 @@ class Lights {
     glm::vec3 light_direct_pos = {0.25f, -0.15f, -0.3f};
 
     // Warm, orange/yellow fire light
-    glm::vec3 light_direct_val = {1.0f, 0.7f, 0.35f};
+    glm::vec3 light_direct_val = {0.85f, 0.55f, 0.25f};
 
     // Very dim, cool blueish ambient for a dark dungeon
-    glm::vec3 light_ambient_val = {0.02f, 0.02f, 0.05f};
+    glm::vec3 light_ambient_val = {0.015f, 0.015f, 0.025f};
 
    private:
     GLint light_direct_pos_loc;
