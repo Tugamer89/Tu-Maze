@@ -1,7 +1,7 @@
 #version 410 core
 
 uniform vec3 camera_pos;
-uniform int u_useTextures;
+uniform int useTextures;
 
 struct Light {
     vec3 direct_pos;
@@ -43,7 +43,7 @@ void main() {
     vec3 albedo;
     float roughness;
 
-    if (u_useTextures == 1) {
+    if (useTextures == 1) {
         // --- BOX MAPPING ---
         vec3 abs_normal = abs(geom_normal);
         vec2 uv;

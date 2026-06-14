@@ -50,7 +50,7 @@ class Scene {
         mat_locs.specular_loc = glGetUniformLocation(shaders.program, "material.specular");
         mat_locs.shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
 
-        mat_locs.use_textures_loc = glGetUniformLocation(shaders.program, "u_useTextures");
+        mat_locs.use_textures_loc = glGetUniformLocation(shaders.program, "useTextures");
 
         glUniform1i(glGetUniformLocation(shaders.program, "diffuseMap"), 0);
         glUniform1i(glGetUniformLocation(shaders.program, "normalMap"), 1);
