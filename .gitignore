@@ -1,20 +1,49 @@
-CMakeLists.txt.user
+# ==========================================
+# CMAKE & BUILD OUTPUTS
+# ==========================================
+
+# Build directories
+
+build/
+build-win/
+_deps/
+FCG_Stages/
+
+# CMake generated files and caches
+
 CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Testing
+CMakeFiles/
+CMakeScripts/
+Testing/
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
-_deps
+CMakeLists.txt.user
 CMakeUserPresets.json
 
-build
-FCG_Stages
+# ==========================================
+# IDEs & TOOLS
+# ==========================================
+
+.vscode/
+.sonarlint/
+
+# ==========================================
+# RUNTIME, SETTINGS & LOGS
+# ==========================================
+
+# Local game settings
+
+tu-maze_settings.txt
+
+# Logs and generic configs
+
 *.log
 *.ini
+
+# ==========================================
+# OS GENERATED FILES
+# ==========================================
+
 .DS_Store
-.vscode
-.sonarlint
-tu-maze_settings.txt
