@@ -8,16 +8,9 @@ The core rendering engine features strict C++20 standard compliance, real-time a
 
 ### Prerequisites
 
-Ensure you have Git, CMake (v3.5 or higher), and a C++20 compliant compiler (such as GCC 15+, Clang, or MSVC) installed on your system.
+Ensure you have CMake (v3.5 or higher) and a C++20 compliant compiler (such as GCC 15+, Clang, or MSVC) installed on your system.
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/tugamer89/tu-maze.git
-cd tu-maze
-```
-
-### 2. Standalone Development Mode
+### Standalone Development Mode
 
 To compile and run the main branch of the project in standalone development mode, use the following commands from the root directory:
 
