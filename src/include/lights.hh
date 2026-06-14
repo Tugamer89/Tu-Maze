@@ -12,23 +12,19 @@
 
 class Lights {
    public:
-    glm::vec3 light_direct_pos = {0.15, -0.1, -0.15};  // xyz
-    glm::vec3 light_direct_val = {1.0, 1.0, 1.0};      // rgb
-    glm::vec3 light_ambient_val = {0.1, 0.1, 0.1};     // rgb
-    glm::vec3 material_diffuse = {0.8, 0.7, 0.6};      // rgb
-    glm::vec3 material_ambient = {0.5, 0.5, 0.8};      // rgb
-    glm::vec3 material_specular = {1.0, 1.0, 1.0};     // rgb
-    float material_shininess = 1000.f;                 // scalar
+    // Placed slightly to the right, down, and forward (like a held torch)
+    glm::vec3 light_direct_pos = {0.25f, -0.15f, -0.3f};
+
+    // Warm, orange/yellow fire light
+    glm::vec3 light_direct_val = {1.0f, 0.7f, 0.35f};
+
+    // Very dim, cool blueish ambient for a dark dungeon
+    glm::vec3 light_ambient_val = {0.02f, 0.02f, 0.05f};
 
    private:
-    // lights and materials
-    GLint light_direct_pos_loc;    // xyz
-    GLint light_direct_val_loc;    // rgb
-    GLint light_ambient_val_loc;   // rgb
-    GLint material_diffuse_loc;    // rgb
-    GLint material_ambient_loc;    // rgb
-    GLint material_specular_loc;   // rgb
-    GLint material_shininess_loc;  // scalar
+    GLint light_direct_pos_loc;
+    GLint light_direct_val_loc;
+    GLint light_ambient_val_loc;
 
    public:
     explicit Lights(const Shaders& shaders) { locations(shaders); }
@@ -37,22 +33,15 @@ class Lights {
         light_direct_pos_loc = glGetUniformLocation(shaders.program, "light.direct_pos");
         light_direct_val_loc = glGetUniformLocation(shaders.program, "light.direct_val");
         light_ambient_val_loc = glGetUniformLocation(shaders.program, "light.ambient_val");
-        material_diffuse_loc = glGetUniformLocation(shaders.program, "material.diffuse");
-        material_ambient_loc = glGetUniformLocation(shaders.program, "material.ambient");
-        material_specular_loc = glGetUniformLocation(shaders.program, "material.specular");
-        material_shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
     }
 
     void parameters() {
         glUniform3fv(light_direct_val_loc, 1, &light_direct_val[0]);
         glUniform3fv(light_ambient_val_loc, 1, &light_ambient_val[0]);
-        glUniform3fv(material_diffuse_loc, 1, &material_diffuse[0]);
-        glUniform3fv(material_ambient_loc, 1, &material_ambient[0]);
-        glUniform3fv(material_specular_loc, 1, &material_specular[0]);
-        glUniform1fv(material_shininess_loc, 1, &material_shininess);
     }
 
     void position(const glm::mat4& inverse_view_matrix) const {
+        // Transform the light position relative to the camera into world space
         glm::vec4 ldp4(light_direct_pos, 1.0);
         ldp4 = inverse_view_matrix * ldp4;
         glm::vec3 ldp3 = {ldp4.x, ldp4.y, ldp4.z};

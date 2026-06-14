@@ -160,10 +160,26 @@ int main(int argc, char* argv[]) {
     });
 
     loader.addTask("materials", [&assets]() {
-        assets.wallMat =
-            Material{assets.wallDiff.get(), assets.wallNorm.get(), assets.wallRough.get()};
-        assets.floorMat =
-            Material{assets.floorDiff.get(), assets.floorNorm.get(), assets.floorRough.get()};
+        // C++20 designated initializers make assigning realistic properties incredibly clean
+        assets.wallMat = Material{
+            .diffuse = assets.wallDiff.get(),
+            .normal = assets.wallNorm.get(),
+            .roughness = assets.wallRough.get(),
+            .diffuse_color = {0.6f, 0.6f, 0.6f},     // Base color (texture does the heavy lifting)
+            .ambient_color = {0.18f, 0.22f, 0.18f},  // Ambient with a slight green tint from moss
+            .specular_color = {0.25f, 0.25f, 0.2f},  // Slightly reflective in wet/moss patches
+            .shininess = 16.0f                       // Roughish surface
+        };
+
+        assets.floorMat = Material{
+            .diffuse = assets.floorDiff.get(),
+            .normal = assets.floorNorm.get(),
+            .roughness = assets.floorRough.get(),
+            .diffuse_color = {0.6f, 0.6f, 0.6f},   // Base color
+            .ambient_color = {0.2f, 0.2f, 0.2f},   // Neutral ambient footprint
+            .specular_color = {0.1f, 0.1f, 0.1f},  // Very dull, dry cobblestone reflection
+            .shininess = 8.0f                      // Extremely dull light spread
+        };
     });
 
     loader.addTask("random maze", [&assets]() { assets.maze = std::make_unique<Maze>(15, 15); });

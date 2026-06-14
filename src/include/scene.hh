@@ -26,6 +26,7 @@ class Scene {
     GLint model_loc;
     GLint vp_loc;
     GLint tr_inv_model_loc;
+    MaterialLocations mat_locs;
 
    public:
     explicit Scene(const Shaders& shaders) : camera(shaders), lights(shaders) {
@@ -39,6 +40,12 @@ class Scene {
         model_loc = glGetUniformLocation(shaders.program, "model");
         vp_loc = glGetUniformLocation(shaders.program, "vp");
         tr_inv_model_loc = glGetUniformLocation(shaders.program, "tr_inv_model");
+
+        // Cache the material uniforms here so we only query them once
+        mat_locs.diffuse_loc = glGetUniformLocation(shaders.program, "material.diffuse");
+        mat_locs.ambient_loc = glGetUniformLocation(shaders.program, "material.ambient");
+        mat_locs.specular_loc = glGetUniformLocation(shaders.program, "material.specular");
+        mat_locs.shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
 
         glUniform1i(glGetUniformLocation(shaders.program, "diffuseMap"), 0);
         glUniform1i(glGetUniformLocation(shaders.program, "normalMap"), 1);
@@ -56,7 +63,7 @@ class Scene {
     void draw() {
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.vp));
 
-        root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes);
+        root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs);
     }
 };
 

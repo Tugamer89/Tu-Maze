@@ -67,7 +67,7 @@ class Gui {
         }
     }
 
-    void renderDebugSection(Scene& scene) {
+    void renderDebugSection() {
         if (ImGui::Checkbox("Wireframe Mode", &wireframe_enabled)) {
             if (wireframe_enabled)
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -75,23 +75,6 @@ class Gui {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             saveSettings();
         }
-
-        ImGui::Separator();
-        ImGui::Text("Lighting Parameters:");
-
-        bool updateShader = false;
-        updateShader |= ImGui::ColorEdit3("Directional Light", &scene.lights.light_direct_val[0]);
-        updateShader |= ImGui::ColorEdit3("Ambient Light", &scene.lights.light_ambient_val[0]);
-        updateShader |= ImGui::ColorEdit3("Diffuse Color", &scene.lights.material_diffuse[0]);
-        updateShader |= ImGui::ColorEdit3("Ambient Color", &scene.lights.material_ambient[0]);
-        updateShader |=
-            ImGui::SliderFloat("Shininess", &scene.lights.material_shininess, 1.0f, 2000.0f);
-
-        bool updatePos =
-            ImGui::SliderFloat3("Torch Position", &scene.lights.light_direct_pos[0], -2.0f, 2.0f);
-
-        if (updatePos) scene.lights.position(scene.camera.inv_v);  // NOSONAR
-        if (updateShader) scene.lights.parameters();
     }
 
     void renderCameraSection(Scene& scene) {
@@ -229,7 +212,7 @@ class Gui {
 
         // --- SECTION: DEBUG & WORLD ---
         if (ImGui::CollapsingHeader("Debug & World")) {
-            renderDebugSection(scene);
+            renderDebugSection();
         }
 
         ImGui::End();
