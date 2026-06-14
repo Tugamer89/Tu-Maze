@@ -237,8 +237,8 @@ compile_command() {
     fi
 
     # Execute build step
-    print_info "Running: cmake --build build"
-    cmake --build build
+    print_info "Running: cmake --build build --parallel"
+    cmake --build build --parallel
     if [[ $? -ne 0 ]]; then
         print_error "Build compilation cycle failed!"
         cd "$original_dir"
