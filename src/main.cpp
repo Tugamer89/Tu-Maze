@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        if (!gui.wants_capture_keyboard()) {
+        if (window.hasFocus() && !gui.wants_capture_keyboard()) {
             bool camera_moved = scene.camera.update(dt);
 
             if (camera_moved) {
