@@ -51,6 +51,10 @@ jobs:
         patterns: |
           -**/stb_image/**
           -**/Graphics/**
+          -**/_deps/**
+          -**/imgui-src/**
+          -**/SFML/**
+          -**/glad/**
         input: sarif-results/cpp.sarif
         output: sarif-results/cpp.sarif
 
