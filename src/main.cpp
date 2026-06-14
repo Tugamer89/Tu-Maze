@@ -186,7 +186,6 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
             .ambient_color = {0.3f, 1.0f, 0.4f},
             .specular_color = {1.0f, 1.0f, 1.0f},
             .shininess = 128.0f,
-            .alpha = 0.4f,
             .use_textures = false,
         };
     });
