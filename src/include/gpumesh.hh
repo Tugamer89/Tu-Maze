@@ -27,12 +27,12 @@ class GPUMesh {
    public:
     explicit GPUMesh(const std::string& filename) { load(filename); }
 
-    explicit GPUMesh(Mesh& cpuMesh) : center(cpuMesh.center), extent(cpuMesh.extent) {
+    explicit GPUMesh(Mesh& cpuMesh)
+        : center(cpuMesh.center), extent(cpuMesh.extent), initialized(true) {
         std::vector<float> points;
         std::vector<unsigned int> indices;
         cpuMesh.pack4gpu(points, indices);
         send_arrays_2a3f(points, indices);
-        initialized = true;
     }
 
     ~GPUMesh() { clean(); }
