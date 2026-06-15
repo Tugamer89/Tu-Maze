@@ -211,6 +211,18 @@ Dal punto di vista tecnico e di gameplay, sono state introdotte le seguenti novi
 
 ![Menu di pausa](resources/screenshots/stage19.png)
 
+### Stage 20 (v0.21.x)
+
+L'obiettivo di questa tappa è stato il rinnovamento visivo e funzionale dell'interfaccia utente (GUI), con particolare attenzione al menu di pausa e al monitoraggio delle prestazioni grafiche.
+
+Dal punto di vista tecnico e di *User Experience* (UX), sono state implementate le seguenti migliorie:
+
+* **Restyling e Tema Custom**: Attraverso la manipolazione diretta della struttura `ImGuiStyle`, il tema predefinito di ImGui è stato interamente sovrascritto. Sono stati introdotti angoli arrotondati per finestre e widget (*rounding*), spaziature (*padding*) più ampie e una palette cromatica *Dark Theme* con accenti blu, conferendo all'applicativo un aspetto decisamente più professionale e moderno.
+* **Riorganizzazione del Menu di Pausa**: Il layout è stato riprogettato abbandonando i classici *collapsing headers* in favore di un più ordinato sistema a schede (*Tabs*). La finestra è ora ancorata rigidamente al centro dello schermo con dimensioni fisse e bloccate: questo elimina la fastidiosa necessità di effettuare *scrolling* verticale e garantisce un'immediata leggibilità per tutte le opzioni di configurazione.
+* **Overlay FPS Persistente**: Il contatore dei fotogrammi per secondo è stato isolato dalle impostazioni video e convertito in un *overlay* indipendente. Sfruttando flag di finestra specifici (come `ImGuiWindowFlags_NoBackground` e `ImGuiWindowFlags_NoInputs`), il testo fluttua direttamente a schermo nell'angolo in alto a sinistra senza interferire con l'input di gioco. L'attivazione dell'overlay è gestita da un *toggle* il cui stato viene serializzato nel file di configurazione locale, rendendo la scelta persistente tra le diverse sessioni.
+
+![Nuovo menu di pausa e overlay FPS](resources/screenshots/stage20.png)
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
