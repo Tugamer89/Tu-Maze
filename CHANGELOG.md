@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.20.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.19.0...v0.20.0) (2026-06-15)
+
+
+### Features
+
+* add pause functionality and improve session management in GUI ([21d58cf](https://github.com/Tugamer89/Tu-Maze/commit/21d58cfb976d0bd42af794a7ce38c03fafe7d9e0))
+
+
+### Documentation
+
+* add Stage 19 details ([64bd0f6](https://github.com/Tugamer89/Tu-Maze/commit/64bd0f63e021e4e85acd1c886650a52688aa59e6))
+
 ## [0.19.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.18.1...v0.19.0) (2026-06-15)
 
 
