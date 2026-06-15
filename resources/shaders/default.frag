@@ -31,7 +31,9 @@ in vec3 interpolated_normal;
 out vec4 fragment_color;
 
 const float uv_scale = 0.7;
+const vec3 inv_gamma = vec3(1.0 / 2.2);
 
+// Safety clamp to prevent HDR bloom/blowout issues
 vec4 clamp4(vec4 v) {
     return clamp(v, vec4(0.0), vec4(1.0));
 }
@@ -39,15 +41,18 @@ vec4 clamp4(vec4 v) {
 void main() {
     vec3 pos = interpolated_pos;
 
-    // Compute flat geometric normal using screen-space derivatives
-    vec3 dx = dFdx(pos);
-    vec3 dy = dFdy(pos);
-    vec3 geom_normal = normalize(cross(dx, dy));
-
-    vec3 albedo;
-    float roughness;
+    // Initialization for Solid Color Mode
+    vec3 albedo = vec3(1.0);
+    float roughness = 0.1;
     vec3 final_normal;
     float final_alpha = material.alpha;
+
+    vec3 geom_normal;
+    if (useTextures == 1 || useFlatShading == 1) {
+        vec3 dx = dFdx(pos);
+        vec3 dy = dFdy(pos);
+        geom_normal = normalize(cross(dx, dy));
+    }
 
     if (useTextures == 1) {
         // --- BOX MAPPING ---
@@ -69,9 +74,10 @@ void main() {
         uv *= uv_scale;
 
         // Sample base textures
-        albedo = texture(diffuseMap, uv).rgb;
+        vec4 tex_diffuse = texture(diffuseMap, uv);
+        albedo = tex_diffuse.rgb;
+        final_alpha *= tex_diffuse.a;
         roughness = texture(roughnessMap, uv).r;
-        final_alpha *= texture(diffuseMap, uv).a;
 
         if (useFlatShading == 1) {
             // Flat + Textures: Ignore normal map
@@ -96,9 +102,6 @@ void main() {
 
     } else {
         // --- SOLID COLOR MODE ---
-        albedo = vec3(1.0);
-        roughness = 0.1;
-
         if (useFlatShading == 1) {
             final_normal = geom_normal;
         } else {
@@ -128,7 +131,7 @@ void main() {
     vec3 result = ambient + diffuse + specular;
 
     // Gamma correction
-    result = pow(result, vec3(1.0 / 2.2));
+    result = pow(result, inv_gamma);
 
     fragment_color = clamp4(vec4(result, final_alpha));
 }
