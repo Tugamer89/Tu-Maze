@@ -74,8 +74,7 @@ class Node {
 
     // Recursively draw this node and all its children
     void draw(GLint model_loc, GLint tr_inv_model_loc,
-              const std::array<glm::vec4, 6>& frustumPlanes,
-              const MaterialLocations& mat_locs,
+              const std::array<glm::vec4, 6>& frustumPlanes, const MaterialLocations& mat_locs,
               const Material** activeMaterial) const {
         if (mesh) {
             // Transform center point to world space

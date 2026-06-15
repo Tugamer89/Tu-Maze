@@ -60,9 +60,7 @@ struct Material {
 
     // Fast memory comparison for caching
     bool operator==(const Material& other) const {
-        return diffuse == other.diffuse &&
-               normal == other.normal &&
-               roughness == other.roughness &&
+        return diffuse == other.diffuse && normal == other.normal && roughness == other.roughness &&
                diffuse_color[0] == other.diffuse_color[0] &&
                diffuse_color[1] == other.diffuse_color[1] &&
                diffuse_color[2] == other.diffuse_color[2] &&
@@ -71,16 +69,12 @@ struct Material {
                ambient_color[2] == other.ambient_color[2] &&
                specular_color[0] == other.specular_color[0] &&
                specular_color[1] == other.specular_color[1] &&
-               specular_color[2] == other.specular_color[2] &&
-               shininess == other.shininess &&
-               alpha == other.alpha &&
-               use_textures == other.use_textures &&
+               specular_color[2] == other.specular_color[2] && shininess == other.shininess &&
+               alpha == other.alpha && use_textures == other.use_textures &&
                use_flat == other.use_flat;
     }
 
-    bool operator!=(const Material& other) const {
-        return !(*this == other);
-    }
+    bool operator!=(const Material& other) const { return !(*this == other); }
 };
 
 #endif
