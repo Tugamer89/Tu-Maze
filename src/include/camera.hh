@@ -195,19 +195,21 @@ class Camera {
         if (glm::length(movement) > 0.0f) {
             movement = glm::normalize(movement) * velocity;
 
-            // X-Axis separated collision check
-            glm::vec3 nextPosX = position;
-            nextPosX.x += movement.x;
-            if (!checkCollision(nextPosX, maze)) {
-                position.x = nextPosX.x;
-            }
+            // // X-Axis separated collision check
+            // glm::vec3 nextPosX = position;
+            // nextPosX.x += movement.x;
+            // if (!checkCollision(nextPosX, maze)) {
+            //     position.x = nextPosX.x;
+            // }
 
-            // Z-Axis separated collision check
-            glm::vec3 nextPosZ = position;
-            nextPosZ.z += movement.z;
-            if (!checkCollision(nextPosZ, maze)) {
-                position.z = nextPosZ.z;
-            }
+            // // Z-Axis separated collision check
+            // glm::vec3 nextPosZ = position;
+            // nextPosZ.z += movement.z;
+            // if (!checkCollision(nextPosZ, maze)) {
+            //     position.z = nextPosZ.z;
+            // }
+
+            position += movement;
 
             projection();
             return true;

@@ -199,7 +199,7 @@ class Gui {
         ImGui::SFML::Update(sf::Mouse::getPosition(window), sf::Vector2f(window.getSize()), dt);
     }
 
-    void render(Scene& scene, sf::Window& window, std::invocable auto onRestart) {
+    void renderSettings(Scene& scene, sf::Window& window, std::invocable auto onRestart) {
         ImGui::Begin("Engine Settings");
 
         // --- SECTION: VIDEO & PERFORMANCE ---
@@ -322,6 +322,28 @@ class Gui {
 
         // Enable MSAA if necessary
         if (active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
+    }
+
+    void renderHUD(const std::string& formattedTime) const {
+        ImGuiWindowFlags windowFlags =
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+            ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground;
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImVec2 windowPos(displaySize.x * 0.5f, 30.0f);
+        ImVec2 windowPosPivot(0.5f, 0.0f);
+
+        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, windowPosPivot);
+        ImGui::SetNextWindowBgAlpha(0.0f);
+
+        if (ImGui::Begin("GameHUD", nullptr, windowFlags)) {
+            ImGui::SetWindowFontScale(2.5f);
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "%s", formattedTime.c_str());
+            ImGui::SetWindowFontScale(1.0f);
+        }
+        ImGui::End();
     }
 };
 

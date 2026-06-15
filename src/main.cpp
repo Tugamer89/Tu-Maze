@@ -21,6 +21,7 @@
 #include "include/minimap.hh"
 #include "include/node.hh"
 #include "include/scene.hh"
+#include "include/session.hh"
 #include "include/setup.hh"
 
 ///////////////
@@ -218,6 +219,7 @@ int main(int argc, char* argv[]) {
     shaders.use();
     Scene scene(shaders);
     GameAssets assets;
+    SessionManager session;
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -249,13 +251,16 @@ int main(int argc, char* argv[]) {
     bool running = true;
     bool game_initialized = false;
 
-    auto restartGame = [&scene, &assets, &gui, regenerateMaze]() {
+    auto restartGame = [&scene, &assets, &gui, &session, regenerateMaze]() {
         regenerateMaze();
         scene.camera.setPosition(assets.maze->getStartWorldPosition());
         scene.camera.setYaw(135.0f);  // Face inward towards the bottom-left
         scene.camera.setPitch(0.0f);
         scene.lights.position(scene.camera.inv_v);
         gui.hasWon = false;
+
+        session.reset();
+        session.start();
     };
 
     while (running) {
@@ -301,6 +306,8 @@ int main(int argc, char* argv[]) {
 
         // Update Game State
         if (window.hasFocus() && !gui.wants_capture_keyboard() && !gui.hasWon) {
+            session.update();
+
             bool camera_moved = scene.camera.update(dt, *assets.maze.get());
             if (camera_moved) {
                 scene.lights.position(scene.camera.inv_v);
@@ -313,6 +320,8 @@ int main(int argc, char* argv[]) {
 
         if (!gui.hasWon && scene.check_win_condition(goalPos)) {
             gui.hasWon = true;
+            session.stop();
+            session.saveScore(assets.maze->currentSeed);
         }
 
         // Render
@@ -320,7 +329,9 @@ int main(int argc, char* argv[]) {
         minimap.draw(scene, gui, window);
 
         shaders.use();
-        gui.render(scene, window, restartGame);
+
+        gui.renderHUD(session.getFormattedTime());
+        gui.renderSettings(scene, window, restartGame);
 
         window.display();
     }

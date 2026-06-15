@@ -40,6 +40,7 @@ class Maze {
 
     int width;
     int height;
+    unsigned int currentSeed = 0;
     std::vector<Cell> grid;
 
     Maze(int width, int height) : width(width), height(height) {
@@ -151,9 +152,10 @@ class Maze {
     void generate() {
         std::stack<int> stack;
 
-        auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-        std::mt19937 rng(static_cast<unsigned int>(seed));
-        std::cout << "Maze generated with seed: " << seed << std::endl;
+        currentSeed = static_cast<unsigned int>(
+            std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        std::mt19937 rng(currentSeed);
+        std::cout << "Maze generated with seed: " << currentSeed << std::endl;
 
         int currentIndex = 0;
         grid[currentIndex].visited = true;

@@ -36,6 +36,7 @@ CMakeUserPresets.json
 # Local game settings
 
 tu-maze_settings.txt
+tu-maze_scores.txt
 
 # Logs and generic configs
 
