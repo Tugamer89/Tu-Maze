@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.18.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.18.0...v0.18.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* adjust win condition distance threshold for gameplay balance ([a5ffaa1](https://github.com/Tugamer89/Tu-Maze/commit/a5ffaa130b0aaaf3628026c979a107990eba3393))
+* update export script to copy REPORT.md and Makefile to FCG_Stages ([bcf411a](https://github.com/Tugamer89/Tu-Maze/commit/bcf411adea4f085bd58f0ca616af41fabd08694e))
+
+
+### Documentation
+
+* add new screenshots and animations for stages 14, 16, and 17 ([ab2c65a](https://github.com/Tugamer89/Tu-Maze/commit/ab2c65a9dac30db720d9bef4d1867242c40c9965))
+* update Stage 17 description to clarify gameplay completion and performance tracking integration ([85363e1](https://github.com/Tugamer89/Tu-Maze/commit/85363e1c8f9d96a0ff13880d0e8a3e45497b2026))
+
 ## [0.18.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.17.1...v0.18.0) (2026-06-15)
 
 
