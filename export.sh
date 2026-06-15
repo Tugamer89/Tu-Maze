@@ -193,10 +193,16 @@ export_command() {
         print_info "  -> README.md copied successfully."
     fi
 
-    # Copy the main REMPORT.md if exists
-    if [[ -f REMPORT.md ]]; then
-        cp REMPORT.md FCG_Stages/
-        print_info "  -> REMPORT.md copied successfully."
+    # Copy the main REPORT.md if exists
+    if [[ -f REPORT.md ]]; then
+        cp REPORT.md FCG_Stages/
+        print_info "  -> REPORT.md copied successfully."
+    fi
+
+    # Copy the Makefile if exists
+    if [[ -f Makefile ]]; then
+        cp Makefile FCG_Stages/
+        print_info "  -> Makefile copied successfully."
     fi
 
     # Copy screenshot folder recursively
