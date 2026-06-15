@@ -20,6 +20,7 @@ class Node {
     glm::mat4 localMatrix = glm::mat4(glm::mat4(1.0f));
     glm::mat4 globalMatrix = glm::mat4(1.0f);
     glm::mat3 normalMatrix = glm::mat3(1.0f);
+    glm::vec3 cachedWorldCenter = {0.0f, 0.0f, 0.0f};
     GPUMesh* mesh = nullptr;
     Material material;
     std::vector<Node> children;
@@ -33,6 +34,10 @@ class Node {
         globalMatrix = parentMatrix * localMatrix;
         normalMatrix = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
 
+        if (mesh) {
+            cachedWorldCenter = glm::vec3(globalMatrix * glm::vec4(mesh->center, 1.0f));
+        }
+
         for (Node& child : children) {
             child.updateTransforms(globalMatrix);
         }
@@ -42,7 +47,7 @@ class Node {
     void drawMinimap(GLint model_loc, GLint color_loc, const glm::vec3& camPos,
                      float cullRadius) const {
         if (mesh) {
-            glm::vec3 worldCenter(globalMatrix * glm::vec4(mesh->center, 1.0f));
+            const glm::vec3& worldCenter = cachedWorldCenter;
 
             // Squared distance on XZ
             float dx = worldCenter.x - camPos.x;
@@ -77,8 +82,8 @@ class Node {
               const std::array<glm::vec4, 6>& frustumPlanes,
               const MaterialLocations& mat_locs) const {
         if (mesh) {
-            // Transform center point to world space
-            glm::vec3 worldCenter(globalMatrix * glm::vec4(mesh->center, 1.0f));
+            // Using cached world center!
+            const glm::vec3& worldCenter = cachedWorldCenter;
 
             // Magnitude squared of the transformed basis vectors gives us the squared scaling
             // factors
