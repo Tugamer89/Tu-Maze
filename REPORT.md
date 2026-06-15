@@ -237,6 +237,16 @@ Dal punto di vista tecnico e di *User Experience* (UX), l'aggiornamento ha intro
 
 ![Leaderboard](resources/screenshots/stage21_leaderboard.png)
 
+### Stage 22 (v0.23.x)
+
+L'obiettivo di questa tappa è stato l'arricchimento del Menu Principale tramite l'integrazione del pannello delle Impostazioni, precedentemente accessibile in via esclusiva dal menu di pausa *in-game*.
+
+Dal punto di vista architetturale e dell'interfaccia utente, sono stati effettuati i seguenti interventi:
+
+* **Refactoring**: Per prevenire la duplicazione del codice, l'intera logica di rendering delle opzioni ("Video & Display" e "Gameplay & UI") è stata astratta in un componente riutilizzabile (`renderSettingsContent`). Questo approccio modulare consente di richiamare le medesime interfacce di configurazione sia all'interno del menu di pausa sia nel menu principale.
+* **Configurazione Pre-Partita**: L'utente può ora calibrare comodamente l'esperienza di gioco (modificando FOV, qualità delle texture, MSAA e V-Sync) o impostare l'HUD minimappa ancor prima di inizializzare la generazione procedurale del labirinto, ottimizzando le prestazioni fin dal primo fotogramma.
+* **Gestione degli Stati dell'Input**: Il parsing degli eventi della tastiera è stato aggiornato. La pressione del tasto `ESC` intercetta ora correttamente lo stato del sottomenu delle impostazioni nel menu principale, garantendo un'uscita fluida verso la root del menu senza causare chiusure accidentali dell'applicazione.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
