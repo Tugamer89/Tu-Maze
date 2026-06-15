@@ -171,7 +171,7 @@ Dal punto di vista della logica di gioco, sono state implementate diverse miglio
 
 ### Stage 17 (v0.18.x)
 
-L'obiettivo di questa tappa è stato il completamento del *core loop* di gioco tramite l'integrazione di un sistema di tracciamento delle performance del giocatore e il raffinamento visivo dell'obiettivo finale.
+L'obiettivo di questa tappa è stato il completamento del *gameplay* di gioco tramite l'integrazione di un sistema di tracciamento delle performance del giocatore e il raffinamento visivo dell'obiettivo finale.
 
 Dal punto di vista tecnico e di gameplay, sono state introdotte le seguenti novità architetturali:
 
