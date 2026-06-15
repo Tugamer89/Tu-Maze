@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.21.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.20.0...v0.21.0) (2026-06-15)
+
+
+### Features
+
+* enhance GUI with FPS overlay and modern styling adjustments ([cbc5a4c](https://github.com/Tugamer89/Tu-Maze/commit/cbc5a4c841d4dfa790f4f9dd76cf71c186763a62))
+
+
+### Documentation
+
+* add Stage 20 in REPORT.md ([295cf5b](https://github.com/Tugamer89/Tu-Maze/commit/295cf5bedd2ed0797c959e004dbc9dec83bc4616))
+
 ## [0.20.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.19.0...v0.20.0) (2026-06-15)
 
 
