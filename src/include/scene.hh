@@ -94,7 +94,7 @@ class Scene {
     // Checks game rules against scene state
     bool check_win_condition(const glm::vec3& goalPos) const {
         float distToGoal = glm::distance(camera.getPosition(), goalPos);
-        return distToGoal <= Maze::CELL_SIZE;
+        return distToGoal <= Maze::CELL_SIZE * 0.5f;
     }
 
     void draw() {
