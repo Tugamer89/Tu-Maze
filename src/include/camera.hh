@@ -83,39 +83,65 @@ class Camera {
         float offsetX = (static_cast<float>(maze.width) * Maze::CELL_SIZE) * 0.5f;
         float offsetZ = (static_cast<float>(maze.height) * Maze::CELL_SIZE) * 0.5f;
 
-        auto cellX = static_cast<int>(std::floor(pos.x + offsetX) / Maze::CELL_SIZE);
-        auto cellY = static_cast<int>(std::floor(pos.z + offsetZ) / Maze::CELL_SIZE);
-
-        // true if player AABB intersects with wall AABB
-        auto checkAABB = [&](float minX, float maxX, float minZ, float maxZ) {
-            bool intersectX = (pos.x + collisionRadius > minX) && (pos.x - collisionRadius < maxX);
-            bool intersectZ = (pos.z + collisionRadius > minZ) && (pos.z - collisionRadius < maxZ);
-            return intersectX && intersectZ;
-        };
-
         float halfCell = Maze::CELL_SIZE * 0.5f;
         float halfWall = Maze::WALL_THICKNESS * 0.5f;
         float outer = halfCell + halfWall;
         float inner = halfCell - halfWall;
 
-        // Check a 3x3 grid around the player to guarantee we catch corner walls
-        for (int y = std::max(0, cellY - 1); y <= std::min(maze.height - 1, cellY + 1); ++y) {
-            for (int x = std::max(0, cellX - 1); x <= std::min(maze.width - 1, cellX + 1); ++x) {
-                const Cell& cell = maze.grid[y * maze.width + x];
+        // Calculate player bounding box bounds in absolute world coordinates
+        float minPx = pos.x - collisionRadius;
+        float maxPx = pos.x + collisionRadius;
+        float minPz = pos.z - collisionRadius;
+        float maxPz = pos.z + collisionRadius;
+
+        // Convert position to maze-local coordinates to find which cells to check
+        float localX = pos.x + offsetX;
+        float localZ = pos.z + offsetZ;
+
+        // Optimize outer bounds checks.
+        // `outer` is exactly halfCell + halfWall. That means from cell center, walls reach `outer`.
+        float checkRadius = outer + collisionRadius;
+
+        int startX = std::max(0, static_cast<int>((localX - checkRadius) / Maze::CELL_SIZE));
+        int endX =
+            std::min(maze.width - 1, static_cast<int>((localX + checkRadius) / Maze::CELL_SIZE));
+        int startY = std::max(0, static_cast<int>((localZ - checkRadius) / Maze::CELL_SIZE));
+        int endY =
+            std::min(maze.height - 1, static_cast<int>((localZ + checkRadius) / Maze::CELL_SIZE));
+
+        for (int y = startY; y <= endY; ++y) {
+            int rowOffset = y * maze.width;
+            float cz = (static_cast<float>(y) * Maze::CELL_SIZE) - offsetZ + halfCell;
+
+            // Precalculate Z checks
+            float cz_outer_min = cz - outer;
+            float cz_outer_max = cz + outer;
+            float cz_inner_min = cz - inner;
+            float cz_inner_max = cz + inner;
+
+            bool topZMatch = (maxPz > cz_outer_min) && (minPz < cz_inner_min);
+            bool bottomZMatch = (maxPz > cz_inner_max) && (minPz < cz_outer_max);
+            bool vertWallZMatch = (maxPz > cz_outer_min) && (minPz < cz_outer_max);
+
+            for (int x = startX; x <= endX; ++x) {
+                const Cell& cell = maze.grid[rowOffset + x];
 
                 float cx = (static_cast<float>(x) * Maze::CELL_SIZE) - offsetX + halfCell;
-                float cz = (static_cast<float>(y) * Maze::CELL_SIZE) - offsetZ + halfCell;
 
-                // Wall bounds
-                if (cell.wallTop && y == 0 &&
-                    checkAABB(cx - outer, cx + outer, cz - outer, cz - inner))
+                // Inlined AABB checks for each wall type
+                if (cell.wallTop && y == 0 && topZMatch && (maxPx > cx - outer) &&
+                    (minPx < cx + outer))
                     return true;
-                if (cell.wallBottom && checkAABB(cx - outer, cx + outer, cz + inner, cz + outer))
+
+                if (cell.wallBottom && bottomZMatch && (maxPx > cx - outer) && (minPx < cx + outer))
                     return true;
-                if (cell.wallLeft && x == 0 &&
-                    checkAABB(cx - outer, cx - inner, cz - outer, cz + outer))
+
+                if (cell.wallLeft && x == 0 && vertWallZMatch && (maxPx > cx - outer) &&
+                    (minPx < cx - inner))
                     return true;
-                if (cell.wallRight && checkAABB(cx + inner, cx + outer, cz - outer, cz + outer))
+
+                if (cell.wallRight && vertWallZMatch && (maxPx > cx + inner) &&
+                    (minPx < cx + outer))
                     return true;
             }
         }
