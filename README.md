@@ -152,3 +152,18 @@ cd ../Stage_02
 #### Mouse Controls v0.16
 
 * **`Left Mouse Button` while dragging**: Move visual.
+
+### Stage 18 (v0.19.x)
+
+### Keyboard Controls v0.19
+
+* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
+* **`Left Shift` or `Right Shift`**: Sprint.
+* **`W`**: Move forward.
+* **`A`**: Move left.
+* **`S`**: Move backward.
+* **`D`**: Move right.
+
+#### Mouse Controls v0.19
+
+* **`Left Mouse Button` while dragging**: Move visual.

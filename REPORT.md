@@ -189,6 +189,16 @@ Dal punto di vista tecnico e di gameplay, sono state introdotte le seguenti novi
 
 ![Cristallo traslucido + timer](resources/screenshots/stage17.png)
 
+### Stage 18 (v0.19.x)
+
+L'obiettivo di questa tappa è stato il consolidamento della pipeline grafica attraverso la creazione di un singolo **Uber Shader** (`standard.vert/frag`) che unifica e sostituisce i precedenti programmi separati (Flat e Phong).
+
+Dal punto di vista architetturale, la transizione tra lo stile geometrico e l'illuminazione smussata fotorealistica è ora gestita dinamicamente a *runtime* tramite l'invio di una singola variabile `uniform` (`useFlatShading`). Questo *refactoring* ha permesso di eliminare la duplicazione del codice e snellire la gestione dei materiali lato CPU, azzerando i cambi di contesto (`glUseProgram`) per gli oggetti opachi.
+
+Contestualmente, il *Fragment Shader* è stato oggetto di micro-ottimizzazioni matematiche e prestazionali mirate: le costose derivate in *screen-space* (`dFdx`, `dFdy`) vengono ora calcolate solo se strettamente richieste dallo stile del materiale, le chiamate di campionamento in VRAM sono state ridotte, e le divisioni per la *Gamma Correction* (sRGB) sono state sostituite da moltiplicazioni costanti precalcolate.
+
+![Nuovo shading](resources/screenshots/stage18.png)
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
