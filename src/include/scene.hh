@@ -101,8 +101,13 @@ class Scene {
     void draw() {
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.vp));
 
-        root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs);
-        goalNode.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs);
+        const Material* activeMaterial = nullptr;
+        root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, &activeMaterial);
+        goalNode.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, &activeMaterial);
+
+        if (activeMaterial != nullptr) {
+            activeMaterial->unbind();
+        }
     }
 };
 

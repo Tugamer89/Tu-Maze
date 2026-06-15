@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 
 #ifndef GLAD_GL_IMPLEMENTATION
+#include <cstring>
 #define GLAD_GL_IMPLEMENTATION
 #include "../glad/gl.h"
 #endif
@@ -55,6 +56,30 @@ struct Material {
         if (diffuse) diffuse->unbind();
         if (normal) normal->unbind();
         if (roughness) roughness->unbind();
+    }
+
+    // Fast memory comparison for caching
+    bool operator==(const Material& other) const {
+        return diffuse == other.diffuse &&
+               normal == other.normal &&
+               roughness == other.roughness &&
+               diffuse_color[0] == other.diffuse_color[0] &&
+               diffuse_color[1] == other.diffuse_color[1] &&
+               diffuse_color[2] == other.diffuse_color[2] &&
+               ambient_color[0] == other.ambient_color[0] &&
+               ambient_color[1] == other.ambient_color[1] &&
+               ambient_color[2] == other.ambient_color[2] &&
+               specular_color[0] == other.specular_color[0] &&
+               specular_color[1] == other.specular_color[1] &&
+               specular_color[2] == other.specular_color[2] &&
+               shininess == other.shininess &&
+               alpha == other.alpha &&
+               use_textures == other.use_textures &&
+               use_flat == other.use_flat;
+    }
+
+    bool operator!=(const Material& other) const {
+        return !(*this == other);
     }
 };
 

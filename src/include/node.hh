@@ -75,7 +75,8 @@ class Node {
     // Recursively draw this node and all its children
     void draw(GLint model_loc, GLint tr_inv_model_loc,
               const std::array<glm::vec4, 6>& frustumPlanes,
-              const MaterialLocations& mat_locs) const {
+              const MaterialLocations& mat_locs,
+              const Material** activeMaterial) const {
         if (mesh) {
             // Transform center point to world space
             glm::vec3 worldCenter(globalMatrix * glm::vec4(mesh->center, 1.0f));
@@ -105,15 +106,20 @@ class Node {
                 glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
                 glUniformMatrix3fv(tr_inv_model_loc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
-                material.bind(mat_locs);
+                if (*activeMaterial == nullptr || **activeMaterial != material) {
+                    if (*activeMaterial != nullptr) {
+                        (*activeMaterial)->unbind();
+                    }
+                    material.bind(mat_locs);
+                    *activeMaterial = &material;
+                }
                 mesh->draw();
-                material.unbind();
             }
         }
 
         // Recursively draw all children passing our computed global matrix as their parent matrix
         for (const Node& child : children) {
-            child.draw(model_loc, tr_inv_model_loc, frustumPlanes, mat_locs);
+            child.draw(model_loc, tr_inv_model_loc, frustumPlanes, mat_locs, activeMaterial);
         }
     }
 };
