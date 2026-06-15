@@ -172,7 +172,7 @@ cd ../Stage_02
 
 ### Keyboard Controls v0.20
 
-* **`Escape`**: Open or close pause menu.
+* **`Escape`**: Open or close Pause Menu.
 * **`Left Shift` or `Right Shift`**: Sprint.
 * **`W`**: Move forward.
 * **`A`**: Move left.
@@ -180,5 +180,20 @@ cd ../Stage_02
 * **`D`**: Move right.
 
 #### Mouse Controls v0.20
+
+* **Dragging**: Move visual.
+
+### Stage 21 (v0.22.x)
+
+### Keyboard Controls v0.22
+
+* **`Escape`**: Open or close Pause Menu, close Leaderboard or exit from Main Menu.
+* **`Left Shift` or `Right Shift`**: Sprint.
+* **`W`**: Move forward.
+* **`A`**: Move left.
+* **`S`**: Move backward.
+* **`D`**: Move right.
+
+#### Mouse Controls v0.22
 
 * **Dragging**: Move visual.

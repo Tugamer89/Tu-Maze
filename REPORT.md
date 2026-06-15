@@ -223,6 +223,20 @@ Dal punto di vista tecnico e di *User Experience* (UX), sono state implementate 
 
 ![Nuovo menu di pausa e overlay FPS](resources/screenshots/stage20.png)
 
+### Stage 21 (v0.22.x)
+
+L'obiettivo di questa tappa è stato il completamento del *flow* di gioco tramite l'introduzione di un vero e proprio **Menu Principale** interattivo e di un sistema di visualizzazione dei record (*Leaderboard*).
+
+Dal punto di vista tecnico e di *User Experience* (UX), l'aggiornamento ha introdotto diverse novità architetturali e funzionali:
+
+* **Main Menu e Stati di Gioco**: L'ingresso diretto nel labirinto è stato sostituito da una schermata di avvio. L'integrazione ha richiesto la riorganizzazione della macchina a stati globale: quando il giocatore si trova nel menu principale, il rendering 3D del labirinto e le logiche di simulazione passano in *idle*, presentando un elegante sfondo scuro. I menu di Pausa e di Vittoria sono stati contestualmente aggiornati per permettere il ritorno alla schermata iniziale invece del semplice "Quit to Desktop".
+* **Seme Generazionale (Custom Seed)**: Il motore di generazione procedurale (`Maze`) è stato modificato per accettare un identificativo opzionale (`std::optional<unsigned int>`). Tramite un apposito campo di input nella GUI, i giocatori possono ora avviare partite su labirinti specifici inserendone il *seed*. Questa meccanica è fondamentale per garantire la ripetibilità degli scenari e favorire competizioni ad armi pari.
+* **Classifica Integrata (Leaderboard)**: La classe `SessionManager` è stata estesa con un parser capace di leggere il registro di testo dei punteggi locali. I record vengono istanziati in un vettore di strutture (`ScoreRecord`), ordinati per tempo di completamento (dal più veloce al più lento) tramite `std::range::sort`, vengono selezionati i migliori 50 e infine renderizzati su schermo sfruttando le API tabellari avanzate di ImGui.
+
+![Menu principale](resources/screenshots/stage21_menu.png)
+
+![Leaderboard](resources/screenshots/stage21_leaderboard.png)
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
