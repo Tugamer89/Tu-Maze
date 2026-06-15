@@ -27,6 +27,10 @@ class Node {
     bool is_wall = false;
     bool is_goal = false;
 
+    // Cached render culling parameters
+    mutable float lastCullRadius = -1.0f;
+    mutable float maxRenderDistSq = 0.0f;
+
     Node() = default;
 
     void updateTransforms(const glm::mat4& parentMatrix = glm::mat4(1.0f)) {
@@ -49,11 +53,13 @@ class Node {
             float dz = worldCenter.z - camPos.z;
             float distSq = (dx * dx) + (dz * dz);
 
-            // Ray estimation
-            float nodeRadius = mesh->extent * 2.0f;
-            float maxRenderDist = cullRadius + nodeRadius;
+            if (cullRadius != lastCullRadius) {
+                float maxRenderDist = cullRadius + (mesh->extent * 2.0f);
+                maxRenderDistSq = maxRenderDist * maxRenderDist;
+                lastCullRadius = cullRadius;
+            }
 
-            if (distSq < (maxRenderDist * maxRenderDist)) {
+            if (distSq < maxRenderDistSq) {
                 glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(globalMatrix));
 
                 if (is_goal)
