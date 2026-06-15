@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.18.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.17.1...v0.18.0) (2026-06-15)
+
+
+### Features
+
+* add alpha property to Material struct and update shader calculations ([e77ceca](https://github.com/Tugamer89/Tu-Maze/commit/e77ceca9e1b850fc342d272317479ec0b22cbb11))
+* implement session management for game timing and score tracking ([b5147e5](https://github.com/Tugamer89/Tu-Maze/commit/b5147e580ec46fb1e7c42b9ca47e830a9ac66b01))
+
+
+### Bug Fixes
+
+* refactor collision detection logic in Camera class for improved clarity ([ab9003a](https://github.com/Tugamer89/Tu-Maze/commit/ab9003a887b60fbec591d0047cd384555421e476))
+
+
+### Documentation
+
+* updated report to include Stage 17 ([9e73bc2](https://github.com/Tugamer89/Tu-Maze/commit/9e73bc21f4b00a85e51bc55818bff05a76c3e82f))
+
 ## [0.17.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.17.0...v0.17.1) (2026-06-14)
 
 
