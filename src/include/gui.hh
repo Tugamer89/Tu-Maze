@@ -24,12 +24,57 @@ class Gui {
     float minimap_zoom = 8.0f;
     bool hasWon = false;
     bool isPaused = false;
+    bool show_fps_overlay = false;
 
    private:
     bool vsync_enabled = true;
     int msaa_level = 0;
     int active_msaa_level = 0;
     float camera_fov = 60.0f;
+
+    void setupImGuiStyle() const {
+        ImGuiStyle& style = ImGui::GetStyle();
+
+        // Rounding
+        style.WindowRounding = 8.0f;
+        style.FrameRounding = 6.0f;
+        style.PopupRounding = 6.0f;
+        style.ScrollbarRounding = 6.0f;
+        style.GrabRounding = 6.0f;
+        style.TabRounding = 6.0f;
+
+        // Padding
+        style.WindowPadding = ImVec2(16.0f, 16.0f);
+        style.FramePadding = ImVec2(12.0f, 8.0f);
+        style.ItemSpacing = ImVec2(8.0f, 12.0f);
+        style.ItemInnerSpacing = ImVec2(6.0f, 6.0f);
+
+        // Palette Colori (Modern Dark Theme con accenti blu)
+        ImVec4* colors = style.Colors;
+        colors[ImGuiCol_Text] = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
+        colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 0.98f);
+        colors[ImGuiCol_PopupBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.98f);
+        colors[ImGuiCol_Border] = ImVec4(0.25f, 0.25f, 0.25f, 0.50f);
+        colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+        colors[ImGuiCol_FrameBgHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+        colors[ImGuiCol_FrameBgActive] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+        colors[ImGuiCol_TitleBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+        colors[ImGuiCol_TitleBgActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+        colors[ImGuiCol_CheckMark] = ImVec4(0.20f, 0.70f, 1.00f, 1.00f);
+        colors[ImGuiCol_SliderGrab] = ImVec4(0.20f, 0.70f, 1.00f, 1.00f);
+        colors[ImGuiCol_SliderGrabActive] = ImVec4(0.30f, 0.80f, 1.00f, 1.00f);
+        colors[ImGuiCol_Button] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+        colors[ImGuiCol_ButtonHovered] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+        colors[ImGuiCol_ButtonActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+        colors[ImGuiCol_Header] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+        colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+        colors[ImGuiCol_HeaderActive] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+        colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+        colors[ImGuiCol_TabHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+        colors[ImGuiCol_TabActive] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+        colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    }
 
     void loadSettings() {
         std::ifstream file(settingsFile);
@@ -45,6 +90,7 @@ class Gui {
             file >> minimap_enabled;
             file >> minimap_fix_north;
             file >> minimap_zoom;
+            file >> show_fps_overlay;
 
             file.close();
         } else {
@@ -63,6 +109,7 @@ class Gui {
             file << minimap_enabled << "\n";
             file << minimap_fix_north << "\n";
             file << minimap_zoom << "\n";
+            file << show_fps_overlay << "\n";
             file.close();
         }
     }
@@ -75,7 +122,8 @@ class Gui {
         }
 
         ImGui::Separator();
-        ImGui::Text("Minimap Settings:");
+        ImGui::Text("Minimap Settings");
+
         if (ImGui::Checkbox("Show Minimap", &minimap_enabled)) saveSettings();
 
         if (minimap_enabled) {
@@ -86,7 +134,11 @@ class Gui {
     }
 
     void renderVideoSection(sf::Window& window) {
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        if (ImGui::Checkbox("Show FPS Overlay", &show_fps_overlay)) {
+            saveSettings();
+        }
+
+        ImGui::Separator();
 
         // Texture Quality
         auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
@@ -120,9 +172,28 @@ class Gui {
         }
 
         if (msaa_level != active_msaa_level) {
-            ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f),
                                "Restart required to apply MSAA changes.");
         }
+    }
+
+    void renderFPSOverlay() const {
+        if (!show_fps_overlay) return;
+
+        ImGuiWindowFlags windowFlags =
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+            ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs |
+            ImGuiWindowFlags_NoBackground;
+
+        ImGui::SetNextWindowPos(ImVec2(15.0f, 15.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowBgAlpha(0.0f);
+
+        if (ImGui::Begin("FPSOverlay", nullptr, windowFlags)) {
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "FPS: %.0f",
+                               ImGui::GetIO().Framerate);
+        }
+        ImGui::End();
     }
 
    public:
@@ -146,6 +217,9 @@ class Gui {
         }
         // Start the native OpenGL 3 backend for GUI rendering
         ImGui_ImplOpenGL3_Init("#version 410 core");
+
+        // Apply modern theme
+        setupImGuiStyle();
 
         active_msaa_level = getSavedMSAA();
         loadSettings();
@@ -221,28 +295,41 @@ class Gui {
         if (isPaused) {
             ImGui::SetNextWindowPos(
                 ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
-                ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+                ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-            ImGui::Begin("Game Paused - Settings", &isPaused,
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+            // Fixed Size
+            ImGui::SetNextWindowSize(ImVec2(520.0f, 460.0f), ImGuiCond_Appearing);
 
-            if (ImGui::Button("Resume Game", ImVec2(-1, 35))) {
+            // No resize and no move
+            ImGuiWindowFlags pauseFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                                          ImGuiWindowFlags_NoMove |
+                                          ImGuiWindowFlags_NoSavedSettings;
+
+            ImGui::Begin("Game Paused", &isPaused, pauseFlags);
+
+            if (ImGui::Button("Resume Game", ImVec2(-1.0f, 38.0f))) {
                 isPaused = false;
             }
-            if (ImGui::Button("Quit Game", ImVec2(-1, 35))) {
+            if (ImGui::Button("Quit to Desktop", ImVec2(-1.0f, 38.0f))) {
                 onQuit();
             }
 
+            ImGui::Spacing();
             ImGui::Separator();
+            ImGui::Spacing();
 
-            // --- SECTION: VIDEO & PERFORMANCE ---
-            if (ImGui::CollapsingHeader("Video & Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-                renderVideoSection(window);
-            }
-
-            // --- SECTION: CAMERA & GAMEPLAY ---
-            if (ImGui::CollapsingHeader("Camera & Gameplay")) {
-                renderCameraSection(scene);
+            if (ImGui::BeginTabBar("SettingsTabs")) {
+                if (ImGui::BeginTabItem("Video & Display")) {
+                    ImGui::Spacing();
+                    renderVideoSection(window);
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("Gameplay & UI")) {
+                    ImGui::Spacing();
+                    renderCameraSection(scene);
+                    ImGui::EndTabItem();
+                }
+                ImGui::EndTabBar();
             }
 
             ImGui::End();
@@ -253,13 +340,15 @@ class Gui {
             isFirstFrame = false;
         }
 
+        renderFPSOverlay();
+
         // Generate draw data
         ImGui::Render();
 
         // Disable MSAA
         glDisable(GL_MULTISAMPLE);
 
-        // Draw
+        // Draw ImGui
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // Enable MSAA if necessary
@@ -300,14 +389,10 @@ class Gui {
         ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
         ImGui::Text("%s", text.c_str());
 
-        // Push modern styles for the progress bar
-        ImGui::PushStyleColor(ImGuiCol_PlotHistogram,
-                              ImVec4(0.2f, 0.6f, 1.0f, 1.0f));  // Bright modern blue
-        ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                              ImVec4(0.15f, 0.15f, 0.15f, 1.0f));  // Dark track background
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);    // Rounded edges
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.2f, 0.70f, 1.0f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
 
-        // Render Centered Progress Bar
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + spacing);
         ImGui::SetCursorPosX((windowSize.x - barWidth) * 0.5f);
         ImGui::ProgressBar(progress, ImVec2(barWidth, barHeight));
@@ -337,7 +422,8 @@ class Gui {
         ImGuiWindowFlags windowFlags =
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-            ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground;
+            ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground |
+            ImGuiWindowFlags_NoInputs;
 
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
