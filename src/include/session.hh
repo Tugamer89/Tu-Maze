@@ -9,13 +9,14 @@
 
 class SessionManager {
    private:
-    double elapsedTime = 0.0f;
+    double elapsedTime = 0.0;
+    double accumulatedTime = 0.0;
     std::chrono::time_point<std::chrono::steady_clock> startTime;
 
     void updateElapsedTime() {
         auto currentTime = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed = currentTime - startTime;
-        elapsedTime = elapsed.count();
+        elapsedTime = accumulatedTime + elapsed.count();
     }
 
    public:
@@ -32,10 +33,11 @@ class SessionManager {
         }
     }
 
-    // Stop timer
+    // Stop/Pause timer
     void stop() {
         if (isRunning) {
             updateElapsedTime();
+            accumulatedTime = elapsedTime;
             isRunning = false;
         }
     }
@@ -44,6 +46,7 @@ class SessionManager {
     void reset() {
         isRunning = false;
         elapsedTime = 0.0;
+        accumulatedTime = 0.0;
     }
 
     void update() {

@@ -23,10 +23,10 @@ class Gui {
     bool minimap_fix_north = true;
     float minimap_zoom = 8.0f;
     bool hasWon = false;
+    bool isPaused = false;
 
    private:
     bool vsync_enabled = true;
-    bool wireframe_enabled = false;
     int msaa_level = 0;
     int active_msaa_level = 0;
     float camera_fov = 60.0f;
@@ -40,7 +40,6 @@ class Gui {
             }
 
             file >> vsync_enabled;
-            file >> wireframe_enabled;
             file >> msaa_level;
             file >> camera_fov;
             file >> minimap_enabled;
@@ -59,23 +58,12 @@ class Gui {
         if (file.is_open()) {
             file << static_cast<int>(Texture::currentGlobalQuality) << "\n";
             file << vsync_enabled << "\n";
-            file << wireframe_enabled << "\n";
             file << msaa_level << "\n";
             file << camera_fov << "\n";
             file << minimap_enabled << "\n";
             file << minimap_fix_north << "\n";
             file << minimap_zoom << "\n";
             file.close();
-        }
-    }
-
-    void renderDebugSection() {
-        if (ImGui::Checkbox("Wireframe Mode", &wireframe_enabled)) {
-            if (wireframe_enabled)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            else
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            saveSettings();
         }
     }
 
@@ -140,10 +128,11 @@ class Gui {
    public:
     static int getSavedMSAA() {
         if (std::ifstream file(settingsFile); file.is_open()) {
-            int q, m;   // NOSONAR
-            bool v, w;  // NOSONAR
+            int q;
+            int m;
+            bool v;
             // Read until MSAA
-            if (file >> q >> v >> w >> m) {
+            if (file >> q >> v >> m) {
                 return m;
             }
         }
@@ -167,11 +156,6 @@ class Gui {
             glEnable(GL_MULTISAMPLE);
         else
             glDisable(GL_MULTISAMPLE);
-
-        if (wireframe_enabled)
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        else
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     ~Gui() {
@@ -199,26 +183,8 @@ class Gui {
         ImGui::SFML::Update(sf::Mouse::getPosition(window), sf::Vector2f(window.getSize()), dt);
     }
 
-    void renderSettings(Scene& scene, sf::Window& window, std::invocable auto onRestart) {
-        ImGui::Begin("Engine Settings");
-
-        // --- SECTION: VIDEO & PERFORMANCE ---
-        if (ImGui::CollapsingHeader("Video & Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-            renderVideoSection(window);
-        }
-
-        // --- SECTION: CAMERA & GAMEPLAY ---
-        if (ImGui::CollapsingHeader("Camera & Gameplay")) {
-            renderCameraSection(scene);
-        }
-
-        // --- SECTION: DEBUG & WORLD ---
-        if (ImGui::CollapsingHeader("Debug & World")) {
-            renderDebugSection();
-        }
-
-        ImGui::End();
-
+    void renderSettings(Scene& scene, sf::Window& window, std::invocable auto onRestart,
+                        std::invocable auto onQuit) {
         // Overlay Victory Modal
         if (hasWon) {
             ImGui::SetNextWindowPos(
@@ -232,10 +198,53 @@ class Gui {
             ImGui::Text("You successfully navigated out of the maze.");
             ImGui::Separator();
 
-            if (ImGui::Button("Play Again", ImVec2(120, 0))) {
+            float buttonWidth = 120.0f;
+
+            if (ImGui::Button("Exit", ImVec2(buttonWidth, 0))) {
+                onQuit();
+            }
+
+            float rightAlignX =
+                ImGui::GetWindowWidth() - buttonWidth - ImGui::GetStyle().WindowPadding.x;
+
+            ImGui::SameLine(rightAlignX);
+
+            if (ImGui::Button("Play Again", ImVec2(buttonWidth, 0))) {
                 hasWon = false;
                 onRestart();
             }
+
+            ImGui::End();
+        }
+
+        // Pause Menu
+        if (isPaused) {
+            ImGui::SetNextWindowPos(
+                ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
+                ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+            ImGui::Begin("Game Paused - Settings", &isPaused,
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+
+            if (ImGui::Button("Resume Game", ImVec2(-1, 35))) {
+                isPaused = false;
+            }
+            if (ImGui::Button("Quit Game", ImVec2(-1, 35))) {
+                onQuit();
+            }
+
+            ImGui::Separator();
+
+            // --- SECTION: VIDEO & PERFORMANCE ---
+            if (ImGui::CollapsingHeader("Video & Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                renderVideoSection(window);
+            }
+
+            // --- SECTION: CAMERA & GAMEPLAY ---
+            if (ImGui::CollapsingHeader("Camera & Gameplay")) {
+                renderCameraSection(scene);
+            }
+
             ImGui::End();
         }
 

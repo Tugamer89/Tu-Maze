@@ -83,27 +83,9 @@ struct GameAssets {
 // SFML Callbacks //
 ////////////////////
 
-void handle(const sf::Event::KeyPressed& key, bool& running) {
-    if (key.scancode == sf::Keyboard::Scancode::Escape) {
-        running = false;
-    }
-}
-
-void handle(const sf::Event::MouseMoved& mouse, Scene& scene) {
-    auto x = static_cast<float>(mouse.position.x);
-    auto y = static_cast<float>(mouse.position.y);
-    static float prev_x = 0.f;
-    static float prev_y = 0.f;
-
-    float dx = x - prev_x;
-    float dy = y - prev_y;
-
-    prev_x = x;
-    prev_y = y;
-
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-        scene.camera.processMouseMovement(dx, -dy);
-        scene.lights.position(scene.camera.inv_v);
+void handle_key(const sf::Event::KeyPressed& key, Gui& gui) {
+    if (key.scancode == sf::Keyboard::Scancode::Escape && !gui.hasWon) {
+        gui.isPaused = !gui.isPaused;
     }
 }
 
@@ -179,6 +161,71 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
     });
 }
 
+//////////////////////////////////
+// Game State & Event Functions //
+//////////////////////////////////
+
+void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
+    while (const std::optional event = window.pollEvent()) {
+        gui.process_event(window, *event);
+
+        if (event->is<sf::Event::Closed>())
+            running = false;
+        else if (event->is<sf::Event::FocusLost>() && !gui.hasWon)
+            gui.isPaused = true;
+        else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
+            glViewport(0, 0, resized->size.x, resized->size.y);
+            scene.camera.setAspectRatio(static_cast<float>(resized->size.x) /
+                                        static_cast<float>(resized->size.y));
+        } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
+                   key_pressed && !gui.wants_capture_keyboard()) {
+            handle_key(*key_pressed, gui);
+        }
+    }
+}
+
+bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, SessionManager& session,
+                        bool& wasPaused) {
+    // Handle state transitions
+    if (wasPaused && !gui.isPaused && !gui.hasWon) {
+        session.start();
+
+        sf::Vector2i center(window.getSize() / 2u);
+        sf::Mouse::setPosition(center, window);
+    }
+    // Entering Pause
+    else if (!wasPaused && gui.isPaused) {
+        session.stop();
+    }
+
+    wasPaused = gui.isPaused;
+    bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon;
+
+    // Mouse Grab & Center System (True FPS Camera)
+    if (isGameActive) {
+        window.setMouseCursorVisible(false);
+        window.setMouseCursorGrabbed(true);
+
+        sf::Vector2i center(window.getSize() / 2u);
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+
+        if (mousePos != center) {
+            auto dx = static_cast<float>(mousePos.x - center.x);
+            auto dy = static_cast<float>(mousePos.y - center.y);
+
+            scene.camera.processMouseMovement(dx, -dy);
+            scene.lights.position(scene.camera.inv_v);
+
+            sf::Mouse::setPosition(center, window);
+        }
+    } else {
+        window.setMouseCursorVisible(true);
+        window.setMouseCursorGrabbed(false);
+    }
+
+    return isGameActive;
+}
+
 //////////
 // Main //
 //////////
@@ -227,40 +274,33 @@ int main(int argc, char* argv[]) {
     sf::Clock deltaClock;
     bool running = true;
     bool game_initialized = false;
+    bool wasPaused = false;
 
-    auto restartGame = [&scene, &assets, &gui, &session, regenerateMaze]() {
+    auto restartGame = [&scene, &assets, &gui, &session, regenerateMaze, &window]() {
         regenerateMaze();
         scene.camera.setPosition(assets.maze->getStartWorldPosition());
         scene.camera.setYaw(135.0f);  // Face inward towards the bottom-left
         scene.camera.setPitch(0.0f);
         scene.lights.position(scene.camera.inv_v);
+
         gui.hasWon = false;
+        gui.isPaused = false;
+
+        sf::Vector2i center(static_cast<int>(window.getSize().x) / 2,
+                            static_cast<int>(window.getSize().y) / 2);
+        sf::Mouse::setPosition(center, window);
 
         session.reset();
         session.start();
     };
 
+    auto quitGame = [&running]() { running = false; };
+
     while (running) {
         sf::Time dt = deltaClock.restart();
 
         // Process Events
-        while (const std::optional event = window.pollEvent()) {
-            gui.process_event(window, *event);
-
-            if (event->is<sf::Event::Closed>())
-                running = false;
-            else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
-                glViewport(0, 0, resized->size.x, resized->size.y);
-                scene.camera.setAspectRatio(static_cast<float>(resized->size.x) /
-                                            static_cast<float>(resized->size.y));
-            } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
-                       key_pressed && !gui.wants_capture_keyboard()) {
-                handle(*key_pressed, running);
-            } else if (const auto* mouse = event->getIf<sf::Event::MouseMoved>();
-                       mouse && !gui.wants_capture_mouse()) {
-                handle(*mouse, scene);
-            }
-        }
+        process_events(window, gui, scene, running);
 
         gui.update(window, dt);
 
@@ -282,7 +322,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Update Game State
-        if (window.hasFocus() && !gui.wants_capture_keyboard() && !gui.hasWon) {
+        if (update_mouse_pause(window, gui, scene, session, wasPaused)) {
             session.update();
 
             bool camera_moved = scene.camera.update(dt, *assets.maze.get());
@@ -297,6 +337,7 @@ int main(int argc, char* argv[]) {
 
         if (!gui.hasWon && scene.check_win_condition(goalPos)) {
             gui.hasWon = true;
+            gui.isPaused = false;
             session.stop();
             session.saveScore(assets.maze->currentSeed);
         }
@@ -308,7 +349,7 @@ int main(int argc, char* argv[]) {
         shaders.use();
 
         gui.renderHUD(session.getFormattedTime());
-        gui.renderSettings(scene, window, restartGame);
+        gui.renderSettings(scene, window, restartGame, quitGame);
 
         window.display();
     }
