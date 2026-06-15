@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.19.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.18.1...v0.19.0) (2026-06-15)
+
+
+### Features
+
+* implement default shader with flat and phong shading options; remove old flat shaders ([d31b54b](https://github.com/Tugamer89/Tu-Maze/commit/d31b54b0d1ece28e70a77582d8da975ca74194e7))
+
+
+### Bug Fixes
+
+* improve normal calculation and gamma correction in fragment shader ([0f4d2a6](https://github.com/Tugamer89/Tu-Maze/commit/0f4d2a60e411c643b0e87d695ca3c7354fb2e2ea))
+
+
+### Documentation
+
+* add Stage 18 details and controls; introduce new Uber Shader and optimize fragment shader ([8fce5bf](https://github.com/Tugamer89/Tu-Maze/commit/8fce5bfbb3fe212e68054292cc5fa560dd767777))
+
 ## [0.18.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.18.0...v0.18.1) (2026-06-15)
 
 
