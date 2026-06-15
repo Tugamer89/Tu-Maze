@@ -231,6 +231,13 @@ class Gui {
         ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Leaderboard");
         ImGui::Separator();
 
+        auto formatDate = [](std::tm* local_tm) {
+            return local_tm ? std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}", local_tm->tm_mday,
+                                          local_tm->tm_mon + 1, local_tm->tm_year + 1900,
+                                          local_tm->tm_hour, local_tm->tm_min, local_tm->tm_sec)
+                            : "Date not available";
+        };
+
         if (ImGui::BeginChild("LeaderboardList", ImVec2(0, 250), true)) {
             auto scores = session.getLeaderboard();
 
@@ -256,11 +263,10 @@ class Gui {
                     ImGui::Text("%s", s.timeStr.c_str());
                     ImGui::TableNextColumn();
 
-                    auto tp = std::chrono::system_clock::from_time_t(
-                        static_cast<std::time_t>(s.timestamp));
-                    auto tp_sec = std::chrono::floor<std::chrono::seconds>(tp);
-                    std::chrono::zoned_time zt{std::chrono::current_zone(), tp_sec};
-                    std::string timeStr = std::format("{:%d/%m/%Y %H:%M:%S}", zt);
+                    auto time = static_cast<std::time_t>(s.timestamp);
+                    std::tm* local_tm = std::localtime(&time);  // NOSONAR
+
+                    std::string timeStr = formatDate(local_tm);
 
                     ImGui::Text("%s", timeStr.c_str());
                 }
