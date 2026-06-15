@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.22.0...v0.23.0) (2026-06-15)
+
+
+### Features
+
+* add settings menu functionality and toggle in main menu ([be90673](https://github.com/Tugamer89/Tu-Maze/commit/be9067346e587e89ff8c0572858bcbf0c2dcb18b))
+
+
+### Documentation
+
+* add Stage 22 keyboard ([77ba9cd](https://github.com/Tugamer89/Tu-Maze/commit/77ba9cd49dd85c68e4235d5b0ca428949d219e3e))
+
 ## [0.22.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.21.0...v0.22.0) (2026-06-15)
 
 
