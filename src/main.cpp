@@ -2,6 +2,7 @@
 #include <SFML/Window.hpp>
 #include <atomic>
 #include <iostream>
+#include <optional>
 #include <thread>
 
 #ifndef GLAD_GL_IMPLEMENTATION
@@ -83,9 +84,14 @@ struct GameAssets {
 // SFML Callbacks //
 ////////////////////
 
-void handle_key(const sf::Event::KeyPressed& key, Gui& gui) {
+void handle_key(const sf::Event::KeyPressed& key, Gui& gui, bool& running) {
     if (key.scancode == sf::Keyboard::Scancode::Escape && !gui.hasWon) {
-        gui.isPaused = !gui.isPaused;
+        if (!gui.inMainMenu)
+            gui.isPaused = !gui.isPaused;
+        else if (gui.showLeaderboard)
+            gui.showLeaderboard = false;
+        else
+            running = false;
     }
 }
 
@@ -171,7 +177,7 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
 
         if (event->is<sf::Event::Closed>())
             running = false;
-        else if (event->is<sf::Event::FocusLost>() && !gui.hasWon)
+        else if (event->is<sf::Event::FocusLost>() && !gui.hasWon && !gui.inMainMenu)
             gui.isPaused = true;
         else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
             glViewport(0, 0, resized->size.x, resized->size.y);
@@ -179,27 +185,28 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
                                         static_cast<float>(resized->size.y));
         } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                    key_pressed && !gui.wants_capture_keyboard()) {
-            handle_key(*key_pressed, gui);
+            handle_key(*key_pressed, gui, running);
         }
     }
 }
 
 bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, SessionManager& session,
                         bool& wasPaused) {
+    bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon && !gui.inMainMenu;
+
     // Handle state transitions
-    if (wasPaused && !gui.isPaused && !gui.hasWon) {
+    if (wasPaused && isGameActive) {
         session.start();
 
         sf::Vector2i center(window.getSize() / 2u);
         sf::Mouse::setPosition(center, window);
     }
-    // Entering Pause
-    else if (!wasPaused && gui.isPaused) {
+    // Entering Pause or returning to Menu
+    else if (!wasPaused && (gui.isPaused || gui.inMainMenu)) {
         session.stop();
     }
 
-    wasPaused = gui.isPaused;
-    bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon;
+    wasPaused = gui.isPaused || gui.inMainMenu;
 
     // Mouse Grab & Center System (True FPS Camera)
     if (isGameActive) {
@@ -254,18 +261,6 @@ int main(int argc, char* argv[]) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    auto regenerateMaze = [&scene, &assets]() {
-        scene.root.children.clear();
-
-        assets.maze = std::make_unique<Maze>(15, 15);
-        Node mazeNode = assets.maze->populateSceneNode(*assets.baseCpuFloor, *assets.baseCpuWall,
-                                                       *assets.wallMat, *assets.floorMat,
-                                                       assets.wallMesh, assets.floorMesh);
-
-        scene.root.children.push_back(std::move(mazeNode));
-        scene.build_static_tree();
-    };
-
     //// Loading Setup ////
     AssetLoader loader;
     register_asset_tasks(loader, assets, scene, minimap);
@@ -273,28 +268,48 @@ int main(int argc, char* argv[]) {
     //// Main Loop ////
     sf::Clock deltaClock;
     bool running = true;
-    bool game_initialized = false;
     bool wasPaused = false;
 
-    auto restartGame = [&scene, &assets, &gui, &session, regenerateMaze, &window]() {
-        regenerateMaze();
+    auto resetMaze = [&scene, &assets](std::optional<unsigned int> seed = std::nullopt) {
+        scene.root.children.clear();
+
+        assets.maze = std::make_unique<Maze>(15, 15, seed);
+        Node mazeNode = assets.maze->populateSceneNode(*assets.baseCpuFloor, *assets.baseCpuWall,
+                                                       *assets.wallMat, *assets.floorMat,
+                                                       assets.wallMesh, assets.floorMesh);
+
+        scene.root.children.push_back(std::move(mazeNode));
+        scene.build_static_tree();
+
         scene.camera.setPosition(assets.maze->getStartWorldPosition());
         scene.camera.setYaw(135.0f);  // Face inward towards the bottom-left
         scene.camera.setPitch(0.0f);
         scene.lights.position(scene.camera.inv_v);
+    };
+
+    auto restartGame = [&gui, &session, &window,
+                        resetMaze](std::optional<unsigned int> seed = std::nullopt) {
+        resetMaze(seed);
 
         gui.hasWon = false;
         gui.isPaused = false;
+        gui.inMainMenu = false;
 
-        sf::Vector2i center(static_cast<int>(window.getSize().x) / 2,
-                            static_cast<int>(window.getSize().y) / 2);
+        sf::Vector2i center(window.getSize() / 2u);
         sf::Mouse::setPosition(center, window);
 
         session.reset();
         session.start();
     };
 
-    auto quitGame = [&running]() { running = false; };
+    auto returnToMenu = [&gui, &session]() {
+        gui.inMainMenu = true;
+        gui.hasWon = false;
+        gui.isPaused = false;
+        session.stop();
+    };
+
+    auto quitDesktop = [&running]() { running = false; };
 
     while (running) {
         sf::Time dt = deltaClock.restart();
@@ -316,40 +331,42 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        if (!game_initialized) {
-            restartGame();
-            game_initialized = true;
-        }
-
         // Update Game State
         if (update_mouse_pause(window, gui, scene, session, wasPaused)) {
             session.update();
 
-            bool camera_moved = scene.camera.update(dt, *assets.maze.get());
-            if (camera_moved) {
+            // Safe assumption because Mouse Grab implies the game is actively running
+            if (assets.maze && scene.camera.update(dt, *assets.maze.get())) {
                 scene.lights.position(scene.camera.inv_v);
             }
         }
 
-        // Handle Animations & Win Condition
-        glm::vec3 goalPos = assets.maze->getGoalWorldPosition();
-        scene.update_gameplay(dt, goalPos);
+        // Render Background/Game & Handle Rules only when we are out of the main menu
+        if (!gui.inMainMenu && assets.maze) {
+            glm::vec3 goalPos = assets.maze->getGoalWorldPosition();
+            scene.update_gameplay(dt, goalPos);
 
-        if (!gui.hasWon && scene.check_win_condition(goalPos)) {
-            gui.hasWon = true;
-            gui.isPaused = false;
-            session.stop();
-            session.saveScore(assets.maze->currentSeed);
+            if (!gui.hasWon && scene.check_win_condition(goalPos)) {
+                gui.hasWon = true;
+                gui.isPaused = false;
+                session.stop();
+                session.saveScore(assets.maze->currentSeed);
+            }
+
+            scene.draw();
+            minimap.draw(scene, gui, window);
+        } else {
+            // Cool dark background for the main menu if you want instead of pitch black
+            glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
-
-        // Render
-        scene.draw();
-        minimap.draw(scene, gui, window);
 
         shaders.use();
 
-        gui.renderHUD(session.getFormattedTime());
-        gui.renderSettings(scene, window, restartGame, quitGame);
+        // Drive the UI Logic
+        gui.renderUI(
+            scene, window, session, [restartGame]() { restartGame(std::nullopt); },
+            [restartGame](unsigned int seed) { restartGame(seed); }, returnToMenu, quitDesktop);
 
         window.display();
     }

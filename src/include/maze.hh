@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <random>
 #include <stack>
 #include <vector>
@@ -43,9 +44,10 @@ class Maze {
     unsigned int currentSeed = 0;
     std::vector<Cell> grid;
 
-    Maze(int width, int height) : width(width), height(height) {
+    Maze(int width, int height, std::optional<unsigned int> seed = std::nullopt)
+        : width(width), height(height) {
         grid.resize(static_cast<size_t>(width) * static_cast<size_t>(height));
-        generate();
+        generate(seed);
     }
 
     // Returns the exact center world coordinate of a specific cell grid coordinate
@@ -149,11 +151,12 @@ class Maze {
         return grid[y * width + x];
     }
 
-    void generate() {
+    void generate(std::optional<unsigned int> seed) {
         std::stack<int> stack;
 
-        currentSeed = static_cast<unsigned int>(
-            std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        currentSeed = seed.value_or(static_cast<unsigned int>(
+            std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+
         std::mt19937 rng(currentSeed);
         std::cout << "Maze generated with seed: " << currentSeed << std::endl;
 

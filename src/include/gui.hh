@@ -7,12 +7,15 @@
 
 #include <SFML/Window.hpp>
 #include <SFML/Window/Event.hpp>
+#include <algorithm>
 #include <concepts>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
 
 #include "scene.hh"
+#include "session.hh"
 #include "texture.hh"
 
 class Gui {
@@ -25,6 +28,11 @@ class Gui {
     bool hasWon = false;
     bool isPaused = false;
     bool show_fps_overlay = false;
+
+    // Game UI State
+    bool inMainMenu = true;
+    bool showLeaderboard = false;
+    int customSeedInput = 0;
 
    private:
     bool vsync_enabled = true;
@@ -196,6 +204,188 @@ class Gui {
         ImGui::End();
     }
 
+    void renderHUD(const std::string& formattedTime) const {
+        ImGuiWindowFlags windowFlags =
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+            ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground |
+            ImGuiWindowFlags_NoInputs;
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+        ImVec2 windowPos(displaySize.x * 0.5f, 30.0f);
+        ImVec2 windowPosPivot(0.5f, 0.0f);
+
+        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, windowPosPivot);
+        ImGui::SetNextWindowBgAlpha(0.0f);
+
+        if (ImGui::Begin("GameHUD", nullptr, windowFlags)) {
+            ImGui::SetWindowFontScale(2.5f);
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "%s", formattedTime.c_str());
+            ImGui::SetWindowFontScale(1.0f);
+        }
+        ImGui::End();
+    }
+
+    void renderLeaderboardSection(const SessionManager& session) {
+        ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Leaderboard");
+        ImGui::Separator();
+
+        if (ImGui::BeginChild("LeaderboardList", ImVec2(0, 250), true)) {
+            auto scores = session.getLeaderboard();
+
+            if (scores.empty()) {
+                ImGui::Text("No scores yet. Play a game!");
+            } else if (ImGui::BeginTable("LeaderboardTable", 4,
+                                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                             ImGuiTableFlags_SizingStretchProp)) {
+                ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+                ImGui::TableSetupColumn("Seed");
+                ImGui::TableSetupColumn("Time");
+                ImGui::TableSetupColumn("Date");
+                ImGui::TableHeadersRow();
+
+                unsigned long long index = 0;
+                for (const auto& s : scores) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%llu", ++index);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%u", s.seed);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", s.timeStr.c_str());
+                    ImGui::TableNextColumn();
+
+                    auto tp = std::chrono::system_clock::from_time_t(
+                        static_cast<std::time_t>(s.timestamp));
+                    auto tp_sec = std::chrono::floor<std::chrono::seconds>(tp);
+                    std::chrono::zoned_time zt{std::chrono::current_zone(), tp_sec};
+                    std::string timeStr = std::format("{:%d/%m/%Y %H:%M:%S}", zt);
+
+                    ImGui::Text("%s", timeStr.c_str());
+                }
+                ImGui::EndTable();
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Spacing();
+        if (ImGui::Button("Back", ImVec2(-1.0f, 38.0f))) {
+            showLeaderboard = false;
+        }
+    }
+
+    void renderMainMenuSection(const SessionManager& session, std::invocable auto onPlayRandom,
+                               std::invocable<unsigned int> auto onPlayCustom,
+                               std::invocable auto onQuitDesktop) {
+        ImGui::SetNextWindowPos(
+            ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
+            ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2(400.0f, 0.0f), ImGuiCond_Always);
+        ImGui::Begin("Tu Maze Main Menu", nullptr,
+                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+
+        if (showLeaderboard) {
+            renderLeaderboardSection(session);
+        } else {
+            if (ImGui::Button("Play (Random Seed)", ImVec2(-1.0f, 38.0f))) {
+                onPlayRandom();
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            ImGui::Text("Custom Seed:");
+            ImGui::InputInt("##CustomSeed", &customSeedInput, 0, 0,
+                            ImGuiInputTextFlags_CharsDecimal);
+            if (ImGui::Button("Play (Custom Seed)", ImVec2(-1.0f, 38.0f))) {
+                onPlayCustom(static_cast<unsigned int>(std::max(0, customSeedInput)));
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            if (ImGui::Button("Leaderboard", ImVec2(-1.0f, 38.0f))) {
+                showLeaderboard = true;
+            }
+
+            ImGui::Spacing();
+            if (ImGui::Button("Quit to Desktop", ImVec2(-1.0f, 38.0f))) {
+                onQuitDesktop();
+            }
+        }
+        ImGui::End();
+    }
+
+    void renderVictorySection(std::invocable auto onReturnToMenu,
+                              std::invocable auto onPlayRandom) const {
+        ImGui::SetNextWindowPos(
+            ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
+            ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+        ImGui::Begin("Victory!", nullptr,
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
+                         ImGuiWindowFlags_NoMove);
+
+        ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Congratulations!");
+        ImGui::Text("You successfully navigated out of the maze.");
+        ImGui::Separator();
+
+        float buttonWidth = 140.0f;
+
+        if (ImGui::Button("Main Menu", ImVec2(buttonWidth, 0))) {
+            onReturnToMenu();
+        }
+
+        float rightAlignX =
+            ImGui::GetWindowWidth() - buttonWidth - ImGui::GetStyle().WindowPadding.x;
+        ImGui::SameLine(rightAlignX);
+
+        if (ImGui::Button("Play Again", ImVec2(buttonWidth, 0))) {
+            onPlayRandom();
+        }
+        ImGui::End();
+    }
+
+    void renderPauseSection(Scene& scene, sf::Window& window, std::invocable auto onReturnToMenu) {
+        ImGui::SetNextWindowPos(
+            ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
+            ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2(520.0f, 460.0f), ImGuiCond_Appearing);
+
+        ImGuiWindowFlags pauseFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+        ImGui::Begin("Game Paused", &isPaused, pauseFlags);
+
+        if (ImGui::Button("Resume Game", ImVec2(-1.0f, 38.0f))) {
+            isPaused = false;
+        }
+        if (ImGui::Button("Return to Main Menu", ImVec2(-1.0f, 38.0f))) {
+            onReturnToMenu();
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::BeginTabBar("SettingsTabs")) {
+            if (ImGui::BeginTabItem("Video & Display")) {
+                ImGui::Spacing();
+                renderVideoSection(window);
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Gameplay & UI")) {
+                ImGui::Spacing();
+                renderCameraSection(scene);
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+        ImGui::End();
+    }
+
    public:
     static int getSavedMSAA() {
         if (std::ifstream file(settingsFile); file.is_open()) {
@@ -218,7 +408,7 @@ class Gui {
         // Start the native OpenGL 3 backend for GUI rendering
         ImGui_ImplOpenGL3_Init("#version 410 core");
 
-        // Apply modern theme
+        // Apply custom theme
         setupImGuiStyle();
 
         active_msaa_level = getSavedMSAA();
@@ -257,82 +447,22 @@ class Gui {
         ImGui::SFML::Update(sf::Mouse::getPosition(window), sf::Vector2f(window.getSize()), dt);
     }
 
-    void renderSettings(Scene& scene, sf::Window& window, std::invocable auto onRestart,
-                        std::invocable auto onQuit) {
-        // Overlay Victory Modal
-        if (hasWon) {
-            ImGui::SetNextWindowPos(
-                ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
-                ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-            ImGui::Begin("Victory!", nullptr,
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-                             ImGuiWindowFlags_NoMove);
-
-            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Congratulations!");
-            ImGui::Text("You successfully navigated out of the maze.");
-            ImGui::Separator();
-
-            float buttonWidth = 120.0f;
-
-            if (ImGui::Button("Exit", ImVec2(buttonWidth, 0))) {
-                onQuit();
+    void renderUI(Scene& scene, sf::Window& window, SessionManager& session,
+                  std::invocable auto onPlayRandom, std::invocable<unsigned int> auto onPlayCustom,
+                  std::invocable auto onReturnToMenu, std::invocable auto onQuitDesktop) {
+        if (inMainMenu) {
+            renderMainMenuSection(session, onPlayRandom, onPlayCustom, onQuitDesktop);
+        } else {
+            if (hasWon) {
+                renderVictorySection(onReturnToMenu, onPlayRandom);
             }
-
-            float rightAlignX =
-                ImGui::GetWindowWidth() - buttonWidth - ImGui::GetStyle().WindowPadding.x;
-
-            ImGui::SameLine(rightAlignX);
-
-            if (ImGui::Button("Play Again", ImVec2(buttonWidth, 0))) {
-                hasWon = false;
-                onRestart();
+            if (isPaused) {
+                renderPauseSection(scene, window, onReturnToMenu);
             }
-
-            ImGui::End();
-        }
-
-        // Pause Menu
-        if (isPaused) {
-            ImGui::SetNextWindowPos(
-                ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
-                ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-
-            // Fixed Size
-            ImGui::SetNextWindowSize(ImVec2(520.0f, 460.0f), ImGuiCond_Appearing);
-
-            // No resize and no move
-            ImGuiWindowFlags pauseFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-                                          ImGuiWindowFlags_NoMove |
-                                          ImGuiWindowFlags_NoSavedSettings;
-
-            ImGui::Begin("Game Paused", &isPaused, pauseFlags);
-
-            if (ImGui::Button("Resume Game", ImVec2(-1.0f, 38.0f))) {
-                isPaused = false;
+            if (!hasWon && !isPaused) {
+                renderHUD(session.getFormattedTime());
             }
-            if (ImGui::Button("Quit to Desktop", ImVec2(-1.0f, 38.0f))) {
-                onQuit();
-            }
-
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            if (ImGui::BeginTabBar("SettingsTabs")) {
-                if (ImGui::BeginTabItem("Video & Display")) {
-                    ImGui::Spacing();
-                    renderVideoSection(window);
-                    ImGui::EndTabItem();
-                }
-                if (ImGui::BeginTabItem("Gameplay & UI")) {
-                    ImGui::Spacing();
-                    renderCameraSection(scene);
-                    ImGui::EndTabItem();
-                }
-                ImGui::EndTabBar();
-            }
-
-            ImGui::End();
+            renderFPSOverlay();
         }
 
         if (static bool isFirstFrame = true; isFirstFrame) {
@@ -340,18 +470,16 @@ class Gui {
             isFirstFrame = false;
         }
 
-        renderFPSOverlay();
-
         // Generate draw data
         ImGui::Render();
 
-        // Disable MSAA
+        // Disable MSAA for GUI
         glDisable(GL_MULTISAMPLE);
 
         // Draw ImGui
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Enable MSAA if necessary
+        // Re-Enable MSAA if necessary
         if (active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
     }
 
@@ -416,29 +544,6 @@ class Gui {
 
         // Enable MSAA if necessary
         if (active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
-    }
-
-    void renderHUD(const std::string& formattedTime) const {
-        ImGuiWindowFlags windowFlags =
-            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-            ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground |
-            ImGuiWindowFlags_NoInputs;
-
-        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-
-        ImVec2 windowPos(displaySize.x * 0.5f, 30.0f);
-        ImVec2 windowPosPivot(0.5f, 0.0f);
-
-        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, windowPosPivot);
-        ImGui::SetNextWindowBgAlpha(0.0f);
-
-        if (ImGui::Begin("GameHUD", nullptr, windowFlags)) {
-            ImGui::SetWindowFontScale(2.5f);
-            ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "%s", formattedTime.c_str());
-            ImGui::SetWindowFontScale(1.0f);
-        }
-        ImGui::End();
     }
 };
 
