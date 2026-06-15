@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.22.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.21.0...v0.22.0) (2026-06-15)
+
+
+### Features
+
+* enhance GUI with main menu and leaderboard functionality; refactor maze generation with optional seed ([901e3be](https://github.com/Tugamer89/Tu-Maze/commit/901e3be5d3563b51ea31ec0183c1e3ec0f65bc0d))
+
+
+### Bug Fixes
+
+* removed the use of `std::chrono` zonetimes ([2f497c1](https://github.com/Tugamer89/Tu-Maze/commit/2f497c103f62cada21ea3c6bf85ddeedbdd7e114))
+
+
+### Documentation
+
+* add Stage 21 ([362d3dc](https://github.com/Tugamer89/Tu-Maze/commit/362d3dcc33abecee309df68ad3ceb8046c47a76f))
+
 ## [0.21.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.20.0...v0.21.0) (2026-06-15)
 
 
