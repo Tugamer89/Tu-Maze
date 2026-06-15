@@ -199,6 +199,18 @@ Contestualmente, il *Fragment Shader* è stato oggetto di micro-ottimizzazioni m
 
 ![Nuovo shading](resources/screenshots/stage18.png)
 
+### Stage 19 (v0.20.x)
+
+L'obiettivo di questa tappa è stato il perfezionamento del sistema di controllo e l'introduzione di una gestione formale dello stato di gioco, avvicinando l'esperienza utente agli standard dei titoli 3D professionali.
+
+Dal punto di vista tecnico e di gameplay, sono state introdotte le seguenti novità architetturali:
+
+* **True FPS Camera (Mouse Grab & Hide)**: Il sistema di rotazione della visuale è stato totalmente riprogettato, abbandonando la necessità di tenere premuto il tasto del mouse (*drag*). È stato implementato un meccanismo continuo in cui il cursore di sistema viene nascosto e intrappolato al centro della finestra. Calcolando il delta di spostamento a ogni fotogramma e forzando istantaneamente il cursore al centro, si ottiene un movimento della telecamera fluido e illimitato a 360 gradi.
+* **Gestione dello Stato di Pausa**: È stato integrato un vero e proprio stato di "Pausa", richiamabile tramite il tasto `ESC` o attivato in automatico in caso di perdita di focus della finestra (es. *Alt-Tab*). L'attivazione di questo stato congela temporaneamente l'aggiornamento del timer interno (`SessionManager`), svincola il cursore del mouse per permetterne l'uso libero e mostra in sovraimpressione il pannello GUI delle impostazioni.
+* **Refactoring del Game Loop**: Per integrare le nuove logiche di transizione di stato senza compromettere la manutenibilità del progetto, il loop principale (`main`) è stato sottoposto a refactoring. L'interrogazione degli eventi (*polling*) e la gestione hardware del mouse sono state isolate in funzioni esterne dedicate, abbattendo drasticamente la complessità cognitiva del blocco d'esecuzione.
+
+![Menu di pausa](resources/screenshots/stage19.png)
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.

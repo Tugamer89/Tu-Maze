@@ -167,3 +167,18 @@ cd ../Stage_02
 #### Mouse Controls v0.19
 
 * **`Left Mouse Button` while dragging**: Move visual.
+
+### Stage 19 (v0.20.x)
+
+### Keyboard Controls v0.20
+
+* **`Escape`**: Open or close pause menu.
+* **`Left Shift` or `Right Shift`**: Sprint.
+* **`W`**: Move forward.
+* **`A`**: Move left.
+* **`S`**: Move backward.
+* **`D`**: Move right.
+
+#### Mouse Controls v0.20
+
+* **Dragging**: Move visual.
