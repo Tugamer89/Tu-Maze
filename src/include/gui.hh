@@ -32,6 +32,7 @@ class Gui {
     // Game UI State
     bool inMainMenu = true;
     bool showLeaderboard = false;
+    bool showSettings = false;
     int customSeedInput = 0;
 
    private:
@@ -185,6 +186,22 @@ class Gui {
         }
     }
 
+    void renderSettingsContent(Scene& scene, sf::Window& window) {
+        if (ImGui::BeginTabBar("SettingsTabs")) {
+            if (ImGui::BeginTabItem("Video & Display")) {
+                ImGui::Spacing();
+                renderVideoSection(window);
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Gameplay & UI")) {
+                ImGui::Spacing();
+                renderCameraSection(scene);
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+    }
+
     void renderFPSOverlay() const {
         if (!show_fps_overlay) return;
 
@@ -281,19 +298,41 @@ class Gui {
         }
     }
 
-    void renderMainMenuSection(const SessionManager& session, std::invocable auto onPlayRandom,
+    void renderMainMenuSettingsSection(Scene& scene, sf::Window& window) {
+        ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Settings");
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        if (ImGui::BeginChild("SettingsContent", ImVec2(0, 250), false)) {
+            renderSettingsContent(scene, window);
+        }
+        ImGui::EndChild();
+
+        ImGui::Spacing();
+        if (ImGui::Button("Back", ImVec2(-1.0f, 38.0f))) {
+            showSettings = false;
+        }
+    }
+
+    void renderMainMenuSection(Scene& scene, sf::Window& window, const SessionManager& session,
+                               std::invocable auto onPlayRandom,
                                std::invocable<unsigned int> auto onPlayCustom,
                                std::invocable auto onQuitDesktop) {
         ImGui::SetNextWindowPos(
             ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
             ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-        ImGui::SetNextWindowSize(ImVec2(400.0f, 0.0f), ImGuiCond_Always);
+
+        float windowWidth = showSettings ? 520.0f : 400.0f;
+        ImGui::SetNextWindowSize(ImVec2(windowWidth, 0.0f), ImGuiCond_Always);
+
         ImGui::Begin("Tu Maze Main Menu", nullptr,
                      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
                          ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 
         if (showLeaderboard) {
             renderLeaderboardSection(session);
+        } else if (showSettings) {
+            renderMainMenuSettingsSection(scene, window);
         } else {
             if (ImGui::Button("Play (Random Seed)", ImVec2(-1.0f, 38.0f))) {
                 onPlayRandom();
@@ -316,6 +355,9 @@ class Gui {
 
             if (ImGui::Button("Leaderboard", ImVec2(-1.0f, 38.0f))) {
                 showLeaderboard = true;
+            }
+            if (ImGui::Button("Settings", ImVec2(-1.0f, 38.0f))) {
+                showSettings = true;
             }
 
             ImGui::Spacing();
@@ -376,19 +418,8 @@ class Gui {
         ImGui::Separator();
         ImGui::Spacing();
 
-        if (ImGui::BeginTabBar("SettingsTabs")) {
-            if (ImGui::BeginTabItem("Video & Display")) {
-                ImGui::Spacing();
-                renderVideoSection(window);
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Gameplay & UI")) {
-                ImGui::Spacing();
-                renderCameraSection(scene);
-                ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
-        }
+        renderSettingsContent(scene, window);
+
         ImGui::End();
     }
 
@@ -457,7 +488,8 @@ class Gui {
                   std::invocable auto onPlayRandom, std::invocable<unsigned int> auto onPlayCustom,
                   std::invocable auto onReturnToMenu, std::invocable auto onQuitDesktop) {
         if (inMainMenu) {
-            renderMainMenuSection(session, onPlayRandom, onPlayCustom, onQuitDesktop);
+            renderMainMenuSection(scene, window, session, onPlayRandom, onPlayCustom,
+                                  onQuitDesktop);
         } else {
             if (hasWon) {
                 renderVictorySection(onReturnToMenu, onPlayRandom);

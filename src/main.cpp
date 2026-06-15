@@ -90,6 +90,8 @@ void handle_key(const sf::Event::KeyPressed& key, Gui& gui, bool& running) {
             gui.isPaused = !gui.isPaused;
         else if (gui.showLeaderboard)
             gui.showLeaderboard = false;
+        else if (gui.showSettings)
+            gui.showSettings = false;
         else
             running = false;
     }
