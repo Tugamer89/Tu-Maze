@@ -28,11 +28,8 @@
 // Constants //
 ///////////////
 
-const std::string phong_vert = "resources/shaders/phong.vert";
-const std::string phong_frag = "resources/shaders/phong.frag";
-
-const std::string flat_vert = "resources/shaders/flat.vert";
-const std::string flat_frag = "resources/shaders/flat.frag";
+const std::string default_vert = "resources/shaders/default.vert";
+const std::string default_frag = "resources/shaders/default.frag";
 
 const std::string minimap_vert = "resources/shaders/minimap.vert";
 const std::string minimap_frag = "resources/shaders/minimap.frag";
@@ -86,30 +83,9 @@ struct GameAssets {
 // SFML Callbacks //
 ////////////////////
 
-void handle(const sf::Event::KeyPressed& key, Shaders& shaders, Minimap& minimap, Scene& scene,
-            bool& running) {
-    switch (key.scancode) {
-        using enum sf::Keyboard::Scancode;
-
-        case P:
-            shaders.reload(phong_vert, phong_frag);
-            shaders.use();
-            scene.locations(shaders);
-            scene.update_all();
-            minimap.reloadShaders(minimap_vert, minimap_frag);
-            return;
-        case F:
-            shaders.reload(flat_vert, flat_frag);
-            shaders.use();
-            scene.locations(shaders);
-            scene.update_all();
-            minimap.reloadShaders(minimap_vert, minimap_frag);
-            return;
-        case Escape:
-            running = false;
-            return;
-        default:
-            return;
+void handle(const sf::Event::KeyPressed& key, bool& running) {
+    if (key.scancode == sf::Keyboard::Scancode::Escape) {
+        running = false;
     }
 }
 
@@ -189,6 +165,7 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
             .shininess = 128.0f,
             .alpha = 0.4f,
             .use_textures = false,
+            .use_flat = true,
         };
     });
 
@@ -213,7 +190,7 @@ int main(int argc, char* argv[]) {
 
     Gui gui(window);
 
-    Shaders shaders(flat_vert, flat_frag);
+    Shaders shaders(default_vert, default_frag);
     Minimap minimap(minimap_vert, minimap_frag);
 
     shaders.use();
@@ -278,7 +255,7 @@ int main(int argc, char* argv[]) {
                                             static_cast<float>(resized->size.y));
             } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                        key_pressed && !gui.wants_capture_keyboard()) {
-                handle(*key_pressed, shaders, minimap, scene, running);
+                handle(*key_pressed, running);
             } else if (const auto* mouse = event->getIf<sf::Event::MouseMoved>();
                        mouse && !gui.wants_capture_mouse()) {
                 handle(*mouse, scene);

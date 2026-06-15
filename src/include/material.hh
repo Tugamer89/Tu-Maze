@@ -16,7 +16,8 @@ struct MaterialLocations {
     GLint specular_loc = -1;
     GLint shininess_loc = -1;
     GLint alpha_loc = -1;
-    GLint use_textures_loc = -1;
+    GLint useTextures_loc = -1;
+    GLint useFlatShading_loc = -1;
 };
 
 struct Material {
@@ -32,6 +33,7 @@ struct Material {
     float alpha = 1.0f;
 
     bool use_textures = true;
+    bool use_flat = false;
 
     void bind(const MaterialLocations& locs) const {
         if (diffuse) diffuse->bind(0);
@@ -45,7 +47,8 @@ struct Material {
         if (locs.shininess_loc != -1) glUniform1f(locs.shininess_loc, shininess);
         if (locs.alpha_loc != -1) glUniform1f(locs.alpha_loc, alpha);
 
-        glUniform1i(locs.use_textures_loc, use_textures ? 1 : 0);
+        glUniform1i(locs.useTextures_loc, use_textures ? 1 : 0);
+        glUniform1i(locs.useFlatShading_loc, use_flat ? 1 : 0);
     }
 
     void unbind() const {

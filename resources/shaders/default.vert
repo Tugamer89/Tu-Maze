@@ -5,7 +5,7 @@ layout(location = 1) in vec3 normal;
 
 uniform mat4 model;
 uniform mat4 vp;
-uniform mat3 tr_inv_model;  // transpose (inverse (model_matrix))
+uniform mat3 tr_inv_model;  // transpose(inverse(model_matrix))
 
 out vec3 interpolated_pos;
 out vec3 interpolated_normal;
@@ -16,5 +16,6 @@ void main() {
     gl_Position = vp * p;
 
     interpolated_pos = p.xyz;
+
     interpolated_normal = normalize(tr_inv_model * normal);
 }

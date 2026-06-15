@@ -1,7 +1,8 @@
 #version 410 core
 
 uniform vec3 camera_pos;
-uniform int useTextures;
+uniform int useTextures;     // 1 = Texture, 0 = Solid Color
+uniform int useFlatShading;  // 1 = Flat Shading, 0 = Phong Shading
 
 struct Light {
     vec3 direct_pos;
@@ -31,12 +32,17 @@ out vec4 fragment_color;
 
 const float uv_scale = 0.7;
 
+vec4 clamp4(vec4 v) {
+    return clamp(v, vec4(0.0), vec4(1.0));
+}
+
 void main() {
     vec3 pos = interpolated_pos;
 
+    // Compute flat geometric normal using screen-space derivatives
     vec3 dx = dFdx(pos);
     vec3 dy = dFdy(pos);
-    vec3 flat_normal = normalize(cross(dx, dy));
+    vec3 geom_normal = normalize(cross(dx, dy));
 
     vec3 albedo;
     float roughness;
@@ -45,7 +51,7 @@ void main() {
 
     if (useTextures == 1) {
         // --- BOX MAPPING ---
-        vec3 abs_normal = abs(flat_normal);
+        vec3 abs_normal = abs(geom_normal);
         vec2 uv;
         int axis = 0;  // 0 = X, 1 = Y, 2 = Z
 
@@ -62,34 +68,45 @@ void main() {
 
         uv *= uv_scale;
 
-        // Single sample per texture
+        // Sample base textures
         albedo = texture(diffuseMap, uv).rgb;
         roughness = texture(roughnessMap, uv).r;
         final_alpha *= texture(diffuseMap, uv).a;
-        vec3 tnorm = texture(normalMap, uv).rgb * 2.0 - 1.0;
 
-        vec3 axis_sign = sign(flat_normal);
-
-        if (axis == 0) {
-            tnorm.z *= axis_sign.x;
-            final_normal = vec3(tnorm.z, tnorm.y, -tnorm.x);
-        } else if (axis == 1) {
-            tnorm.z *= axis_sign.y;
-            final_normal = vec3(tnorm.x, tnorm.z, -tnorm.y);
+        if (useFlatShading == 1) {
+            // Flat + Textures: Ignore normal map
+            final_normal = geom_normal;
         } else {
-            tnorm.z *= axis_sign.z;
-            final_normal = vec3(tnorm.x, tnorm.y, tnorm.z);
+            // Phong + Textures: Apply normal map using triplanar axis logic
+            vec3 tnorm = texture(normalMap, uv).rgb * 2.0 - 1.0;
+            vec3 axis_sign = sign(geom_normal);
+
+            if (axis == 0) {
+                tnorm.z *= axis_sign.x;
+                final_normal = vec3(tnorm.z, tnorm.y, -tnorm.x);
+            } else if (axis == 1) {
+                tnorm.z *= axis_sign.y;
+                final_normal = vec3(tnorm.x, tnorm.z, -tnorm.y);
+            } else {
+                tnorm.z *= axis_sign.z;
+                final_normal = vec3(tnorm.x, tnorm.y, tnorm.z);
+            }
+            final_normal = normalize(final_normal);
         }
 
-        final_normal = normalize(final_normal);
     } else {
         // --- SOLID COLOR MODE ---
         albedo = vec3(1.0);
         roughness = 0.1;
-        final_normal = normalize(interpolated_normal);
+
+        if (useFlatShading == 1) {
+            final_normal = geom_normal;
+        } else {
+            final_normal = normalize(interpolated_normal);
+        }
     }
 
-    // --- PHONG SHADING ---
+    // --- PHONG SHADING CORE ---
 
     // Ambient
     vec3 ambient = material.ambient * light.ambient_val * albedo;
@@ -113,5 +130,5 @@ void main() {
     // Gamma correction
     result = pow(result, vec3(1.0 / 2.2));
 
-    fragment_color = vec4(result, final_alpha);
+    fragment_color = clamp4(vec4(result, final_alpha));
 }

@@ -51,7 +51,8 @@ class Scene {
         mat_locs.shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
         mat_locs.alpha_loc = glGetUniformLocation(shaders.program, "material.alpha");
 
-        mat_locs.use_textures_loc = glGetUniformLocation(shaders.program, "useTextures");
+        mat_locs.useTextures_loc = glGetUniformLocation(shaders.program, "useTextures");
+        mat_locs.useFlatShading_loc = glGetUniformLocation(shaders.program, "useFlatShading");
 
         glUniform1i(glGetUniformLocation(shaders.program, "diffuseMap"), 0);
         glUniform1i(glGetUniformLocation(shaders.program, "normalMap"), 1);
