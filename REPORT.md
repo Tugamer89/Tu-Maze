@@ -10,7 +10,7 @@ Il gameplay si sviluppa in prima persona: l'obiettivo del giocatore è fuggire n
 
 L'obiettivo di questa prima fase è stato predisporre un ambiente di sviluppo solido. È stato configurato un template di base che include correttamente [ImGui SFML](https://github.com/SFML/imgui-sfml) affiancato al codice necessario per gestire un primo spazio tridimensionale tramite **OpenGL**.
 
-![Vista di default, stage 1](resources/screenshots/stage1.png)
+![Vista di default](resources/screenshots/stage1.png)
 
 In questo stage viene visualizzato un semplice pavimento, ruotabile liberamente trascinando il cursore con il tasto sinistro del mouse. È presente inoltre un pannello GUI rudimentale per testare la modifica in tempo reale di alcuni parametri visivi.
 
@@ -18,7 +18,7 @@ In questo stage viene visualizzato un semplice pavimento, ruotabile liberamente 
 
 Il focus si è spostato sulla generazione della griglia di base del labirinto. Per ora la struttura è riempita interamente di muri e posizionata al centro dell'origine degli assi. Questa modifica ha richiesto una transizione architetturale da una scena a singolo oggetto a una scena complessa gestita tramite un **grafo di scena**.
 
-![Labirinto completo, stage 2](resources/screenshots/stage2.png)
+![Labirinto completo](resources/screenshots/stage2.png)
 
 Il risultato visivo è una griglia completa esplorabile spostando la telecamera tramite input del mouse.
 
@@ -26,7 +26,7 @@ Il risultato visivo è una griglia completa esplorabile spostando la telecamera 
 
 La generazione della mappa è stata implementata con la logica di un vero e proprio labirinto. È stato adottato un [algoritmo](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)) basato su una visita DFS randomizzata, che garantisce percorsi sempre diversi e completabili.
 
-![Vero labirinto, stage 3](resources/screenshots/stage3.png)
+![Vero labirinto](resources/screenshots/stage3.png)
 
 ### Stage 4 (v0.5.x)
 
@@ -38,21 +38,21 @@ L'obiettivo di questa tappa è innalzare la fedeltà visiva applicando texture a
 
 A fronte di queste novità, gli shader storici "Normal" e "Gouraud" sono stati rimossi in quanto obsoleti.
 
-![Labirinto con shader flat, stage 4](resources/screenshots/stage4_flat.png)
+![Labirinto con shader flat](resources/screenshots/stage4_flat.png)
 
-![Dettagli fotorealismo texture, stage 4](resources/screenshots/stage4_photo.png)
+![Dettagli fotorealismo texture](resources/screenshots/stage4_photo.png)
 
 ### Stage 5 (v0.6.x)
 
 Sono state apportate migliorie all'interfaccia utente, aggiungendo un contatore degli FPS per monitorare le performance grafiche. È stata inoltre introdotta una schermata di caricamento progressiva per fornire feedback all'utente durante l'inizializzazione sincrona degli asset pesanti.
 
-![Schermata di caricamento, stage 5](resources/screenshots/stage5.gif)
+![Schermata di caricamento](resources/screenshots/stage5.gif)
 
 Parallelamente, il sistema di illuminazione Phong è stato fixato e raffinato per correggere fastidiosi artefatti visivi agli angoli dei muri.
 
 | Prima (Spigoli rotti) | Dopo (Spigoli corretti) |
 | :---: | :---: |
-| ![Spigoli rotti, stage 5](resources/screenshots/stage5_broken.png) | ![Spigoli aggiustati, stage 5](resources/screenshots/stage5_new.png) |
+| ![Spigoli rotti](resources/screenshots/stage5_broken.png) | ![Spigoli aggiustati](resources/screenshots/stage5_new.png) |
 
 ### Stage 6 (v0.7.x)
 
@@ -86,7 +86,7 @@ L'obiettivo di questo stage è stato un ulteriore perfezionamento delle performa
 
 | Low | Medium | High |
 | :---: | :---: | :---: |
-| ![Impostazioni low, stage 8](resources/screenshots/stage8_low.png) | ![Impostazioni medium, stage 8](resources/screenshots/stage8_medium.png) | ![Impostazioni high, stage 8](resources/screenshots/stage8_high.png) |
+| ![Impostazioni low](resources/screenshots/stage8_low.png) | ![Impostazioni medium](resources/screenshots/stage8_medium.png) | ![Impostazioni high](resources/screenshots/stage8_high.png) |
 
 ### Stage 9 (v0.10.x)
 
@@ -96,6 +96,8 @@ L'obiettivo di questa tappa è stato l'arricchimento e il perfezionamento dell'i
 * **Multi-Sample Anti-Aliasing (MSAA)**: È stata aggiunta l'opzione per abilitare l'anti-aliasing con accelerazione hardware, fondamentale per mitigare gli artefatti visivi (*aliasing*) e smussare i bordi dei poligoni. Poiché la modifica del numero di campioni (*samples*) incide direttamente sui buffer del contesto grafico originario, l'applicazione di questa impostazione richiede un riavvio dell'applicativo.
 * **Field of View (FOV)**: È ora possibile regolare dinamicamente il campo visivo della telecamera. Il parametro aggiorna in tempo reale la matrice di proiezione prospettica, consentendo di personalizzare l'ampiezza dell'inquadratura.
 * **Wireframe Mode**: Integrata una modalità di visualizzazione diagnostica. Sfruttando la chiamata di stato `glPolygonMode` (impostata su `GL_LINE`), è possibile bypassare la rasterizzazione dei frammenti e visualizzare esclusivamente la topologia geometrica (*mesh*) della scena. Questo strumento si è rivelato indispensabile per il *debugging* visivo, specialmente per verificare il corretto funzionamento del *Frustum Culling* implementato nello stage precedente.
+
+![Nuove impostazioni + wireframe](resources/screenshots/stage9.png)
 
 ### Stage 10 (v0.11.x)
 
@@ -108,7 +110,7 @@ Per raggiungere questo scopo sono state adottate diverse soluzioni architettural
 * **Anti-Aliasing Isolato (MSAA FBO)**: Per garantire una pulizia visiva (smussatura dei bordi) della minimappa senza forzare l'MSAA sull'intera scena tridimensionale (operazione estremamente costosa su schede video di fascia bassa), il rendering della minimappa avviene *off-screen* all'interno di un *Multisampled Framebuffer Object* (FBO). L'immagine finale viene poi fusa e trasferita sullo schermo (tramite blitting), ottenendo una UI definita a costo computazionale pressoché nullo.
 * **Integrazione e UI**: Le meccaniche di visualizzazione sono state interamente esposte nell'interfaccia utente (ImGui), permettendo al giocatore di regolare lo zoom e decidere se vincolare la rotazione della minimappa al "Nord Assoluto" o farla ruotare assecondando la visuale in prima persona.
 
-![Minimappa, stage 10](resources/screenshots/stage10.png)
+![Minimappa](resources/screenshots/stage10.png)
 
 ### Stage 11 (v0.12.x)
 
@@ -134,7 +136,7 @@ Il risultato è un grafo estremamente snello che delega il rendering dell'intero
 
 L'obiettivo di questa tappa è stato il consolidamento del motore grafico e dell'interazione utente, tramite una sessione mirata di bug fixing per risolvere alcuni problemi legati al sistema di anti-aliasing multiplo e alla gestione dell'input.
 
-![Bug visivo, stage 13](resources/screenshots/stage13.png)
+![Bug visivo](resources/screenshots/stage13.png)
 
 * **Risoluzione artefatti MSAA**: L'attivazione del Multi-Sample Anti-Aliasing causava la scomparsa della minimappa (schermo parzialmente colorato) e una fastidiosa sfocatura dei font dell'interfaccia utente. Il problema della minimappa è stato risolto introducendo un Resolve Framebuffer intermedio: l'immagine multisamplata generata *off-screen* viene ora "appiattita" su un FBO standard prima di essere trasferita sul *Default Framebuffer* (tramite operazione di *blitting*), garantendo il corretto trasferimento dei pixel. Per la GUI, è stato sufficiente disabilitare temporaneamente lo stato `GL_MULTISAMPLE` prima del rendering di ImGui (che implementa già un proprio anti-aliasing vettoriale), ripristinandolo subito dopo a costo computazionale nullo grazie allo state filtering dei driver OpenGL.
 * **Gestione del Focus e dell'Input**: È stato corretto un difetto per cui il giocatore continuava a muoversi nel labirinto anche quando la finestra perdeva il focus o veniva ridotta a icona. Poiché la libreria interroga lo stato globale dell'hardware della tastiera, la logica di aggiornamento della telecamera è stata revisionata vincolando la lettura degli input esclusivamente ai momenti in cui l'applicativo risulta attivamente in primo piano, prevenendo così movimenti accidentali in background.
@@ -149,6 +151,8 @@ L'aspetto visivo è stato radicalmente trasformato. I controlli manuali dei mate
 
 Infine, l'illuminazione della scena è stata bilanciata in ottica *dark-fantasy*: la luce dinamica del giocatore emette ora un fascio caldo e focale tipico di una torcia a fiamma, mentre l'illuminazione ambientale è stata drasticamente ridotta e virata su toni molto freddi e bluastri. Questo netto contrasto cromatico permette di leggere la conformazione del labirinto in lontananza e orientarsi, mantenendo però intatto il senso di oscurità e tensione esplorativa dei corridoi vicini.
 
+![Nuove luci](resources/screenshots/stage14.png)
+
 ### Stage 15 (v0.16.x)
 
 L'obiettivo di questa tappa è stato l'introduzione di un sistema di collisioni fisiche e l'espansione delle meccaniche di navigazione del giocatore.
@@ -159,15 +163,19 @@ Parallelamente, è stata introdotta la possibilità di correre mantenendo premut
 
 ### Stage 16 (v0.17.x)
 
-L'obiettivo principale di questa tappa è stata l'evoluzione del progetto da semplice *tech demo* esplorativa a un vero e proprio ecosistema di gioco, introducendo un *Game Loop* completo e una chiara condizione di vittoria.
+L'obiettivo principale di questa tappa è stata l'evoluzione del progetto da semplice *tech demo* esplorativa a un vero e proprio ecosistema di gioco, introducendo un *gameplay* completo e una chiara condizione di vittoria.
 
-Le meccaniche di base sono state formalizzate: il giocatore viene ora istanziato (*spawn*) nel vertice in alto a destra del labirinto e deve orientarsi per raggiungere l'uscita posizionata all'estremità opposta (in basso a sinistra). Il punto di arrivo è stato fisicamente inserito all'interno della scena 3D sotto forma di un cristallo fluttuante e luminoso, oltre a essere tracciato dinamicamente in verde sulla minimappa bidimensionale.
+Le meccaniche di base sono state formalizzate: il giocatore viene ora istanziato (*spawn*) nel vertice in alto a destra del labirinto e deve orientarsi per raggiungere l'uscita posizionata all'estremità opposta (in basso a sinistra). Il punto di arrivo è stato fisicamente inserito all'interno della scena 3D sotto forma di un cristallo fluttuante e luminoso, oltre a essere tracciato dinamicamente in verde sulla minimappa.
 
 Dal punto di vista della logica di gioco, sono state implementate diverse migliorie architetturali:
 
-* **Game State e Vittoria**: Il calcolo continuo della distanza euclidea tra il giocatore e il traguardo permette di innescare uno stato di "Vittoria". Questo evento sospende i comandi di navigazione e presenta all'utente un pop-up modale (tramite la GUI) che offre la possibilità di avviare una nuova partita. La funzione di *reset* ripristina la posizione della telecamera, aggiornando in sincrono anche le coordinate della luce dinamica.
+* **Game State e Vittoria**: Il calcolo della distanza tra il giocatore e il traguardo permette di innescare uno stato di "Vittoria". Questo evento sospende i comandi di navigazione e presenta all'utente un pop-up modale (tramite la GUI) che offre la possibilità di avviare una nuova partita. La funzione di *reset* ripristina la posizione della telecamera e genera un nuovo labirinto.
 * **Animazioni Frame-Independent**: L'animazione di oscillazione e rotazione del cristallo è stata svincolata dal tempo assoluto di esecuzione. Sfruttando l'accumulo incrementale del *delta-time* combinato con un *wrapping* matematico degli angoli, sono state eliminate le perdite di precisione della mantissa dei *float*, garantendo animazioni fluide e prive di microscatti (o salti temporali dovuti alla perdita di focus della finestra).
 * **Material Flags (Uber Shader)**: Poiché la tecnica di *Box Mapping* (ottimizzata nello Stage 6) causa una illuminazione errata delle texture se applicata a modelli non allineati agli assi o in rotazione libera, è stato introdotto un approccio architetturale basato su *flag*. La classe `Material` invia ora un *uniform* booleano allo shader (`useTextures`) per indicare la natura dell'oggetto. Sfruttando il *branching* condizionale, i *Fragment Shader* ignorano il calcolo delle coordinate UV per il cristallo, renderizzandolo istantaneamente come un solido puro pur applicando correttamente l'illuminazione Phong e la riflessione speculare sulle facce inclinate.
+
+![Animazione cristallo](resources/screenshots/stage16.gif)
+
+![Popup di vittoria](resources/screenshots/stage16.png)
 
 ### Stage 17 (v0.18.x)
 
@@ -175,9 +183,11 @@ L'obiettivo di questa tappa è stato il completamento del *gameplay* di gioco tr
 
 Dal punto di vista tecnico e di gameplay, sono state introdotte le seguenti novità architetturali:
 
-* Alpha Blending: È stata abilitata la fusione dei colori nel contesto globale di OpenGL (tramite l'operazione `glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)`). Questa modifica ha permesso di assegnare un canale alfa parametrico al materiale del cristallo, rendendolo semi-trasparente. Il risultato è un indicatore di fine livello visivamente molto più accattivante, che si sovrappone alla scena senza occludere completamente la geometria retrostante.
-* Session Manager e Timer: Il ciclo di vita della singola run è ora orchestrato da una classe dedicata (`SessionManager`). È stato implementato un cronometro ad alta precisione aggiornato tramite il *delta-time* del render loop e mostrato dinamicamente in sovraimpressione (HUD). Al fine di garantire misurazioni eque, la logica di aggiornamento intercetta gli eventi di sistema e mette automaticamente in pausa il timer qualora la finestra perda il focus.
-* Salvataggio e Tracciabilità: Al raggiungimento della condizione di vittoria, il timer viene interrotto e il tempo di fuga formattato viene serializzato su disco all'interno di un registro testuale. Per conferire valore alla progressione e favorire la rigiocabilità (in ottica *speedrunning*), ogni punteggio viene salvato associandolo al seed utilizzato per la generazione di quel specifico labirinto.
+* **Alpha Blending**: È stata abilitata la fusione dei colori nel contesto globale di OpenGL (tramite l'operazione `glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)`). Questa modifica ha permesso di assegnare un canale alfa parametrico al materiale del cristallo, rendendolo semi-trasparente. Il risultato è un indicatore di fine livello visivamente molto più accattivante, che si sovrappone alla scena senza occludere completamente la geometria retrostante.
+* **Session Manager e Timer**: Il ciclo di vita della singola run è ora orchestrato da una classe dedicata (`SessionManager`). È stato implementato un cronometro ad alta precisione aggiornato tramite il *delta-time* del render loop e mostrato dinamicamente in sovraimpressione (HUD). Al fine di garantire misurazioni eque, la logica di aggiornamento intercetta gli eventi di sistema e mette automaticamente in pausa il timer qualora la finestra perda il focus.
+* **Salvataggio e Tracciabilità**: Al raggiungimento della condizione di vittoria, il timer viene interrotto e il tempo di fuga formattato viene serializzato su disco all'interno di un registro testuale. Per conferire valore alla progressione e favorire la rigiocabilità (in ottica *speedrunning*), ogni punteggio viene salvato associandolo al seed utilizzato per la generazione di quel specifico labirinto.
+
+![Cristallo traslucido + timer](resources/screenshots/stage17.png)
 
 ## Crediti
 
