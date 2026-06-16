@@ -16,7 +16,6 @@
 #include "include/gui.hh"
 #include "include/hotshaders.hh"
 #include "include/lights.hh"
-#include "include/matrices.hh"
 #include "include/maze.hh"
 #include "include/mesh.hh"
 #include "include/minimap.hh"
@@ -161,7 +160,7 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
 
     loader.addTask("scene build", [&assets, &scene, &minimap]() {
         scene.goalNode.mesh = assets.goalMesh.get();
-        scene.goalNode.material = *assets.goalMat;
+        scene.goalNode.material = &assets.goalMat.value();
         scene.goalNode.is_goal = true;
         scene.goalNode.updateTransforms();
 

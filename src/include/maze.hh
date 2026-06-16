@@ -19,7 +19,6 @@
 
 #include "gpumesh.hh"
 #include "material.hh"
-#include "matrices.hh"
 #include "mesh.hh"
 #include "node.hh"
 
@@ -123,13 +122,13 @@ class Maze {
         // Global Walls Node
         Node wallsNode;
         wallsNode.mesh = outBatchedWalls.get();
-        wallsNode.material = wallMat;
+        wallsNode.material = &wallMat;
         wallsNode.is_wall = true;
 
         // Global Floors Node
         Node floorsNode;
         floorsNode.mesh = outBatchedFloors.get();
-        floorsNode.material = floorMat;
+        floorsNode.material = &floorMat;
         floorsNode.is_wall = false;
 
         mazeRoot.children.push_back(std::move(wallsNode));

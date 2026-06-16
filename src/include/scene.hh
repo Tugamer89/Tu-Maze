@@ -12,7 +12,6 @@
 #include "camera.hh"
 #include "gpumesh.hh"
 #include "lights.hh"
-#include "matrices.hh"
 #include "maze.hh"
 #include "node.hh"
 
@@ -101,8 +100,15 @@ class Scene {
     void draw() {
         glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.vp));
 
-        root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs);
-        goalNode.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs);
+        const Material* currentMat = nullptr;
+
+        root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, currentMat);
+        goalNode.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, currentMat);
+
+        // Safe cleanup if required
+        if (currentMat) {
+            currentMat->unbind();
+        }
     }
 };
 
