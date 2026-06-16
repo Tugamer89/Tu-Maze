@@ -78,55 +78,80 @@ class Camera {
         }
     }
 
-    // Accurate Circle vs AABB collision detection to prevent corner snagging
+    // Helper for collision checking
+    bool isAABBIntersecting(const glm::vec3& pos, float minX, float maxX, float minZ,
+                            float maxZ) const {
+        return (pos.x + collisionRadius > minX) && (pos.x - collisionRadius < maxX) &&
+               (pos.z + collisionRadius > minZ) && (pos.z - collisionRadius < maxZ);
+    }
+
+    // Helper to evaluate specific walls of a cell
+    bool checkCellWalls(const glm::vec3& pos, const Cell& cell, int x, int y, float cx,
+                        float cz) const {
+        constexpr float halfCell = Maze::CELL_SIZE * 0.5f;
+        constexpr float halfWall = Maze::WALL_THICKNESS * 0.5f;
+        constexpr float outer = halfCell + halfWall;
+        constexpr float inner = halfCell - halfWall;
+
+        if (cell.wallTop && y == 0 &&
+            isAABBIntersecting(pos, cx - outer, cx + outer, cz - outer, cz - inner))
+            return true;
+        if (cell.wallBottom &&
+            isAABBIntersecting(pos, cx - outer, cx + outer, cz + inner, cz + outer))
+            return true;
+        if (cell.wallLeft && x == 0 &&
+            isAABBIntersecting(pos, cx - outer, cx - inner, cz - outer, cz + outer))
+            return true;
+        if (cell.wallRight &&
+            isAABBIntersecting(pos, cx + inner, cx + outer, cz - outer, cz + outer))
+            return true;
+
+        return false;
+    }
+
+    // Accurate Circle vs AABB collision detection optimized by spatial partitioning
     bool checkCollision(const glm::vec3& pos, const Maze& maze) const {
         float offsetX = (static_cast<float>(maze.width) * Maze::CELL_SIZE) * 0.5f;
         float offsetZ = (static_cast<float>(maze.height) * Maze::CELL_SIZE) * 0.5f;
 
-        auto cellX = static_cast<int>(std::floor(pos.x + offsetX) / Maze::CELL_SIZE);
-        auto cellY = static_cast<int>(std::floor(pos.z + offsetZ) / Maze::CELL_SIZE);
+        float gridPosX = pos.x + offsetX;
+        float gridPosZ = pos.z + offsetZ;
 
-        // true if player AABB intersects with wall AABB
-        auto checkAABB = [&](float minX, float maxX, float minZ, float maxZ) {
-            bool intersectX = (pos.x + collisionRadius > minX) && (pos.x - collisionRadius < maxX);
-            bool intersectZ = (pos.z + collisionRadius > minZ) && (pos.z - collisionRadius < maxZ);
-            return intersectX && intersectZ;
-        };
+        auto cellX = static_cast<int>(std::floor(gridPosX / Maze::CELL_SIZE));
+        auto cellY = static_cast<int>(std::floor(gridPosZ / Maze::CELL_SIZE));
+
+        // Fractional position inside the current cell [0.0, 1.0)
+        float localX = gridPosX - (static_cast<float>(cellX) * Maze::CELL_SIZE);
+        float localZ = gridPosZ - (static_cast<float>(cellY) * Maze::CELL_SIZE);
 
         float halfCell = Maze::CELL_SIZE * 0.5f;
         float halfWall = Maze::WALL_THICKNESS * 0.5f;
-        float outer = halfCell + halfWall;
-        float inner = halfCell - halfWall;
 
-        // Check a 3x3 grid around the player to guarantee we catch corner walls
-        for (int y = std::max(0, cellY - 1); y <= std::min(maze.height - 1, cellY + 1); ++y) {
-            for (int x = std::max(0, cellX - 1); x <= std::min(maze.width - 1, cellX + 1); ++x) {
+        // Check only adjacent cells if the player is dangerously close to the boundaries
+        float threshold = collisionRadius + halfWall;
+
+        int minX = std::max(0, (localX < threshold) ? cellX - 1 : cellX);
+        int maxX =
+            std::min(maze.width - 1, (localX > Maze::CELL_SIZE - threshold) ? cellX + 1 : cellX);
+        int minZ = std::max(0, (localZ < threshold) ? cellY - 1 : cellY);
+        int maxZ =
+            std::min(maze.height - 1, (localZ > Maze::CELL_SIZE - threshold) ? cellY + 1 : cellY);
+
+        for (int y = minZ; y <= maxZ; ++y) {
+            for (int x = minX; x <= maxX; ++x) {
                 const Cell& cell = maze.grid[y * maze.width + x];
-
                 float cx = (static_cast<float>(x) * Maze::CELL_SIZE) - offsetX + halfCell;
                 float cz = (static_cast<float>(y) * Maze::CELL_SIZE) - offsetZ + halfCell;
 
-                // Wall bounds
-                if (cell.wallTop && y == 0 &&
-                    checkAABB(cx - outer, cx + outer, cz - outer, cz - inner))
+                if (checkCellWalls(pos, cell, x, y, cx, cz)) {
                     return true;
-                if (cell.wallBottom && checkAABB(cx - outer, cx + outer, cz + inner, cz + outer))
-                    return true;
-                if (cell.wallLeft && x == 0 &&
-                    checkAABB(cx - outer, cx - inner, cz - outer, cz + outer))
-                    return true;
-                if (cell.wallRight && checkAABB(cx + inner, cx + outer, cz - outer, cz + outer))
-                    return true;
+                }
             }
         }
 
         // Restrict to absolute outer maze boundaries
-        if (pos.x - collisionRadius < -offsetX || pos.x + collisionRadius > offsetX ||
-            pos.z - collisionRadius < -offsetZ || pos.z + collisionRadius > offsetZ) {
-            return true;
-        }
-
-        return false;
+        return (pos.x - collisionRadius < -offsetX || pos.x + collisionRadius > offsetX ||
+                pos.z - collisionRadius < -offsetZ || pos.z + collisionRadius > offsetZ);
     }
 
    public:
