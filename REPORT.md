@@ -247,6 +247,15 @@ Dal punto di vista architetturale e dell'interfaccia utente, sono stati effettua
 * **Configurazione Pre-Partita**: L'utente può ora calibrare comodamente l'esperienza di gioco (modificando FOV, qualità delle texture, MSAA e V-Sync) o impostare l'HUD minimappa ancor prima di inizializzare la generazione procedurale del labirinto, ottimizzando le prestazioni fin dal primo fotogramma.
 * **Gestione degli Stati dell'Input**: Il parsing degli eventi della tastiera è stato aggiornato. La pressione del tasto `ESC` intercetta ora correttamente lo stato del sottomenu delle impostazioni nel menu principale, garantendo un'uscita fluida verso la root del menu senza causare chiusure accidentali dell'applicazione.
 
+### Stage 23 (v0.24.x)
+
+L'obiettivo di questa tappa è stato il perfezionamento del flusso di gioco (UX) e una sessione mirata di *refactoring* architetturale per risolvere alcune criticità strutturali segnalate dall'analisi statica del codice.
+
+Dal punto di vista tecnico e logico, sono state implementate le seguenti migliorie:
+
+* **Ritenzione dello Stato (Play Again)**: È stata introdotta la memorizzazione persistente del seme generazionale (`std::optional<unsigned int>`) durante il *game loop*. Alla pressione del tasto "Play Again" nella schermata di vittoria, il motore grafico istanzia ora una nuova partita rispettando esattamente la scelta originale dell'utente (mantenendo il *custom seed* inserito o rigenerando un labirinto del tutto casuale).
+* **Parameter Object Pattern**: Per risolvere un *code smell* architetturale (firma del metodo `renderUI` eccessivamente lunga e prona a errori), la gestione degli eventi della GUI è stata riprogettata. Tutte le *callback* espresse tramite *lambda functions* (avvio, riavvio, ritorno al menu, uscita) sono state raggruppate in una singola struttura dati dedicata (`GuiCallbacks`). Questo pattern riduce drasticamente il passaggio di parametri, disaccoppia la logica applicativa dall'interfaccia e garantisce un codice molto più pulito e scalabile.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
