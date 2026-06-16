@@ -338,7 +338,11 @@ int main(int argc, char* argv[]) {
         gui.update(window, dt);
 
         // Clear Buffers
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        if (gui.inMainMenu)
+            glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        else
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Handle Loading Phase
@@ -373,10 +377,6 @@ int main(int argc, char* argv[]) {
 
             scene.draw();
             minimap.draw(scene, gui, window);
-        } else {
-            // Cool dark background for the main menu if you want instead of pitch black
-            glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
         }
 
         shaders.use();
