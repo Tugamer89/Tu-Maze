@@ -307,14 +307,27 @@ int main(int argc, char* argv[]) {
         session.start();
     };
 
-    auto returnToMenu = [&gui, &session]() {
-        gui.inMainMenu = true;
-        gui.hasWon = false;
-        gui.isPaused = false;
-        session.stop();
+    Gui::GuiCallbacks callbacks{
+        .onPlayRandom =
+            [&currentCustomSeed, restartGame]() {
+                currentCustomSeed = std::nullopt;
+                restartGame(std::nullopt);
+            },
+        .onPlayCustom =
+            [&currentCustomSeed, restartGame](unsigned int seed) {
+                currentCustomSeed = seed;
+                restartGame(seed);
+            },
+        .onPlayAgain = [&currentCustomSeed, restartGame]() { restartGame(currentCustomSeed); },
+        .onReturnToMenu =
+            [&gui, &session]() {
+                gui.inMainMenu = true;
+                gui.hasWon = false;
+                gui.isPaused = false;
+                session.stop();
+            },
+        .onQuitDesktop = [&running]() { running = false; },
     };
-
-    auto quitDesktop = [&running]() { running = false; };
 
     while (running) {
         sf::Time dt = deltaClock.restart();
@@ -367,26 +380,7 @@ int main(int argc, char* argv[]) {
         }
 
         shaders.use();
-
-        // Drive the UI Logic
-        gui.renderUI(
-            scene, window, session,
-            // onPlayRandom
-            [&currentCustomSeed, restartGame]() {
-                currentCustomSeed = std::nullopt;
-                restartGame(std::nullopt);
-            },
-            // onPlayCustom
-            [&currentCustomSeed, restartGame](unsigned int seed) {
-                currentCustomSeed = seed;
-                restartGame(seed);
-            },
-            // onPlayAgain
-            [&currentCustomSeed, restartGame]() { restartGame(currentCustomSeed); },
-            // onReturnToMenu
-            returnToMenu,
-            // onQuitDesktop
-            quitDesktop);
+        gui.renderUI(scene, window, session, callbacks);
 
         window.display();
     }

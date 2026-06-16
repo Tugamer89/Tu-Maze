@@ -11,6 +11,7 @@
 #include <concepts>
 #include <ctime>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <string>
 
@@ -21,6 +22,14 @@
 class Gui {
    public:
     inline static const std::string settingsFile = "tu-maze_settings.txt";
+
+    struct GuiCallbacks {
+        std::function<void()> onPlayRandom;
+        std::function<void(unsigned int)> onPlayCustom;
+        std::function<void()> onPlayAgain;
+        std::function<void()> onReturnToMenu;
+        std::function<void()> onQuitDesktop;
+    };
 
     bool minimap_enabled = true;
     bool minimap_fix_north = true;
@@ -315,9 +324,7 @@ class Gui {
     }
 
     void renderMainMenuSection(Scene& scene, sf::Window& window, const SessionManager& session,
-                               std::invocable auto onPlayRandom,
-                               std::invocable<unsigned int> auto onPlayCustom,
-                               std::invocable auto onQuitDesktop) {
+                               const GuiCallbacks& callbacks) {
         ImGui::SetNextWindowPos(
             ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
             ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -334,8 +341,9 @@ class Gui {
         } else if (showSettings) {
             renderMainMenuSettingsSection(scene, window);
         } else {
-            if (ImGui::Button("Play (Random Seed)", ImVec2(-1.0f, 38.0f))) {
-                onPlayRandom();
+            if (ImGui::Button("Play (Random Seed)", ImVec2(-1.0f, 38.0f)) &&
+                callbacks.onPlayRandom) {
+                callbacks.onPlayRandom();
             }
 
             ImGui::Spacing();
@@ -345,8 +353,9 @@ class Gui {
             ImGui::Text("Custom Seed:");
             ImGui::InputInt("##CustomSeed", &customSeedInput, 0, 0,
                             ImGuiInputTextFlags_CharsDecimal);
-            if (ImGui::Button("Play (Custom Seed)", ImVec2(-1.0f, 38.0f))) {
-                onPlayCustom(static_cast<unsigned int>(std::max(0, customSeedInput)));
+            if (ImGui::Button("Play (Custom Seed)", ImVec2(-1.0f, 38.0f)) &&
+                callbacks.onPlayCustom) {
+                callbacks.onPlayCustom(static_cast<unsigned int>(std::max(0, customSeedInput)));
             }
 
             ImGui::Spacing();
@@ -361,15 +370,14 @@ class Gui {
             }
 
             ImGui::Spacing();
-            if (ImGui::Button("Quit to Desktop", ImVec2(-1.0f, 38.0f))) {
-                onQuitDesktop();
+            if (ImGui::Button("Quit to Desktop", ImVec2(-1.0f, 38.0f)) && callbacks.onQuitDesktop) {
+                callbacks.onQuitDesktop();
             }
         }
         ImGui::End();
     }
 
-    void renderVictorySection(std::invocable auto onReturnToMenu,
-                              std::invocable auto onPlayAgain) const {
+    void renderVictorySection(const GuiCallbacks& callbacks) const {
         ImGui::SetNextWindowPos(
             ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
             ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -383,21 +391,21 @@ class Gui {
 
         float buttonWidth = 140.0f;
 
-        if (ImGui::Button("Main Menu", ImVec2(buttonWidth, 0))) {
-            onReturnToMenu();
+        if (ImGui::Button("Main Menu", ImVec2(buttonWidth, 0)) && callbacks.onReturnToMenu) {
+            callbacks.onReturnToMenu();
         }
 
         float rightAlignX =
             ImGui::GetWindowWidth() - buttonWidth - ImGui::GetStyle().WindowPadding.x;
         ImGui::SameLine(rightAlignX);
 
-        if (ImGui::Button("Play Again", ImVec2(buttonWidth, 0))) {
-            onPlayAgain();
+        if (ImGui::Button("Play Again", ImVec2(buttonWidth, 0)) && callbacks.onPlayAgain) {
+            callbacks.onPlayAgain();
         }
         ImGui::End();
     }
 
-    void renderPauseSection(Scene& scene, sf::Window& window, std::invocable auto onReturnToMenu) {
+    void renderPauseSection(Scene& scene, sf::Window& window, const GuiCallbacks& callbacks) {
         ImGui::SetNextWindowPos(
             ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
             ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -410,8 +418,9 @@ class Gui {
         if (ImGui::Button("Resume Game", ImVec2(-1.0f, 38.0f))) {
             isPaused = false;
         }
-        if (ImGui::Button("Return to Main Menu", ImVec2(-1.0f, 38.0f))) {
-            onReturnToMenu();
+        if (ImGui::Button("Return to Main Menu", ImVec2(-1.0f, 38.0f)) &&
+            callbacks.onReturnToMenu) {
+            callbacks.onReturnToMenu();
         }
 
         ImGui::Spacing();
@@ -484,19 +493,16 @@ class Gui {
         ImGui::SFML::Update(sf::Mouse::getPosition(window), sf::Vector2f(window.getSize()), dt);
     }
 
-    void renderUI(Scene& scene, sf::Window& window, SessionManager& session,
-                  std::invocable auto onPlayRandom, std::invocable<unsigned int> auto onPlayCustom,
-                  std::invocable auto onPlayAgain, std::invocable auto onReturnToMenu,
-                  std::invocable auto onQuitDesktop) {
+    void renderUI(Scene& scene, sf::Window& window, const SessionManager& session,
+                  const GuiCallbacks& callbacks) {
         if (inMainMenu) {
-            renderMainMenuSection(scene, window, session, onPlayRandom, onPlayCustom,
-                                  onQuitDesktop);
+            renderMainMenuSection(scene, window, session, callbacks);
         } else {
             if (hasWon) {
-                renderVictorySection(onReturnToMenu, onPlayAgain);
+                renderVictorySection(callbacks);
             }
             if (isPaused) {
-                renderPauseSection(scene, window, onReturnToMenu);
+                renderPauseSection(scene, window, callbacks);
             }
             if (!hasWon && !isPaused) {
                 renderHUD(session.getFormattedTime());
