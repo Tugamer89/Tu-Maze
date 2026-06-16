@@ -272,6 +272,9 @@ int main(int argc, char* argv[]) {
     bool running = true;
     bool wasPaused = false;
 
+    // State to track how the game was launched so "Play Again" can reuse it
+    std::optional<unsigned int> currentCustomSeed = std::nullopt;
+
     auto resetMaze = [&scene, &assets](std::optional<unsigned int> seed = std::nullopt) {
         scene.root.children.clear();
 
@@ -367,8 +370,23 @@ int main(int argc, char* argv[]) {
 
         // Drive the UI Logic
         gui.renderUI(
-            scene, window, session, [restartGame]() { restartGame(std::nullopt); },
-            [restartGame](unsigned int seed) { restartGame(seed); }, returnToMenu, quitDesktop);
+            scene, window, session,
+            // onPlayRandom
+            [&currentCustomSeed, restartGame]() {
+                currentCustomSeed = std::nullopt;
+                restartGame(std::nullopt);
+            },
+            // onPlayCustom
+            [&currentCustomSeed, restartGame](unsigned int seed) {
+                currentCustomSeed = seed;
+                restartGame(seed);
+            },
+            // onPlayAgain
+            [&currentCustomSeed, restartGame]() { restartGame(currentCustomSeed); },
+            // onReturnToMenu
+            returnToMenu,
+            // onQuitDesktop
+            quitDesktop);
 
         window.display();
     }

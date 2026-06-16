@@ -369,7 +369,7 @@ class Gui {
     }
 
     void renderVictorySection(std::invocable auto onReturnToMenu,
-                              std::invocable auto onPlayRandom) const {
+                              std::invocable auto onPlayAgain) const {
         ImGui::SetNextWindowPos(
             ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
             ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -392,7 +392,7 @@ class Gui {
         ImGui::SameLine(rightAlignX);
 
         if (ImGui::Button("Play Again", ImVec2(buttonWidth, 0))) {
-            onPlayRandom();
+            onPlayAgain();
         }
         ImGui::End();
     }
@@ -486,13 +486,14 @@ class Gui {
 
     void renderUI(Scene& scene, sf::Window& window, SessionManager& session,
                   std::invocable auto onPlayRandom, std::invocable<unsigned int> auto onPlayCustom,
-                  std::invocable auto onReturnToMenu, std::invocable auto onQuitDesktop) {
+                  std::invocable auto onPlayAgain, std::invocable auto onReturnToMenu,
+                  std::invocable auto onQuitDesktop) {
         if (inMainMenu) {
             renderMainMenuSection(scene, window, session, onPlayRandom, onPlayCustom,
                                   onQuitDesktop);
         } else {
             if (hasWon) {
-                renderVictorySection(onReturnToMenu, onPlayRandom);
+                renderVictorySection(onReturnToMenu, onPlayAgain);
             }
             if (isPaused) {
                 renderPauseSection(scene, window, onReturnToMenu);
