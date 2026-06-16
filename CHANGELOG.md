@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.24.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.23.0...v0.24.0) (2026-06-16)
+
+
+### Features
+
+* implement play again functionality with custom seed memory ([2432102](https://github.com/Tugamer89/Tu-Maze/commit/24321023cd177e8cdc5cb9103eafcad68520eb6d))
+
+
+### Code Refactoring
+
+* group renderUI callbacks into GuiCallbacks struct ([277de86](https://github.com/Tugamer89/Tu-Maze/commit/277de8689d8842fd077077d213baf43c7db7330a))
+
+
+### Documentation
+
+* add stage 23 description ([34b9452](https://github.com/Tugamer89/Tu-Maze/commit/34b94525c1b939ff06dbeb6a050e15b5e2c18b74))
+
 ## [0.23.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.22.0...v0.23.0) (2026-06-15)
 
 
