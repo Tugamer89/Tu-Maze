@@ -83,7 +83,7 @@ struct GameAssets {
 // SFML Callbacks //
 ////////////////////
 
-void handle_key(const sf::Event::KeyPressed& key, Gui& gui, bool& running) {
+void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& running) {
     if (key.scancode == sf::Keyboard::Scancode::Escape && !gui.hasWon) {
         if (!gui.inMainMenu)
             gui.isPaused = !gui.isPaused;
@@ -93,6 +93,10 @@ void handle_key(const sf::Event::KeyPressed& key, Gui& gui, bool& running) {
             gui.showSettings = false;
         else
             running = false;
+    } else if (key.scancode == sf::Keyboard::Scancode::F && !gui.inMainMenu && !gui.hasWon &&
+               !gui.isPaused) {
+        scene.lights.is_on = !scene.lights.is_on;
+        scene.update_all();
     }
 }
 
@@ -186,7 +190,7 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
                                         static_cast<float>(resized->size.y));
         } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                    key_pressed && !gui.wants_capture_keyboard()) {
-            handle_key(*key_pressed, gui, running);
+            handle_key(*key_pressed, gui, scene, running);
         }
     }
 }
@@ -288,7 +292,10 @@ int main(int argc, char* argv[]) {
         scene.camera.setPosition(assets.maze->getStartWorldPosition());
         scene.camera.setYaw(135.0f);  // Face inward towards the bottom-left
         scene.camera.setPitch(0.0f);
+        scene.lights.is_on = true;
         scene.lights.position(scene.camera.inv_v);
+
+        scene.update_all();
     };
 
     auto restartGame = [&gui, &session, &window,

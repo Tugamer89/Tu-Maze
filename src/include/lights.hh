@@ -21,6 +21,8 @@ class Lights {
     // Very dim, cool blueish ambient for a dark dungeon
     glm::vec3 light_ambient_val = {0.015f, 0.015f, 0.025f};
 
+    bool is_on = true;
+
    private:
     GLint light_direct_pos_loc;
     GLint light_direct_val_loc;
@@ -36,7 +38,8 @@ class Lights {
     }
 
     void parameters() {
-        glUniform3fv(light_direct_val_loc, 1, &light_direct_val[0]);
+        glm::vec3 current_direct_val = is_on ? light_direct_val : glm::vec3(0.0f);
+        glUniform3fv(light_direct_val_loc, 1, &current_direct_val[0]);
         glUniform3fv(light_ambient_val_loc, 1, &light_ambient_val[0]);
     }
 
