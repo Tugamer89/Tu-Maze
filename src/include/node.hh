@@ -27,11 +27,21 @@ class Node {
     bool is_wall = false;
     bool is_goal = false;
 
+    float worldRadius = 0.0f;
+
     Node() = default;
 
     void updateTransforms(const glm::mat4& parentMatrix = glm::mat4(1.0f)) {
         globalMatrix = parentMatrix * localMatrix;
         normalMatrix = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
+
+        if (mesh) {
+            float scaleX2 = glm::dot(glm::vec3(globalMatrix[0]), glm::vec3(globalMatrix[0]));
+            float scaleY2 = glm::dot(glm::vec3(globalMatrix[1]), glm::vec3(globalMatrix[1]));
+            float scaleZ2 = glm::dot(glm::vec3(globalMatrix[2]), glm::vec3(globalMatrix[2]));
+            float maxScale = std::sqrt(std::max({scaleX2, scaleY2, scaleZ2}));
+            worldRadius = mesh->extent * maxScale;
+        }
 
         for (Node& child : children) {
             child.updateTransforms(globalMatrix);
@@ -79,17 +89,6 @@ class Node {
         if (mesh) {
             // Transform center point to world space
             glm::vec3 worldCenter(globalMatrix * glm::vec4(mesh->center, 1.0f));
-
-            // Magnitude squared of the transformed basis vectors gives us the squared scaling
-            // factors
-            float scaleX2 = glm::dot(glm::vec3(globalMatrix[0]), glm::vec3(globalMatrix[0]));
-            float scaleY2 = glm::dot(glm::vec3(globalMatrix[1]), glm::vec3(globalMatrix[1]));
-            float scaleZ2 = glm::dot(glm::vec3(globalMatrix[2]), glm::vec3(globalMatrix[2]));
-
-            // Approximate maximum local scaling to apply to the radius of the bounding sphere
-            float maxScale = std::sqrt(std::max({scaleX2, scaleY2, scaleZ2}));
-
-            float worldRadius = mesh->extent * maxScale;
 
             bool insideFrustum = true;
             for (const auto& plane : frustumPlanes) {
