@@ -40,8 +40,13 @@ class Camera {
     float baseMovementSpeed = 2.5f;  // Units per second
     float sprintMultiplier = 1.6f;
     float mouseSensitivity = 0.2f;
-    float fov = 60.0f;
     float aspectRatio = 1.0f;
+
+    // FOV options
+    float baseFov = 60.0f;
+    float currentRenderFov = 60.0f;
+    float sprintFovOffset = 12.0f;
+    float fovTransitionSpeed = 8.0f;  // Interpolation Speed (Lerp)
 
     // Player collision size
     float collisionRadius = 0.20f;
@@ -191,7 +196,8 @@ class Camera {
     }
 
     void setFov(float newFov) {
-        fov = newFov;
+        baseFov = newFov;
+        currentRenderFov = newFov;
         projection();
     };
 
@@ -199,9 +205,10 @@ class Camera {
         float dt_secs = dt.asSeconds();
         float currentSpeed = baseMovementSpeed;
 
-        // Sprint
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) ||
-            sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RShift)) {
+        bool isSprinting = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) ||
+                           sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RShift);
+
+        if (isSprinting) {
             currentSpeed *= sprintMultiplier;
         }
 
@@ -217,7 +224,11 @@ class Camera {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) movement -= flatRight;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) movement += flatRight;
 
-        if (glm::length(movement) > 0.0f) {
+        bool isMoving = glm::length(movement) > 0.0f;
+        bool needsProjectionUpdate = false;
+
+        // Collisions and Movement
+        if (isMoving) {
             movement = glm::normalize(movement) * velocity;
 
             // X-Axis separated collision check
@@ -234,6 +245,22 @@ class Camera {
                 position.z = nextPosZ.z;
             }
 
+            needsProjectionUpdate = true;
+        }
+
+        // Dynamic Sprint FOV
+        float targetFov = (isSprinting && isMoving) ? (baseFov + sprintFovOffset) : baseFov;
+
+        if (std::abs(currentRenderFov - targetFov) > 0.05f) {
+            // Linear Interpolation (Lerp)
+            currentRenderFov += (targetFov - currentRenderFov) * fovTransitionSpeed * dt_secs;
+            needsProjectionUpdate = true;
+        } else if (currentRenderFov != targetFov) {
+            currentRenderFov = targetFov;
+            needsProjectionUpdate = true;
+        }
+
+        if (needsProjectionUpdate) {
             projection();
             return true;
         }
@@ -265,7 +292,7 @@ class Camera {
         inv_v = glm::inverse(v);
 
         // Build Projection Matrix
-        glm::mat4 pr = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
+        glm::mat4 pr = glm::perspective(glm::radians(currentRenderFov), aspectRatio, 0.1f, 100.0f);
 
         // Compute VP matrix
         vp = pr * v;
