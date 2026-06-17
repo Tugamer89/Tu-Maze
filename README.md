@@ -212,3 +212,19 @@ cd ../Stage_02
 #### Mouse Controls v0.23
 
 * **Dragging**: Move visual.
+
+### Stage 25 (v0.26.x)
+
+### Keyboard Controls v0.26
+
+* **`Escape`**: Open or close Pause Menu, close Leaderboard, close Settings, or exit from Main Menu.
+* **`Left Shift` or `Right Shift`**: Sprint.
+* **`F`**: Toggle torch.
+* **`W`**: Move forward.
+* **`A`**: Move left.
+* **`S`**: Move backward.
+* **`D`**: Move right.
+
+#### Mouse Controls v0.26
+
+* **Dragging**: Move visual.
