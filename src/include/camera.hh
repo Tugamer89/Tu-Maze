@@ -48,6 +48,13 @@ class Camera {
     float sprintFovOffset = 12.0f;
     float fovTransitionSpeed = 8.0f;  // Interpolation Speed (Lerp)
 
+    // Head-bobbing options
+    float baseHeight = 0.5f;
+    float walkTimer = 0.0f;
+    float bobbingSpeed = 12.0f;   // Bobbing Speed
+    float bobbingAmount = 0.02f;  // Amplitude
+    float currentBobbingAmplitude = 0.0f;
+
     // Player collision size
     float collisionRadius = 0.20f;
 
@@ -245,6 +252,24 @@ class Camera {
                 position.z = nextPosZ.z;
             }
 
+            needsProjectionUpdate = true;
+        }
+
+        // Head Bobbing
+        float targetAmplitude = isMoving ? bobbingAmount : 0.0f;
+        currentBobbingAmplitude += (targetAmplitude - currentBobbingAmplitude) * 10.0f * dt_secs;
+
+        if (isMoving) {
+            float speedMult = isSprinting ? sprintMultiplier : 1.0f;
+            walkTimer += dt_secs * bobbingSpeed * speedMult;
+            walkTimer = std::fmod(walkTimer, 2.0f * glm::pi<float>());
+        }
+
+        // New camera vertical position
+        float targetY = baseHeight + std::sin(walkTimer) * currentBobbingAmplitude;
+
+        if (std::abs(position.y - targetY) > 0.001f) {
+            position.y = targetY;
             needsProjectionUpdate = true;
         }
 
