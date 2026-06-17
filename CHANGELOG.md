@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.25.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.24.0...v0.25.0) (2026-06-17)
+
+
+### Features
+
+* bump new version ([52e9902](https://github.com/Tugamer89/Tu-Maze/commit/52e99024f3d566522dec07a1bd1d4f3115a33bf9))
+
+
+### Code Refactoring
+
+* optimize collision detection logic in Camera class ([75e415b](https://github.com/Tugamer89/Tu-Maze/commit/75e415b5c4521a7afc09ac5d4b78e9a25951bffc))
+* remove unused matrices header ([eec5277](https://github.com/Tugamer89/Tu-Maze/commit/eec5277de41cb10818e9d1e0469036f578e05faf))
+* remove unused matrices header and minimized texture binding ([4490dfd](https://github.com/Tugamer89/Tu-Maze/commit/4490dfd474b2fa7785014fb355b8b339b7427c28))
+* update background color for main menu ([9a0128e](https://github.com/Tugamer89/Tu-Maze/commit/9a0128e7f31e440bb1fe1517f90a7d8de58a53da))
+
+
+### Documentation
+
+* added stage 24 to REPORT.md ([88f422b](https://github.com/Tugamer89/Tu-Maze/commit/88f422bbbbc3b1a7ddc6a593a59d941c64dc89f9))
+
 ## [0.24.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.23.0...v0.24.0) (2026-06-16)
 
 
