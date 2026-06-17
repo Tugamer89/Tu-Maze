@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.26.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.25.0...v0.26.0) (2026-06-17)
+
+
+### Features
+
+* added dynamic FOV while sprinting ([e29f704](https://github.com/Tugamer89/Tu-Maze/commit/e29f704e6e0dc80bc7005a59123e3f920166e92b))
+* implement head-bobbing effect ([4f16ef0](https://github.com/Tugamer89/Tu-Maze/commit/4f16ef003888c922e298edb45f93e5c584b4f101))
+* toggle light state with 'F' key and update parameters accordingly ([d49ed30](https://github.com/Tugamer89/Tu-Maze/commit/d49ed30d6c3acce7a833f7d931634bb3a42bf190))
+
+
+### Documentation
+
+* update README and REPORT with Stage 25 features ([f39a502](https://github.com/Tugamer89/Tu-Maze/commit/f39a50260acc6563f007d268391497729dd68cc3))
+
 ## [0.25.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.24.0...v0.25.0) (2026-06-17)
 
 
