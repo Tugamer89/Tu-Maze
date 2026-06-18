@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5...4.0)
-project(TU_Maze LANGUAGES CXX)
+project(Tu_Maze VERSION 0.27.0 LANGUAGES CXX) # x-release-please-version
 
 # Force C++20 standard
 set(CMAKE_CXX_STANDARD 20)
@@ -92,6 +92,20 @@ set(IMGUI_DIR ${imgui_SOURCE_DIR})
 FetchContent_MakeAvailable(imgui_sfml)
 
 # ============================================================================
+# System Resources (Windows Icons & Metadata)
+# ============================================================================
+if(WIN32)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/windows/resource.rc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/resource.rc
+        @ONLY
+    )
+    set(APP_RESOURCES ${CMAKE_CURRENT_BINARY_DIR}/resource.rc)
+else()
+    set(APP_RESOURCES "")
+endif()
+
+# ============================================================================
 # DEVELOPMENT TARGET CONFIGURATION
 # ============================================================================
 # Collect all source files inside src/
@@ -101,6 +115,7 @@ if(SRC_FILES)
     add_executable(tu-maze
         ${SRC_FILES}
         ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+        ${APP_RESOURCES}
     )
     
     # Link SFML 3.0 graphics modules and GLM
