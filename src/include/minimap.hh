@@ -2,6 +2,7 @@
 #define MINIMAP_HH
 
 #include <algorithm>
+#include <array>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -54,7 +55,8 @@ class Minimap {
         glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH24_STENCIL8,
                                          renderResolution, renderResolution);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                                  rboDepth);
 
         // Setup Resolve FBO (Non-MSAA)
         glBindFramebuffer(GL_FRAMEBUFFER, fboResolve);
@@ -174,7 +176,7 @@ class Minimap {
         glBlitFramebuffer(0, 0, renderResolution, renderResolution, 0, 0, renderResolution,
                           renderResolution, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        // End operation and restire original state
+        // End operation and restore original state
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
 
