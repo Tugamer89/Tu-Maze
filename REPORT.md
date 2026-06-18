@@ -276,6 +276,8 @@ Dal punto di vista tecnico e di *User Experience* (UX), sono state implementate 
 * **Head-Bobbing**: Per simulare il passo e il peso corporeo, la coordinata Y della telecamera (l'altezza dal suolo) viene ora modulata da un'onda sinusoidale indipendente. L'algoritmo fa scalare la frequenza dell'oscillazione in base al ritmo della camminata o della corsa, calcolando al contempo un'"ampiezza interpolata" per garantire che la visuale si stabilizzi morbidamente senza scatti improvvisi non appena il giocatore si ferma.
 * **Illuminazione Interattiva**: L'atmosfera in stile *dungeon crawler* è stata intensificata concedendo al giocatore il controllo sulla torcia (la luce puntiforme principale). Tramite la pressione di un tasto dedicato (`F`), il sistema intercetta l'input aggiornando dinamicamente le variabili *Uniform* del *Fragment Shader*. Lo spegnimento disabilita la luce diretta, lasciando il giocatore avvolto esclusivamente dalla fredda e debolissima illuminazione ambientale bluastra.
 
+![Head bobbing + dynamic FOV](resources/screenshots/stage25.gif)
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
