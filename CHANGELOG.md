@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.27.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.26.1...v0.27.0) (2026-06-18)
+
+
+### Features
+
+* enhance difficulty selection and score tracking in GUI and session management ([8540638](https://github.com/Tugamer89/Tu-Maze/commit/8540638aff4bec7236da0bb7b25cbb1001557c9f))
+
+
+### Bug Fixes
+
+* update restartGame lambda to require seed parameter ([4b87402](https://github.com/Tugamer89/Tu-Maze/commit/4b874023e1ad92dc47345098c894857fc14150da))
+
+
+### Documentation
+
+* updated with Stage 26 features ([4b2f9bc](https://github.com/Tugamer89/Tu-Maze/commit/4b2f9bcb133610a727787e8dfcbead485d779051))
+
 ## [0.26.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.26.0...v0.26.1) (2026-06-18)
 
 
