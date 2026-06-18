@@ -198,7 +198,6 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
 bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, SessionManager& session,
                         bool& wasPaused) {
     bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon && !gui.inMainMenu;
-    static sf::Vector2i lastMousePos = sf::Mouse::getPosition(window);
     static bool justResumed = true;
 
     // Handle state transitions
@@ -216,38 +215,28 @@ bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, Sessio
     // Mouse Grab & Center System (True FPS Camera)
     if (isGameActive) {
         window.setMouseCursorVisible(false);
-        window.setMouseCursorGrabbed(true);
 
         sf::Vector2i center(window.getSize() / 2u);
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
         if (justResumed) {
             sf::Mouse::setPosition(center, window);
-            lastMousePos = center;
             justResumed = false;
         } else {
-            // Compute delta based on the last position
-            auto dx = static_cast<float>(mousePos.x - lastMousePos.x);
-            auto dy = static_cast<float>(mousePos.y - lastMousePos.y);
+            // Compute delta from center
+            auto dx = static_cast<float>(mousePos.x - center.x);
+            auto dy = static_cast<float>(mousePos.y - center.y);
 
-            // Ignore huge jumps commonly caused by the OS firing a delayed event after warping
-            if (bool mouseMoved = dx != 0.0f || dy != 0.0f;
-                std::abs(dx) < 200.0f && std::abs(dy) < 200.0f && mouseMoved) {
+            bool mouseMoved = dx != 0.0f || dy != 0.0f;
+
+            if (mouseMoved) {
                 scene.camera.processMouseMovement(dx, -dy);
                 scene.lights.position(scene.camera.inv_v);
-            }
-
-            // Warp if the cursor gets dangerously close to exiting the window.
-            if (std::abs(mousePos.x - center.x) > 100 || std::abs(mousePos.y - center.y) > 100) {
                 sf::Mouse::setPosition(center, window);
-                lastMousePos = center;
-            } else {
-                lastMousePos = mousePos;
             }
         }
     } else {
         window.setMouseCursorVisible(true);
-        window.setMouseCursorGrabbed(false);
     }
 
     return isGameActive;
