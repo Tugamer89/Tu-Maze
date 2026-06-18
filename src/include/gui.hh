@@ -294,7 +294,7 @@ class Gui {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
         if (ImGui::Begin("MinimapHUD", nullptr, flags)) {
-            float mapDisplaySize = std::clamp(displaySize.x * 0.22f, 160.0f, 300.0f);
+            float mapDisplaySize = std::clamp(displaySize.x * 0.28f, 160.0f, 400.0f);
 
             ImVec2 p_min = ImGui::GetCursorScreenPos();
             ImVec2 p_max(p_min.x + mapDisplaySize, p_min.y + mapDisplaySize);
