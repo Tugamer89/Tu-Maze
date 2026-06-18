@@ -292,6 +292,15 @@ Dal punto di vista architetturale e logico, sono state implementate le seguenti 
 
 ![Leaderboard suddivisa a schede](resources/screenshots/stage26_leaderboard.png)
 
+### Stage 27 (v0.28.x)
+
+L'obiettivo di questa tappa è stato conferire all'eseguibile di gioco, specificatamente in ambiente Windows, un aspetto e una struttura professionale (*Production Ready*), introducendo metadati ufficiali e un'icona personalizzata.
+
+Dal punto di vista architetturale e di *build system*, l'integrazione è stata gestita interamente a monte tramite CMake, senza alterare il codice C++ o pesare sul runtime:
+
+* **Resource Script e Pre-Linking**: È stato generato un template `.rc.in` (Windows Resource File) che raccoglie l'icona e i dati identificativi del progetto. Durante la configurazione (esclusivamente su sistemi WIN32), CMake intercetta la versione formale del progetto (mantenuta sincronizzata dal bot *release-please*) e la inietta nel template. Il file `.rc` risultante viene poi compilato dal *Resource Compiler* e collegato nativamente all'eseguibile finale prima dell'emissione.
+* **Integrazione "Zero Friction"**: L'operazione risulta completamente trasparente. Su Linux e macOS il blocco CMake viene ignorato e l'eseguibile generato normalmente, mentre su Windows il file binario `tu-maze.exe` eredita l'icona di sistema e presenta nativamente nelle proprietà dettagli aziendali, copyright e numero di build esatto.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
