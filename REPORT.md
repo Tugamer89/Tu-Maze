@@ -278,6 +278,20 @@ Dal punto di vista tecnico e di *User Experience* (UX), sono state implementate 
 
 ![Head bobbing + dynamic FOV](resources/screenshots/stage25.gif)
 
+### Stage 26 (v0.27.x)
+
+L'obiettivo di questa tappa è stato l'ampliamento della rigiocabilità tramite l'introduzione di un selettore di difficoltà che agisce dinamicamente sulle dimensioni del labirinto generato proceduralmente, affiancato da un potenziamento dell'interfaccia utente (UX) e da un aggiornamento del sistema di salvataggio.
+
+Dal punto di vista architetturale e logico, sono state implementate le seguenti funzionalità:
+
+* **Scalabilità Generazionale**: Sono stati introdotti quattro livelli di difficoltà predefiniti (Easy 10x10, Normal 15x15, Hard 25x25, Extreme 40x40). Il motore di generazione (`Maze`) riceve ora dinamicamente in input le nuove dimensioni spaziali, permettendo di variare l'esperienza di gioco da *run* molto rapide a complesse sfide esplorative di lunga durata. La selezione è stata integrata nel menu principale tramite un intuitivo menu a tendina (*Combo Box*).
+* **UX della Leaderboard (Tab Bar)**: Per mantenere equa e leggibile la competizione, la schermata della classifica è stata riprogettata. Evitando di mescolare tempi ottenuti su griglie di dimensioni diverse, è stato implementato un sistema a schede (*Tab Bar*) tramite le API di ImGui. Questa soluzione categorizza in modo pulito e immediato i punteggi, garantendo una navigazione rapida e contestuale ai vari livelli di difficoltà.
+* **Serializzazione e Retrocompatibilità**: La classe preposta al salvataggio su disco (`SessionManager`) è stata estesa per registrare l'indice di difficoltà di fianco a ogni nuovo record nel file di testo locale. Il *parser* di lettura è stato scritto ponendo un forte accento sulla robustezza e sulla retrocompatibilità: i punteggi storici, privi del *flag* di difficoltà, vengono automaticamente intercettati dal sistema e riassegnati di *default* al livello "Normal". Questo approccio ha permesso di aggiornare il formato dati senza invalidare o corrompere i salvataggi e le *speedrun* precedenti degli utenti.
+
+![Selezione difficoltà nel menu](resources/screenshots/stage26_menu.png)
+
+![Leaderboard suddivisa a schede](resources/screenshots/stage26_leaderboard.png)
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
