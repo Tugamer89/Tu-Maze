@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
     };
 
     auto restartGame = [&gui, &session, &window, &currentDifficulty, resetMaze](
-                           std::optional<unsigned int> seed = std::nullopt, int diffIdx) {
+                           std::optional<unsigned int> seed, int diffIdx) {
         currentDifficulty = diffIdx;
         resetMaze(seed, diffIdx);
 
