@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.1](https://github.com/Tugamer89/Tu-Maze/compare/v0.26.0...v0.26.1) (2026-06-18)
+
+
+### Documentation
+
+* include stage 25 demo GIF ([43e9442](https://github.com/Tugamer89/Tu-Maze/commit/43e94421639638e6ce629566bbb0d5e3a3377f3c))
+
 ## [0.26.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.25.0...v0.26.0) (2026-06-17)
 
 
