@@ -204,21 +204,25 @@ bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, Sessio
     if (wasPaused && isGameActive) {
         session.start();
         justResumed = true;
+
+#ifndef __APPLE__
+        window.setMouseCursorGrabbed(true);
+#endif
     }
     // Entering Pause or returning to Menu
-    else if (!wasPaused && (gui.isPaused || gui.inMainMenu)) {
+    else if (!wasPaused && !isGameActive) {
         session.stop();
-    }
-
-    wasPaused = gui.isPaused || gui.inMainMenu;
-
-    // Mouse Grab & Center System (True FPS Camera)
-    if (isGameActive) {
-        window.setMouseCursorVisible(false);
 
 #ifndef __APPLE__
         window.setMouseCursorGrabbed(false);
 #endif
+    }
+
+    wasPaused = !isGameActive;
+
+    // Mouse Grab & Center System (True FPS Camera)
+    if (isGameActive) {
+        window.setMouseCursorVisible(false);
 
         sf::Vector2i center(window.getSize() / 2u);
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
@@ -241,10 +245,6 @@ bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, Sessio
         }
     } else {
         window.setMouseCursorVisible(true);
-
-#ifndef __APPLE__
-        window.setMouseCursorGrabbed(false);
-#endif
     }
 
     return isGameActive;
