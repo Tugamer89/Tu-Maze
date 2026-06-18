@@ -15,6 +15,7 @@ struct ScoreRecord {
     long long timestamp;
     unsigned int seed;
     std::string timeStr;
+    int difficulty;
 };
 
 class SessionManager {
@@ -75,7 +76,7 @@ class SessionManager {
         return std::format("{:02}:{:02}:{:02}", minutes, seconds, centiseconds);
     }
 
-    void saveScore(unsigned int seed) const {
+    void saveScore(unsigned int seed, int difficulty) const {
         std::ofstream file(scoresFile, std::ios::app);
 
         if (!file.is_open()) {
@@ -87,7 +88,8 @@ class SessionManager {
         const auto timestamp_seconds =
             std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
 
-        file << timestamp_seconds << " " << seed << " " << getFormattedTime() << "\n";
+        file << timestamp_seconds << " " << seed << " " << getFormattedTime() << " " << difficulty
+             << "\n";
 
         file.close();
     }
@@ -104,9 +106,10 @@ class SessionManager {
             long long ts;
             unsigned int seed;
             std::string tStr;
+            int diff;
 
-            if (iss >> ts >> seed >> tStr) {
-                scores.emplace_back(ts, seed, tStr);
+            if (iss >> ts >> seed >> tStr >> diff) {
+                scores.emplace_back(ts, seed, tStr, diff);
             }
         }
 
@@ -114,11 +117,6 @@ class SessionManager {
         std::ranges::sort(scores, [](const ScoreRecord& a, const ScoreRecord& b) {
             return a.timeStr == b.timeStr ? a.timestamp < b.timestamp : a.timeStr < b.timeStr;
         });
-
-        // Top 50 records
-        if (scores.size() > 50) {
-            scores.resize(50);
-        }
 
         return scores;
     }

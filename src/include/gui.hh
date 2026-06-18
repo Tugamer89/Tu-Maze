@@ -24,8 +24,8 @@ class Gui {
     inline static const std::string settingsFile = "tu-maze_settings.txt";
 
     struct GuiCallbacks {
-        std::function<void()> onPlayRandom;
-        std::function<void(unsigned int)> onPlayCustom;
+        std::function<void(int)> onPlayRandom;
+        std::function<void(unsigned int, int)> onPlayCustom;
         std::function<void()> onPlayAgain;
         std::function<void()> onReturnToMenu;
         std::function<void()> onQuitDesktop;
@@ -43,12 +43,35 @@ class Gui {
     bool showLeaderboard = false;
     bool showSettings = false;
     int customSeedInput = 0;
+    int selectedDifficulty = 1;
 
    private:
     bool vsync_enabled = true;
     int msaa_level = 0;
     int active_msaa_level = 0;
     float camera_fov = 60.0f;
+
+    inline static const std::array<const char*, 4> diffLabels = {
+        "Easy (10x10)",
+        "Normal (15x15)",
+        "Hard (25x25)",
+        "Extreme (40x40)",
+    };
+    inline static const std::array<const char*, 4> diffNames = {
+        "Easy",
+        "Normal",
+        "Hard",
+        "Extreme",
+    };
+    inline static const std::array<const char*, 3> qualities = {
+        "High",
+        "Medium",
+        "Low",
+    };
+    inline static const std::array<const char*, 5> msaaLabels = {
+        "Off (Faster)", "2x", "4x", "8x", "16x (Max Quality)",
+    };
+    inline static const std::array<int, 5> msaaValues = {0, 2, 4, 8, 16};
 
     void setupImGuiStyle() const {
         ImGuiStyle& style = ImGui::GetStyle();
@@ -67,7 +90,7 @@ class Gui {
         style.ItemSpacing = ImVec2(8.0f, 12.0f);
         style.ItemInnerSpacing = ImVec2(6.0f, 6.0f);
 
-        // Palette Colori (Modern Dark Theme con accenti blu)
+        // Color Palette (Modern Dark Theme with blue accents)
         ImVec4* colors = style.Colors;
         colors[ImGuiCol_Text] = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
         colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 0.98f);
@@ -97,10 +120,10 @@ class Gui {
     void loadSettings() {
         std::ifstream file(settingsFile);
         if (file.is_open()) {
-            if (int q; file >> q) {
-                q = std::clamp(q, 0, 2);
-                Texture::currentGlobalQuality = static_cast<TextureQuality>(q);
-            }
+            int q;
+            file >> q;
+            q = std::clamp(q, 0, 2);
+            Texture::currentGlobalQuality = static_cast<TextureQuality>(q);
 
             file >> vsync_enabled;
             file >> msaa_level;
@@ -109,6 +132,9 @@ class Gui {
             file >> minimap_fix_north;
             file >> minimap_zoom;
             file >> show_fps_overlay;
+            file >> selectedDifficulty;
+
+            selectedDifficulty = std::clamp(selectedDifficulty, 0, 3);
 
             file.close();
         } else {
@@ -128,6 +154,7 @@ class Gui {
             file << minimap_fix_north << "\n";
             file << minimap_zoom << "\n";
             file << show_fps_overlay << "\n";
+            file << selectedDifficulty << "\n";
             file.close();
         }
     }
@@ -159,8 +186,7 @@ class Gui {
         ImGui::Separator();
 
         // Texture Quality
-        auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
-        if (std::array<const char*, 3> qualities = {"High", "Medium", "Low"};
+        if (auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
             ImGui::Combo("Texture Quality", &currentQuality, qualities.data(),
                          static_cast<int>(qualities.size()))) {
             Texture::setGlobalQuality(static_cast<TextureQuality>(currentQuality));
@@ -174,18 +200,14 @@ class Gui {
         }
 
         // Anti-Aliasing
-        std::array<int, 5> msaa_values = {0, 2, 4, 8, 16};
-        std::array<const char*, 5> msaa_labels = {"Off (Faster)", "2x", "4x", "8x",
-                                                  "16x (Max Quality)"};
-
         int current_msaa_idx = 0;
-        for (size_t i = 0; i < msaa_values.size(); ++i) {
-            if (msaa_level == msaa_values[i]) current_msaa_idx = static_cast<int>(i);
+        for (size_t i = 0; i < msaaValues.size(); ++i) {
+            if (msaa_level == msaaValues[i]) current_msaa_idx = static_cast<int>(i);
         }
 
-        if (ImGui::Combo("Anti-Aliasing (MSAA)", &current_msaa_idx, msaa_labels.data(),
-                         static_cast<int>(msaa_labels.size()))) {
-            msaa_level = msaa_values[current_msaa_idx];
+        if (ImGui::Combo("Anti-Aliasing (MSAA)", &current_msaa_idx, msaaLabels.data(),
+                         static_cast<int>(msaaLabels.size()))) {
+            msaa_level = msaaValues[current_msaa_idx];
             saveSettings();
         }
 
@@ -253,10 +275,7 @@ class Gui {
         ImGui::End();
     }
 
-    void renderLeaderboardSection(const SessionManager& session) {
-        ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Leaderboard");
-        ImGui::Separator();
-
+    void renderLeaderboardTable(const SessionManager& session, int targetDiff) const {
         auto formatDate = [](std::tm* local_tm) {
             return local_tm ? std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}", local_tm->tm_mday,
                                           local_tm->tm_mon + 1, local_tm->tm_year + 1900,
@@ -265,7 +284,20 @@ class Gui {
         };
 
         if (ImGui::BeginChild("LeaderboardList", ImVec2(0, 250), true)) {
-            auto scores = session.getLeaderboard();
+            auto allScores = session.getLeaderboard();
+
+            // Filter scores
+            std::vector<ScoreRecord> scores;
+            for (const auto& s : allScores) {
+                if (s.difficulty == targetDiff) {
+                    scores.push_back(s);
+                }
+
+                // Top 50 records
+                if (scores.size() == 50) {
+                    break;
+                }
+            }
 
             if (scores.empty()) {
                 ImGui::Text("No scores yet. Play a game!");
@@ -300,6 +332,21 @@ class Gui {
             }
         }
         ImGui::EndChild();
+    }
+
+    void renderLeaderboardSection(const SessionManager& session) {
+        ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Leaderboard");
+        ImGui::Separator();
+
+        if (ImGui::BeginTabBar("LeaderboardTabs")) {
+            for (int i = 0; i < 4; ++i) {
+                if (ImGui::BeginTabItem(diffNames[i])) {
+                    renderLeaderboardTable(session, i);
+                    ImGui::EndTabItem();
+                }
+            }
+            ImGui::EndTabBar();
+        }
 
         ImGui::Spacing();
         if (ImGui::Button("Back", ImVec2(-1.0f, 38.0f))) {
@@ -329,7 +376,7 @@ class Gui {
             ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f),
             ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-        float windowWidth = showSettings ? 520.0f : 400.0f;
+        float windowWidth = showSettings || showLeaderboard ? 520.0f : 400.0f;
         ImGui::SetNextWindowSize(ImVec2(windowWidth, 0.0f), ImGuiCond_Always);
 
         ImGui::Begin("Tu Maze Main Menu", nullptr,
@@ -341,9 +388,21 @@ class Gui {
         } else if (showSettings) {
             renderMainMenuSettingsSection(scene, window);
         } else {
+            // Combo Box for Difficulty
+            ImGui::Text("Difficulty:");
+            ImGui::SetNextItemWidth(-1.0f);
+            if (ImGui::Combo("##Difficulty", &selectedDifficulty, diffLabels.data(),
+                             static_cast<int>(diffLabels.size()))) {
+                saveSettings();
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
             if (ImGui::Button("Play (Random Seed)", ImVec2(-1.0f, 38.0f)) &&
                 callbacks.onPlayRandom) {
-                callbacks.onPlayRandom();
+                callbacks.onPlayRandom(selectedDifficulty);
             }
 
             ImGui::Spacing();
@@ -351,11 +410,13 @@ class Gui {
             ImGui::Spacing();
 
             ImGui::Text("Custom Seed:");
+            ImGui::SetNextItemWidth(-1.0f);
             ImGui::InputInt("##CustomSeed", &customSeedInput, 0, 0,
                             ImGuiInputTextFlags_CharsDecimal);
             if (ImGui::Button("Play (Custom Seed)", ImVec2(-1.0f, 38.0f)) &&
                 callbacks.onPlayCustom) {
-                callbacks.onPlayCustom(static_cast<unsigned int>(std::max(0, customSeedInput)));
+                callbacks.onPlayCustom(static_cast<unsigned int>(std::max(0, customSeedInput)),
+                                       selectedDifficulty);
             }
 
             ImGui::Spacing();

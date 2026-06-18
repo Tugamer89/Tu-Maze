@@ -277,11 +277,17 @@ int main(int argc, char* argv[]) {
 
     // State to track how the game was launched so "Play Again" can reuse it
     std::optional<unsigned int> currentCustomSeed = std::nullopt;
+    int currentDifficulty = 1;
 
-    auto resetMaze = [&scene, &assets](std::optional<unsigned int> seed = std::nullopt) {
+    // Levels: [Easy, Normal, Hard, Extreme]
+    const std::array<int, 4> difficultySizes{10, 15, 25, 40};
+
+    auto resetMaze = [&scene, &assets, &difficultySizes](
+                         std::optional<unsigned int> seed = std::nullopt, int diffIdx = 1) {
         scene.root.children.clear();
 
-        assets.maze = std::make_unique<Maze>(15, 15, seed);
+        int size = difficultySizes[diffIdx];
+        assets.maze = std::make_unique<Maze>(size, size, seed);
         Node mazeNode = assets.maze->populateSceneNode(*assets.baseCpuFloor, *assets.baseCpuWall,
                                                        *assets.wallMat, *assets.floorMat,
                                                        assets.wallMesh, assets.floorMesh);
@@ -298,9 +304,10 @@ int main(int argc, char* argv[]) {
         scene.update_all();
     };
 
-    auto restartGame = [&gui, &session, &window,
-                        resetMaze](std::optional<unsigned int> seed = std::nullopt) {
-        resetMaze(seed);
+    auto restartGame = [&gui, &session, &window, &currentDifficulty, resetMaze](
+                           std::optional<unsigned int> seed = std::nullopt, int diffIdx) {
+        currentDifficulty = diffIdx;
+        resetMaze(seed, diffIdx);
 
         gui.hasWon = false;
         gui.isPaused = false;
@@ -315,16 +322,17 @@ int main(int argc, char* argv[]) {
 
     Gui::GuiCallbacks callbacks{
         .onPlayRandom =
-            [&currentCustomSeed, restartGame]() {
+            [&currentCustomSeed, restartGame](int diffIdx) {
                 currentCustomSeed = std::nullopt;
-                restartGame(std::nullopt);
+                restartGame(std::nullopt, diffIdx);
             },
         .onPlayCustom =
-            [&currentCustomSeed, restartGame](unsigned int seed) {
+            [&currentCustomSeed, restartGame](unsigned int seed, int diffIdx) {
                 currentCustomSeed = seed;
-                restartGame(seed);
+                restartGame(seed, diffIdx);
             },
-        .onPlayAgain = [&currentCustomSeed, restartGame]() { restartGame(currentCustomSeed); },
+        .onPlayAgain = [&currentCustomSeed, &currentDifficulty,
+                        restartGame]() { restartGame(currentCustomSeed, currentDifficulty); },
         .onReturnToMenu =
             [&gui, &session]() {
                 gui.inMainMenu = true;
@@ -378,7 +386,7 @@ int main(int argc, char* argv[]) {
                 gui.hasWon = true;
                 gui.isPaused = false;
                 session.stop();
-                session.saveScore(assets.maze->currentSeed);
+                session.saveScore(assets.maze->currentSeed, currentDifficulty);
             }
 
             scene.draw();
