@@ -1,7 +1,6 @@
 #ifndef MINIMAP_HH
 #define MINIMAP_HH
 
-#include <SFML/Window.hpp>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -18,14 +17,6 @@
 
 class Minimap {
    private:
-    struct MinimapMetrics {
-        int size;
-        int x;
-        int y;
-        int windowWidth;
-        int windowHeight;
-    };
-
     Shaders shaders;
 
     // FBO Multisampled
@@ -37,67 +28,48 @@ class Minimap {
     GLuint fboResolve = 0;
     GLuint texColorResolve = 0;
 
-    int currentSize = 0;
+    const int renderResolution = 512;
     const int msaaSamples = 8;
 
-    void resizeFBO(int newSize) {
-        if (fbo == 0) {
-            glGenFramebuffers(1, &fbo);
-            glGenRenderbuffers(1, &rboColor);
-            glGenRenderbuffers(1, &rboDepth);
+    void initFBO() {
+        if (fbo != 0) return;
 
-            glGenFramebuffers(1, &fboResolve);
-            glGenTextures(1, &texColorResolve);
-        }
+        glGenFramebuffers(1, &fbo);
+        glGenRenderbuffers(1, &rboColor);
+        glGenRenderbuffers(1, &rboDepth);
+
+        glGenFramebuffers(1, &fboResolve);
+        glGenTextures(1, &texColorResolve);
 
         // Setup MSAA FBO
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
         glBindRenderbuffer(GL_RENDERBUFFER, rboColor);
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_RGB8, newSize, newSize);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_RGB8, renderResolution,
+                                         renderResolution);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rboColor);
 
+        // Apple Silicon / macOS compatible Depth+Stencil format. GL_DEPTH_COMPONENT24 can fail
+        // completeness tests.
         glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH_COMPONENT24,
-                                         newSize, newSize);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH24_STENCIL8,
+                                         renderResolution, renderResolution);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 
         // Setup Resolve FBO (Non-MSAA)
         glBindFramebuffer(GL_FRAMEBUFFER, fboResolve);
         glBindTexture(GL_TEXTURE_2D, texColorResolve);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, newSize, newSize, 0, GL_RGB, GL_UNSIGNED_BYTE,
-                     nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, renderResolution, renderResolution, 0, GL_RGB,
+                     GL_UNSIGNED_BYTE, nullptr);
+
+        // ImGui texture properties guarantee
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorResolve,
                                0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        currentSize = newSize;
-    }
-
-    MinimapMetrics calculateMetrics(const sf::Window& window) const {
-        auto wWidth = static_cast<int>(window.getSize().x);
-        auto wHeight = static_cast<int>(window.getSize().y);
-
-        // Clamp size between 150 and 300
-        int size = std::clamp(wWidth / 4, 150, 300);
-        int margin = 20;
-
-        return {size, wWidth - size - margin, wHeight - size - margin, wWidth, wHeight};
-    }
-
-    void drawBorder(const MinimapMetrics& metrics) const {
-        glEnable(GL_SCISSOR_TEST);
-        glScissor(metrics.x - 3, metrics.y - 3, metrics.size + 6, metrics.size + 6);
-        glClearColor(0.85f, 0.70f, 0.20f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_SCISSOR_TEST);
-    }
-
-    void bindAndClearFBO(const MinimapMetrics& metrics) const {
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glViewport(0, 0, metrics.size, metrics.size);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     void setupProjection(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const {
@@ -138,25 +110,6 @@ class Minimap {
         glEnable(GL_DEPTH_TEST);
     }
 
-    void blitToScreenAndRestore(const MinimapMetrics& metrics) const {
-        // Resolve MSAA from FBO Multisampled
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboResolve);
-        glBlitFramebuffer(0, 0, metrics.size, metrics.size, 0, 0, metrics.size, metrics.size,
-                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-        // Copy FBO Resolved to Main Framebuffer
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fboResolve);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, metrics.size, metrics.size, metrics.x, metrics.y,
-                          metrics.x + metrics.size, metrics.y + metrics.size, GL_COLOR_BUFFER_BIT,
-                          GL_NEAREST);
-
-        // Restore main Viewport
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, metrics.windowWidth, metrics.windowHeight);
-    }
-
    public:
     const GPUMesh* playerMesh = nullptr;
 
@@ -179,24 +132,28 @@ class Minimap {
         shaders.reload(vert_path, frag_path);
     }
 
-    void draw(const Scene& scene, const Gui& gui, const sf::Window& window) {
+    GLuint getTextureID() const { return texColorResolve; }
+
+    void draw(const Scene& scene, const Gui& gui) {
         if (!gui.minimap_enabled) return;
 
-        MinimapMetrics metrics = calculateMetrics(window);
-
-        if (metrics.size != currentSize) {
-            resizeFBO(metrics.size);
-        }
-
-        drawBorder(metrics);
+        initFBO();
 
         // Save old MSAA status
         GLboolean wasMSAA;
         glGetBooleanv(GL_MULTISAMPLE, &wasMSAA);
         glEnable(GL_MULTISAMPLE);
 
+        // Save old Viewport status to avoid shrinking the main game
+        std::array<GLint, 4> last_viewport{};
+        glGetIntegerv(GL_VIEWPORT, last_viewport.data());
+
         // Setup Minimap Target
-        bindAndClearFBO(metrics);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glViewport(0, 0, renderResolution, renderResolution);
+        glClearColor(0.12f, 0.12f, 0.12f, 1.0f);  // Map background
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         shaders.use();
 
         // Render Scene & Player
@@ -211,8 +168,15 @@ class Minimap {
         scene.goalNode.drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
         drawPlayerMarker(scene, gui, modelLoc, colorLoc, camPos);
 
-        // Resolve to screen
-        blitToScreenAndRestore(metrics);
+        // Resolve MSAA from FBO Multisampled directly to Texture
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboResolve);
+        glBlitFramebuffer(0, 0, renderResolution, renderResolution, 0, 0, renderResolution,
+                          renderResolution, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+        // End operation and restire original state
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
 
         if (!wasMSAA) glDisable(GL_MULTISAMPLE);
     }

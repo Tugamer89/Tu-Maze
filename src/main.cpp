@@ -198,13 +198,13 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
 bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, SessionManager& session,
                         bool& wasPaused) {
     bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon && !gui.inMainMenu;
+    static sf::Vector2i lastMousePos = sf::Mouse::getPosition(window);
+    static bool justResumed = true;
 
     // Handle state transitions
     if (wasPaused && isGameActive) {
         session.start();
-
-        sf::Vector2i center(window.getSize() / 2u);
-        sf::Mouse::setPosition(center, window);
+        justResumed = true;
     }
     // Entering Pause or returning to Menu
     else if (!wasPaused && (gui.isPaused || gui.inMainMenu)) {
@@ -221,14 +221,29 @@ bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, Sessio
         sf::Vector2i center(window.getSize() / 2u);
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
-        if (mousePos != center) {
-            auto dx = static_cast<float>(mousePos.x - center.x);
-            auto dy = static_cast<float>(mousePos.y - center.y);
-
-            scene.camera.processMouseMovement(dx, -dy);
-            scene.lights.position(scene.camera.inv_v);
-
+        if (justResumed) {
             sf::Mouse::setPosition(center, window);
+            lastMousePos = center;
+            justResumed = false;
+        } else {
+            // Compute delta based on the last position
+            auto dx = static_cast<float>(mousePos.x - lastMousePos.x);
+            auto dy = static_cast<float>(mousePos.y - lastMousePos.y);
+
+            // Ignore huge jumps commonly caused by the OS firing a delayed event after warping
+            if (bool mouseMoved = dx != 0.0f || dy != 0.0f;
+                std::abs(dx) < 200.0f && std::abs(dy) < 200.0f && mouseMoved) {
+                scene.camera.processMouseMovement(dx, -dy);
+                scene.lights.position(scene.camera.inv_v);
+            }
+
+            // Warp if the cursor gets dangerously close to exiting the window.
+            if (std::abs(mousePos.x - center.x) > 100 || std::abs(mousePos.y - center.y) > 100) {
+                sf::Mouse::setPosition(center, window);
+                lastMousePos = center;
+            } else {
+                lastMousePos = mousePos;
+            }
         }
     } else {
         window.setMouseCursorVisible(true);
@@ -390,11 +405,12 @@ int main(int argc, char* argv[]) {
             }
 
             scene.draw();
-            minimap.draw(scene, gui, window);
+            minimap.draw(scene, gui);
         }
 
         shaders.use();
-        gui.renderUI(scene, window, session, callbacks);
+        GLuint minimapTex = assets.maze ? minimap.getTextureID() : 0;
+        gui.renderUI(scene, window, session, callbacks, minimapTex);
 
         window.display();
     }

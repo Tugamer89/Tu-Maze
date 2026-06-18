@@ -275,6 +275,48 @@ class Gui {
         ImGui::End();
     }
 
+    void renderMinimapWindow(GLuint textureId) const {
+        if (!minimap_enabled || textureId == 0) return;
+
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                 ImGuiWindowFlags_NoSavedSettings |
+                                 ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
+                                 ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground;
+
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        float padding = 20.0f;
+
+        // Position Map Top Right
+        ImGui::SetNextWindowPos(ImVec2(displaySize.x - padding, padding), ImGuiCond_Always,
+                                ImVec2(1.0f, 0.0f));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+        if (ImGui::Begin("MinimapHUD", nullptr, flags)) {
+            float mapDisplaySize = std::clamp(displaySize.x * 0.22f, 160.0f, 300.0f);
+
+            ImVec2 p_min = ImGui::GetCursorScreenPos();
+            ImVec2 p_max(p_min.x + mapDisplaySize, p_min.y + mapDisplaySize);
+            float rounding = ImGui::GetStyle().WindowRounding;
+
+            ImGui::GetWindowDrawList()->AddImageRounded(textureId, p_min, p_max, ImVec2(0, 1),
+                                                        ImVec2(1, 0),  // Flip UV for OpenGL
+                                                        IM_COL32_WHITE, rounding);
+
+            ImU32 borderColor = ImGui::ColorConvertFloat4ToU32(ImVec4(0.85f, 0.70f, 0.20f, 0.8f));
+
+            ImGui::GetWindowDrawList()->AddRect(ImVec2(p_min.x + 0.5f, p_min.y + 0.5f),
+                                                ImVec2(p_max.x - 0.5f, p_max.y - 0.5f), borderColor,
+                                                rounding, 0, 3.0f);
+
+            ImGui::Dummy(ImVec2(mapDisplaySize, mapDisplaySize));
+        }
+        ImGui::End();
+
+        ImGui::PopStyleVar(2);
+    }
+
     void renderLeaderboardTable(const SessionManager& session, int targetDiff) const {
         auto formatDate = [](std::tm* local_tm) {
             return local_tm ? std::format("{:02}/{:02}/{} {:02}:{:02}:{:02}", local_tm->tm_mday,
@@ -555,7 +597,7 @@ class Gui {
     }
 
     void renderUI(Scene& scene, sf::Window& window, const SessionManager& session,
-                  const GuiCallbacks& callbacks) {
+                  const GuiCallbacks& callbacks, GLuint minimapTexture) {
         if (inMainMenu) {
             renderMainMenuSection(scene, window, session, callbacks);
         } else {
@@ -567,6 +609,7 @@ class Gui {
             }
             if (!hasWon && !isPaused) {
                 renderHUD(session.getFormattedTime());
+                renderMinimapWindow(minimapTexture);
             }
             renderFPSOverlay();
         }
