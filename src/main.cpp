@@ -216,6 +216,10 @@ bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, Sessio
     if (isGameActive) {
         window.setMouseCursorVisible(false);
 
+#ifndef __APPLE__
+        window.setMouseCursorGrabbed(false);
+#endif
+
         sf::Vector2i center(window.getSize() / 2u);
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
@@ -237,6 +241,10 @@ bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, Sessio
         }
     } else {
         window.setMouseCursorVisible(true);
+
+#ifndef __APPLE__
+        window.setMouseCursorGrabbed(false);
+#endif
     }
 
     return isGameActive;
