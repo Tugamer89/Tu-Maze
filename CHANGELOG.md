@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.28.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.27.0...v0.28.0) (2026-06-18)
+
+
+### Features
+
+* add Windows resources including icon and metadata for application ([0644c2b](https://github.com/Tugamer89/Tu-Maze/commit/0644c2b5771997f50d2743c06fcd4a663b5ab94a))
+
+
+### Documentation
+
+* updated with Stage 27 features ([8757d18](https://github.com/Tugamer89/Tu-Maze/commit/8757d18cbf28ea2a7f98239461e8b1df4a2994fd))
+
 ## [0.27.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.26.1...v0.27.0) (2026-06-18)
 
 
