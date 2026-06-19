@@ -46,7 +46,7 @@ class Minimap {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
         glBindRenderbuffer(GL_RENDERBUFFER, rboColor);
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_RGB8, renderResolution,
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_RGBA8, renderResolution,
                                          renderResolution);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rboColor);
 
@@ -61,7 +61,7 @@ class Minimap {
         // Setup Resolve FBO (Non-MSAA)
         glBindFramebuffer(GL_FRAMEBUFFER, fboResolve);
         glBindTexture(GL_TEXTURE_2D, texColorResolve);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, renderResolution, renderResolution, 0, GL_RGB,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, renderResolution, renderResolution, 0, GL_RGB,
                      GL_UNSIGNED_BYTE, nullptr);
 
         // ImGui texture properties guarantee
