@@ -6,6 +6,7 @@
 
 build/
 build-win/
+build-mac/
 _deps/
 FCG_Stages/
 
