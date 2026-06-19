@@ -4,6 +4,14 @@ Questo progetto mira a espandere e migliorare il progetto originario [Maze](http
 
 Il gameplay si sviluppa in prima persona: l'obiettivo del giocatore è fuggire nel minor tempo possibile da un labirinto generato proceduralmente a ogni partita, orientandosi esclusivamente tramite l'ausilio di una minimappa.
 
+**Note di configurazione per ambiente macOS:**
+Nelle versioni precedenti allo `Stage 28`, l'esecuzione nativa su macOS presenta alcune criticità di compatibilità, in particolare riguardanti il rendering della minimappa e lo *stuttering* durante la cattura del cursore. Questi problemi architetturali sono stati definitivamente analizzati e risolti a partire dallo Stage 28.
+
+Per scelta progettuale, l'acquisizione dell'input è stata mantenuta a basso livello (*hardware polling*) per garantire la massima reattività dei comandi del giocatore e per evitare di fare un refactoring eccessivo. Tuttavia, le rigide policy di sicurezza e privacy di Apple bloccano nativamente queste chiamate. Per eseguire correttamente l'applicativo su macOS, è strettamente necessario configurare i permessi dell'applicazione ospite (Terminale o IDE) all'interno delle Impostazioni di Sistema:
+
+* **Monitoraggio Input** (*Input Monitoring*): Necessario per permettere alla funzione `sf::Keyboard::isKeyPressed` di leggere lo stato hardware dei tasti (`W`, `A`, `S`, `D`).
+* **Accessibilità** (*Accessibility*): Necessario per consentire alla libreria grafica di riposizionare programmaticamente il cursore sullo schermo (`sf::Mouse::setPosition`).
+
 ## Tappe
 
 ### Stage 1 (v0.2.x)
@@ -303,13 +311,13 @@ Dal punto di vista architetturale e di *build system*, l'integrazione è stata g
 
 ### Stage 28 (v0.29.x)
 
-L'obiettivo di questa tappa è stato la risoluzione di criticità legate alla compatibilità multipiattaforma (con particolare attenzione ai sistemi macOS e agli ambienti Wayland) e il perfezionamento visivo dell'interfaccia utente.
+L'obiettivo di questa tappa è stata la risoluzione di criticità legate alla compatibilità multipiattaforma (con particolare attenzione all'ecosistema macOS e agli ambienti Wayland su Linux) e il perfezionamento visivo dell'interfaccia utente.
 
 Dal punto di vista tecnico e architetturale, sono stati implementati i seguenti interventi:
 
-* **Input Cross-Platform (True FPS Camera)**: È stato risolto un grave artefatto (*camera spin*) che affliggeva macOS, causato dal continuo riposizionamento forzato del cursore al centro della finestra ad ogni fotogramma. Il calcolo della rotazione della visuale si basa ora sul delta rispetto alla posizione del frame precedente, implementando un filtro matematico che scarta i picchi anomali di input generati dal window manager del sistema operativo. Inoltre, il *warp* del mouse avviene solo quando il cursore si avvicina ai bordi della finestra, riducendo drasticamente lo spam di chiamate di sistema.
-* **Supporto High-DPI (Retina) per la Minimappa**: Per aggirare i severi limiti dell'implementazione OpenGL di Apple e i problemi di ridimensionamento tra pixel logici e fisici, la tecnica del `glBlitFramebuffer` sul *Default Framebuffer* è stata abbandonata. L'output multisamplato della minimappa viene ora risolto in una singola Texture OpenGL e passato nativamente alla libreria ImGui, delegando a quest'ultima la corretta scalatura sui display ad altissima risoluzione (indipendentemente dall'OS).
-* **UI Polishing e Custom DrawList**: L'integrazione della texture della minimappa nell'HUD è stata rifinita bypassando i classici widget di ImGui per via dei problemi di *padding* e spigoli vivi. Ottenendo l'accesso a basso livello al `DrawList` della finestra, l'immagine renderizzata in hardware viene ora stampata con angoli perfettamente smussati (`AddImageRounded`) e incorniciata da un bordo vettoriale personalizzato disegnato in sovraimpressione.
+* **Telemetria Mouse Cross-Platform**: È stato risolto un grave artefatto (*camera spin* e *stuttering*) che affliggeva i sistemi con gestione asincrona del cursore (macOS). Abbandonando il riposizionamento forzato al centro a ogni fotogramma, l'algoritmo concede ora al cursore un'ampia area di tolleranza, attivando il *warp* (`sf::Mouse::setPosition`) solo in prossimità dei bordi della finestra. Un filtro matematico scarta automaticamente i salti anomali di pixel generati dal riposizionamento per non alterare la visuale.
+* **Supporto High-DPI (Retina) per la Minimappa**: Per superare i limiti dell'implementazione OpenGL Core Profile di Apple sui display ad altissima densità di pixel, il rendering della minimappa è stato riprogettato. Il trasferimento via `glBlitFramebuffer` sul *Default Framebuffer* è stato abbandonato in favore della risoluzione dell'output multisamplato in una singola Texture OpenGL. Quest'ultima viene passata nativamente a ImGui, delegando alla libreria la corretta scalatura visiva indipendente dal sistema operativo.
+* **UI Polishing e Custom DrawList**: L'integrazione della texture della minimappa nell'HUD è stata raffinata scavalcando i classici widget di ImGui (per evitare problemi di *padding* e spigoli vivi). Ottenendo l'accesso a basso livello al `DrawList` della finestra, l'immagine renderizzata in hardware viene ora stampata con angoli smussati (`AddImageRounded`) e incorniciata da un bordo personalizzato disegnato in sovraimpressione.
 
 ## Crediti
 
