@@ -5,7 +5,7 @@ Questo progetto mira a espandere e migliorare il progetto originario [Maze](http
 Il gameplay si sviluppa in prima persona: l'obiettivo del giocatore è fuggire nel minor tempo possibile da un labirinto generato proceduralmente a ogni partita, orientandosi esclusivamente tramite l'ausilio di una minimappa.
 
 **Note di configurazione per ambiente macOS:**
-Nelle versioni precedenti allo `Stage 28`, l'esecuzione nativa su macOS presenta alcune criticità di compatibilità, in particolare riguardanti il rendering della minimappa e lo *stuttering* durante la cattura del cursore. Questi problemi architetturali sono stati definitivamente analizzati e risolti a partire dallo Stage 28.
+Nelle versioni precedenti allo `Stage 28`, l'esecuzione nativa su macOS presenta alcune criticità di compatibilità, in particolare riguardanti il rendering della minimappa e lo *stuttering* durante la cattura del cursore. Questi problemi architetturali sono stati definitivamente analizzati e risolti a partire dallo Stage 28, anche se su MacOS il movimento del mouse non risulta fluido al 100%, questo principalmente per mancanza di supporto di testing.
 
 Per scelta progettuale, l'acquisizione dell'input è stata mantenuta a basso livello (*hardware polling*) per garantire la massima reattività dei comandi del giocatore e per evitare di fare un refactoring eccessivo. Tuttavia, le rigide policy di sicurezza e privacy di Apple bloccano nativamente queste chiamate. Per eseguire correttamente l'applicativo su macOS, è strettamente necessario configurare i permessi dell'applicazione ospite (Terminale o IDE) all'interno delle Impostazioni di Sistema:
 
