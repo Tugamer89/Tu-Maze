@@ -35,6 +35,10 @@ class Minimap {
     void initFBO() {
         if (fbo != 0) return;
 
+        GLint maxSamples = 0;
+        glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+        int actualSamples = std::min(msaaSamples, maxSamples);
+
         glGenFramebuffers(1, &fbo);
         glGenRenderbuffers(1, &rboColor);
         glGenRenderbuffers(1, &rboDepth);
@@ -46,14 +50,14 @@ class Minimap {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
         glBindRenderbuffer(GL_RENDERBUFFER, rboColor);
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_RGBA8, renderResolution,
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, actualSamples, GL_RGBA8, renderResolution,
                                          renderResolution);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rboColor);
 
         // Apple Silicon / macOS compatible Depth+Stencil format. GL_DEPTH_COMPONENT24 can fail
         // completeness tests.
         glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaaSamples, GL_DEPTH24_STENCIL8,
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, actualSamples, GL_DEPTH24_STENCIL8,
                                          renderResolution, renderResolution);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
                                   rboDepth);
@@ -61,7 +65,7 @@ class Minimap {
         // Setup Resolve FBO (Non-MSAA)
         glBindFramebuffer(GL_FRAMEBUFFER, fboResolve);
         glBindTexture(GL_TEXTURE_2D, texColorResolve);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, renderResolution, renderResolution, 0, GL_RGB,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, renderResolution, renderResolution, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, nullptr);
 
         // ImGui texture properties guarantee
