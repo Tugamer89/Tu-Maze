@@ -1,6 +1,8 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window.hpp>
+#include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <iostream>
 #include <optional>
 #include <thread>
@@ -80,6 +82,24 @@ struct GameAssets {
 };
 
 ////////////////////
+// Mouse State    //
+////////////////////
+
+struct MouseState {
+    bool ignoreNextMovement = false;
+    sf::Vector2i savedMenuMousePos;
+    sf::Vector2i lastMousePos;
+};
+
+// Helper function to re-center the mouse to prevent it from escaping the window
+void center_mouse(const sf::Window& window, MouseState& mouseState) {
+    sf::Vector2i center(window.getSize() / 2u);
+    sf::Mouse::setPosition(center, window);
+    mouseState.lastMousePos = sf::Mouse::getPosition(window);
+    mouseState.ignoreNextMovement = true;
+}
+
+////////////////////
 // SFML Callbacks //
 ////////////////////
 
@@ -97,6 +117,30 @@ void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& 
                !gui.isPaused) {
         scene.lights.is_on = !scene.lights.is_on;
         scene.update_all();
+    }
+}
+
+void handle_mouse_movement(const sf::Event::MouseMoved& mouse_moved, const sf::Window& window,
+                           const Gui& gui, Scene& scene, MouseState& mouseState) {
+    // Only process camera movement when we are actively playing
+    if (!window.hasFocus() || gui.isPaused || gui.hasWon || gui.inMainMenu) {
+        return;
+    }
+
+    // Catch the intentional event triggered by center_mouse
+    if (mouseState.ignoreNextMovement) {
+        mouseState.ignoreNextMovement = false;
+
+        if (mouseState.lastMousePos == mouse_moved.position) return;
+    }
+
+    auto dx = static_cast<float>(mouse_moved.position.x - mouseState.lastMousePos.x);
+    auto dy = static_cast<float>(mouse_moved.position.y - mouseState.lastMousePos.y);
+
+    if (dx != 0 || dy != 0) {  // NOSONAR
+        scene.camera.processMouseMovement(dx, -dy);
+        scene.lights.position(scene.camera.inv_v);
+        center_mouse(window, mouseState);
     }
 }
 
@@ -176,7 +220,8 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
 // Game State & Event Functions //
 //////////////////////////////////
 
-void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
+void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running,
+                    MouseState& mouseState) {
     while (const std::optional event = window.pollEvent()) {
         gui.process_event(window, *event);
 
@@ -191,62 +236,39 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running) {
         } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                    key_pressed && !gui.wants_capture_keyboard()) {
             handle_key(*key_pressed, gui, scene, running);
+        } else if (const auto* mouse_moved = event->getIf<sf::Event::MouseMoved>()) {
+            handle_mouse_movement(*mouse_moved, window, gui, scene, mouseState);
         }
     }
 }
 
-bool update_mouse_pause(sf::Window& window, const Gui& gui, Scene& scene, SessionManager& session,
-                        bool& wasPaused) {
+// Strictly handles transitions between Game/Pause/Menu logic (cursor visibilities)
+bool update_pause_state(sf::Window& window, const Gui& gui, SessionManager& session,
+                        bool& wasPaused, MouseState& mouseState) {
     bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon && !gui.inMainMenu;
-    static bool justResumed = true;
 
-    // Handle state transitions
     if (wasPaused && isGameActive) {
-        session.start();
-        justResumed = true;
+        // Menu/Pause -> In-Game transition
+        mouseState.savedMenuMousePos = sf::Mouse::getPosition(window);
 
-#ifndef __APPLE__
+        session.start();
+
+        window.setMouseCursorVisible(false);
         window.setMouseCursorGrabbed(true);
-#endif
-    }
-    // Entering Pause or returning to Menu
-    else if (!wasPaused && !isGameActive) {
+
+        center_mouse(window, mouseState);
+    } else if (!wasPaused && !isGameActive) {
+        // In-Game -> Menu/Pause transition
         session.stop();
 
-#ifndef __APPLE__
         window.setMouseCursorGrabbed(false);
-#endif
+        window.setMouseCursorVisible(true);
+
+        // Restore mouse to where it was left off in the menu
+        sf::Mouse::setPosition(mouseState.savedMenuMousePos, window);
     }
 
     wasPaused = !isGameActive;
-
-    // Mouse Grab & Center System (True FPS Camera)
-    if (isGameActive) {
-        window.setMouseCursorVisible(false);
-
-        sf::Vector2i center(window.getSize() / 2u);
-        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-
-        if (justResumed) {
-            sf::Mouse::setPosition(center, window);
-            justResumed = false;
-        } else {
-            // Compute delta from center
-            auto dx = static_cast<float>(mousePos.x - center.x);
-            auto dy = static_cast<float>(mousePos.y - center.y);
-
-            bool mouseMoved = dx != 0.0f || dy != 0.0f;
-
-            if (mouseMoved) {
-                scene.camera.processMouseMovement(dx, -dy);
-                scene.lights.position(scene.camera.inv_v);
-                sf::Mouse::setPosition(center, window);
-            }
-        }
-    } else {
-        window.setMouseCursorVisible(true);
-    }
-
     return isGameActive;
 }
 
@@ -268,6 +290,7 @@ int main(int argc, char* argv[]) {
     Scene scene(shaders);
     GameAssets assets;
     SessionManager session;
+    MouseState mouseState;
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -316,7 +339,7 @@ int main(int argc, char* argv[]) {
         scene.update_all();
     };
 
-    auto restartGame = [&gui, &session, &window, &currentDifficulty, resetMaze](
+    auto restartGame = [&gui, &session, &window, &currentDifficulty, &mouseState, resetMaze](
                            std::optional<unsigned int> seed, int diffIdx) {
         currentDifficulty = diffIdx;
         resetMaze(seed, diffIdx);
@@ -325,8 +348,7 @@ int main(int argc, char* argv[]) {
         gui.isPaused = false;
         gui.inMainMenu = false;
 
-        sf::Vector2i center(window.getSize() / 2u);
-        sf::Mouse::setPosition(center, window);
+        center_mouse(window, mouseState);
 
         session.reset();
         session.start();
@@ -359,7 +381,7 @@ int main(int argc, char* argv[]) {
         sf::Time dt = deltaClock.restart();
 
         // Process Events
-        process_events(window, gui, scene, running);
+        process_events(window, gui, scene, running, mouseState);
 
         gui.update(window, dt);
 
@@ -376,11 +398,12 @@ int main(int argc, char* argv[]) {
             std::string what = loader.processNext();
             gui.renderLoading(window, what, loader.getProgress());
             window.display();
+            mouseState.savedMenuMousePos = sf::Mouse::getPosition(window);
             continue;
         }
 
-        // Update Game State
-        if (update_mouse_pause(window, gui, scene, session, wasPaused)) {
+        // Handle Status Transitions
+        if (update_pause_state(window, gui, session, wasPaused, mouseState)) {
             session.update();
 
             // Safe assumption because Mouse Grab implies the game is actively running
