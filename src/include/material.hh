@@ -1,5 +1,4 @@
-#ifndef MATERIAL_HH
-#define MATERIAL_HH
+#pragma once
 
 #include <glm/vec3.hpp>
 
@@ -20,12 +19,12 @@ struct MaterialLocations {
     GLint useFlatShading_loc = -1;
 };
 
+// Represents physical surface properties mapping directly to the shader implementation
 struct Material {
     Texture* diffuse = nullptr;
     Texture* normal = nullptr;
     Texture* roughness = nullptr;
 
-    // Physical Material Properties
     glm::vec3 diffuse_color = {1.0f, 1.0f, 1.0f};
     glm::vec3 ambient_color = {1.0f, 1.0f, 1.0f};
     glm::vec3 specular_color = {1.0f, 1.0f, 1.0f};
@@ -40,7 +39,6 @@ struct Material {
         if (normal) normal->bind(1);
         if (roughness) roughness->bind(2);
 
-        // Send material properties to the shader
         if (locs.diffuse_loc != -1) glUniform3fv(locs.diffuse_loc, 1, &diffuse_color[0]);
         if (locs.ambient_loc != -1) glUniform3fv(locs.ambient_loc, 1, &ambient_color[0]);
         if (locs.specular_loc != -1) glUniform3fv(locs.specular_loc, 1, &specular_color[0]);
@@ -57,5 +55,3 @@ struct Material {
         if (roughness) roughness->unbind();
     }
 };
-
-#endif

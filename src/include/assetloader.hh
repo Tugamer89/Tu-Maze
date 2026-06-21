@@ -1,20 +1,15 @@
-#ifndef ASSETLOADER_HH
-#define ASSETLOADER_HH
+#pragma once
 
 #include <functional>
 #include <queue>
 #include <string>
-
-#ifndef GLAD_GL_IMPLEMENTATION
-#define GLAD_GL_IMPLEMENTATION
-#include "../glad/gl.h"
-#endif
 
 struct LoadingTask {
     std::string description;
     std::function<void()> action;
 };
 
+// Pseudo-asynchronous queue system allowing UI updates during heavy initializations
 class AssetLoader {
    public:
     void addTask(std::string desc, std::function<void()> act) {
@@ -22,11 +17,10 @@ class AssetLoader {
         totalTasks++;
     }
 
-    bool isFinished() const { return tasks.empty(); }
+    [[nodiscard]] bool isFinished() const { return tasks.empty(); }
 
-    float getProgress() const {
+    [[nodiscard]] float getProgress() const {
         if (totalTasks == 0) return 1.0f;
-        // Calculate progress based on remaining tasks
         return 1.0f - (static_cast<float>(tasks.size()) / static_cast<float>(totalTasks));
     }
 
@@ -35,11 +29,8 @@ class AssetLoader {
             return "";
         }
 
-        // Fetch the next task
         LoadingTask currentTask = std::move(tasks.front());
         tasks.pop();
-
-        // Execute the task
         currentTask.action();
 
         return currentTask.description;
@@ -49,5 +40,3 @@ class AssetLoader {
     std::queue<LoadingTask> tasks;
     size_t totalTasks = 0;
 };
-
-#endif

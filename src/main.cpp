@@ -1,11 +1,11 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window.hpp>
 #include <algorithm>
-#include <atomic>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <optional>
-#include <thread>
+#include <stdexcept>
 
 #ifndef GLAD_GL_IMPLEMENTATION
 #define GLAD_GL_IMPLEMENTATION
@@ -26,35 +26,27 @@
 #include "include/session.hh"
 #include "include/setup.hh"
 
-///////////////
-// Constants //
-///////////////
+// Constants
+constexpr const char* default_vert = "resources/shaders/default.vert";
+constexpr const char* default_frag = "resources/shaders/default.frag";
+constexpr const char* minimap_vert = "resources/shaders/minimap.vert";
+constexpr const char* minimap_frag = "resources/shaders/minimap.frag";
 
-const std::string default_vert = "resources/shaders/default.vert";
-const std::string default_frag = "resources/shaders/default.frag";
+constexpr const char* floor_mesh = "resources/meshes/floor.off";
+constexpr const char* wall_mesh = "resources/meshes/wall.off";
+constexpr const char* player_marker_mesh = "resources/meshes/player_marker.off";
+constexpr const char* goal_marker_mesh = "resources/meshes/crystal.off";
 
-const std::string minimap_vert = "resources/shaders/minimap.vert";
-const std::string minimap_frag = "resources/shaders/minimap.frag";
+constexpr const char* wall_diff = "resources/textures/mossy_brick_diff_4k.jpg";
+constexpr const char* wall_norm = "resources/textures/mossy_brick_nor_gl_4k.png";
+constexpr const char* wall_rough = "resources/textures/mossy_brick_rough_4k.png";
 
-const std::string floor_mesh = "resources/meshes/floor.off";
-const std::string wall_mesh = "resources/meshes/wall.off";
-const std::string player_marker_mesh = "resources/meshes/player_marker.off";
-const std::string goal_marker_mesh = "resources/meshes/crystal.off";
+constexpr const char* floor_diff = "resources/textures/cobblestone_pavement_diff_4k.jpg";
+constexpr const char* floor_norm = "resources/textures/cobblestone_pavement_nor_gl_4k.png";
+constexpr const char* floor_rough = "resources/textures/cobblestone_pavement_rough_4k.png";
 
-const std::string wall_diff = "resources/textures/mossy_brick_diff_4k.jpg";
-const std::string wall_norm = "resources/textures/mossy_brick_nor_gl_4k.png";
-const std::string wall_rough = "resources/textures/mossy_brick_rough_4k.png";
-
-const std::string floor_diff = "resources/textures/cobblestone_pavement_diff_4k.jpg";
-const std::string floor_norm = "resources/textures/cobblestone_pavement_nor_gl_4k.png";
-const std::string floor_rough = "resources/textures/cobblestone_pavement_rough_4k.png";
-
-////////////
-// Assets //
-////////////
-
+// Game Assets Context holding all memory allocations
 struct GameAssets {
-    // Textures
     std::unique_ptr<Texture> wallDiff;
     std::unique_ptr<Texture> wallNorm;
     std::unique_ptr<Texture> wallRough;
@@ -62,38 +54,32 @@ struct GameAssets {
     std::unique_ptr<Texture> floorNorm;
     std::unique_ptr<Texture> floorRough;
 
-    // Base CPU Meshes
     std::unique_ptr<Mesh> baseCpuFloor;
     std::unique_ptr<Mesh> baseCpuWall;
 
-    // Meshes
     std::unique_ptr<GPUMesh> floorMesh;
     std::unique_ptr<GPUMesh> wallMesh;
     std::unique_ptr<GPUMesh> playerMesh;
     std::unique_ptr<GPUMesh> goalMesh;
 
-    // Materials
     std::optional<Material> wallMat;
     std::optional<Material> floorMat;
     std::optional<Material> goalMat;
 
-    // Gameplay
     std::unique_ptr<Maze> maze;
 };
 
-////////////////////
-// Mouse State    //
-////////////////////
-
+// Mouse State tracking for smooth camera movement
 struct MouseState {
 #ifdef __APPLE__
+    // Prevents stuttering on macOS caused by forced mouse re-centering
     bool ignoreNextMovement = false;
 #endif
     sf::Vector2i savedMenuMousePos;
     sf::Vector2i lastMousePos;
 };
 
-// Helper function to re-center the mouse to prevent it from escaping the window
+// Helper to keep the mouse bound to the window center during gameplay
 void center_mouse(const sf::Window& window, MouseState& mouseState) {
     sf::Vector2i center(window.getSize() / 2u);
     sf::Mouse::setPosition(center, window);
@@ -103,10 +89,7 @@ void center_mouse(const sf::Window& window, MouseState& mouseState) {
 #endif
 }
 
-////////////////////
-// SFML Callbacks //
-////////////////////
-
+// SFML Event Callbacks
 void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& running) {
     if (key.scancode == sf::Keyboard::Scancode::Escape && !gui.hasWon) {
         if (!gui.inMainMenu)
@@ -119,6 +102,7 @@ void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& 
             running = false;
     } else if (key.scancode == sf::Keyboard::Scancode::F && !gui.inMainMenu && !gui.hasWon &&
                !gui.isPaused) {
+        // Toggle global flashlight/directional light
         scene.lights.is_on = !scene.lights.is_on;
         scene.update_all();
     }
@@ -126,34 +110,30 @@ void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& 
 
 void handle_mouse_movement(const sf::Event::MouseMoved& mouse_moved, const sf::Window& window,
                            const Gui& gui, Scene& scene, MouseState& mouseState) {
-    // Only process camera movement when we are actively playing
     if (!window.hasFocus() || gui.isPaused || gui.hasWon || gui.inMainMenu) {
         return;
     }
 
 #ifdef __APPLE__
-    // Catch the intentional event triggered by center_mouse
     if (mouseState.ignoreNextMovement) {
         mouseState.ignoreNextMovement = false;
-
         if (mouseState.lastMousePos == mouse_moved.position) return;
     }
 #endif
 
+    // Calculate delta movement from the center of the screen
     auto dx = static_cast<float>(mouse_moved.position.x - mouseState.lastMousePos.x);
     auto dy = static_cast<float>(mouse_moved.position.y - mouseState.lastMousePos.y);
 
-    if (dx != 0 || dy != 0) {  // NOSONAR
+    if (std::abs(dx) > 0.1f || std::abs(dy) > 0.1f) {
+        // Invert Y axis for standard FPS controls
         scene.camera.processMouseMovement(dx, -dy);
         scene.lights.position(scene.camera.inv_v);
         center_mouse(window, mouseState);
     }
 }
 
-///////////////////
-// Asset Loading //
-///////////////////
-
+// Asynchronous Asset Initialization Pipeline
 void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap) {
     loader.addTask("mossy bricks texture",
                    [&assets]() { assets.wallDiff = std::make_unique<Texture>(wall_diff, true); });
@@ -222,10 +202,6 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
     });
 }
 
-//////////////////////////////////
-// Game State & Event Functions //
-//////////////////////////////////
-
 void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running,
                     MouseState& mouseState) {
     while (const std::optional event = window.pollEvent()) {
@@ -248,29 +224,23 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running,
     }
 }
 
-// Strictly handles transitions between Game/Pause/Menu logic (cursor visibilities)
+// Transitions between Game/Pause/Menu logic (toggles cursor visibilities and game timers)
 bool update_pause_state(sf::Window& window, const Gui& gui, SessionManager& session,
                         bool& wasPaused, MouseState& mouseState) {
     bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon && !gui.inMainMenu;
 
     if (wasPaused && isGameActive) {
-        // Menu/Pause -> In-Game transition
+        // Returning to game: hide cursor and lock it to the window
         mouseState.savedMenuMousePos = sf::Mouse::getPosition(window);
-
         session.start();
-
         window.setMouseCursorVisible(false);
         window.setMouseCursorGrabbed(true);
-
         center_mouse(window, mouseState);
     } else if (!wasPaused && !isGameActive) {
-        // In-Game -> Menu/Pause transition
+        // Pausing game: show cursor and free it for UI interaction
         session.stop();
-
         window.setMouseCursorGrabbed(false);
         window.setMouseCursorVisible(true);
-
-        // Restore mouse to where it was left off in the menu
         sf::Mouse::setPosition(mouseState.savedMenuMousePos, window);
     }
 
@@ -278,15 +248,9 @@ bool update_pause_state(sf::Window& window, const Gui& gui, SessionManager& sess
     return isGameActive;
 }
 
-//////////
-// Main //
-//////////
-
-int main(int argc, char* argv[]) {
-    //// Startup ////
+int run_engine() {
     Setup setup;
     sf::Window& window = setup.window;
-
     Gui gui(window);
 
     Shaders shaders(default_vert, default_frag);
@@ -298,31 +262,26 @@ int main(int argc, char* argv[]) {
     SessionManager session;
     MouseState mouseState;
 
+    // Core OpenGL Settings
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //// Loading Setup ////
     AssetLoader loader;
     register_asset_tasks(loader, assets, scene, minimap);
 
-    //// Main Loop ////
     sf::Clock deltaClock;
     bool running = true;
     bool wasPaused = false;
 
-    // State to track how the game was launched so "Play Again" can reuse it
     std::optional<unsigned int> currentCustomSeed = std::nullopt;
     int currentDifficulty = 1;
-
-    // Levels: [Easy, Normal, Hard, Extreme]
     const std::array<int, 4> difficultySizes{10, 15, 25, 40};
 
+    // Rebuilds the maze dynamically without requiring a full engine restart
     auto resetMaze = [&scene, &assets, &difficultySizes](
                          std::optional<unsigned int> seed = std::nullopt, int diffIdx = 1) {
         scene.root.children.clear();
@@ -336,8 +295,9 @@ int main(int argc, char* argv[]) {
         scene.root.children.push_back(std::move(mazeNode));
         scene.build_static_tree();
 
+        // Reset camera to the new maze's spawn location
         scene.camera.setPosition(assets.maze->getStartWorldPosition());
-        scene.camera.setYaw(135.0f);  // Face inward towards the bottom-left
+        scene.camera.setYaw(135.0f);
         scene.camera.setPitch(0.0f);
         scene.lights.is_on = true;
         scene.lights.position(scene.camera.inv_v);
@@ -355,11 +315,11 @@ int main(int argc, char* argv[]) {
         gui.inMainMenu = false;
 
         center_mouse(window, mouseState);
-
         session.reset();
         session.start();
     };
 
+    // Bind GUI events to core engine logic
     Gui::GuiCallbacks callbacks{
         .onPlayRandom =
             [&currentCustomSeed, restartGame](int diffIdx) {
@@ -383,15 +343,13 @@ int main(int argc, char* argv[]) {
         .onQuitDesktop = [&running]() { running = false; },
     };
 
+    // Main Engine Loop
     while (running) {
         sf::Time dt = deltaClock.restart();
 
-        // Process Events
         process_events(window, gui, scene, running, mouseState);
-
         gui.update(window, dt);
 
-        // Clear Buffers
         if (gui.inMainMenu)
             glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         else
@@ -399,7 +357,7 @@ int main(int argc, char* argv[]) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Handle Loading Phase
+        // Render Loading Screen if assets are still unpacking
         if (!loader.isFinished()) {
             std::string what = loader.processNext();
             gui.renderLoading(window, what, loader.getProgress());
@@ -408,17 +366,14 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // Handle Status Transitions
+        // Process physics and camera movement only if actively playing
         if (update_pause_state(window, gui, session, wasPaused, mouseState)) {
             session.update();
-
-            // Safe assumption because Mouse Grab implies the game is actively running
             if (assets.maze && scene.camera.update(dt, *assets.maze.get())) {
                 scene.lights.position(scene.camera.inv_v);
             }
         }
 
-        // Render Background/Game & Handle Rules only when we are out of the main menu
         if (!gui.inMainMenu && assets.maze) {
             glm::vec3 goalPos = assets.maze->getGoalWorldPosition();
             scene.update_gameplay(dt, goalPos);
@@ -434,6 +389,7 @@ int main(int argc, char* argv[]) {
             minimap.draw(scene, gui);
         }
 
+        // Render ImGui Overlays
         shaders.use();
         GLuint minimapTex = assets.maze ? minimap.getTextureID() : 0;
         gui.renderUI(scene, window, session, callbacks, minimapTex);
@@ -442,5 +398,14 @@ int main(int argc, char* argv[]) {
     }
 
     window.close();
-    return 0;
+    return EXIT_SUCCESS;
+}
+
+int main(int argc, char* argv[]) {
+    try {
+        return run_engine();
+    } catch (const std::exception& e) {
+        std::cerr << "Fatal Error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 }

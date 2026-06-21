@@ -1,5 +1,4 @@
-#ifndef GPUMESH_HH
-#define GPUMESH_HH
+#pragma once
 
 #include <glm/mat4x4.hpp>
 #include <string>
@@ -12,10 +11,11 @@
 
 #include "mesh.hh"
 
+// Wraps OpenGL Vertex Array Objects (VAO) and Vertex Buffer Objects (VBO)
 class GPUMesh {
    public:
-    glm::vec3 center = {0.0, 0.0, 0.0};
-    float extent = 1.0;
+    glm::vec3 center = {0.0f, 0.0f, 0.0f};
+    float extent = 1.0f;
     GLsizei indexCount = 0;
 
    private:
@@ -27,7 +27,7 @@ class GPUMesh {
    public:
     explicit GPUMesh(const std::string& filename) { load(filename); }
 
-    explicit GPUMesh(Mesh& cpuMesh)
+    explicit GPUMesh(const Mesh& cpuMesh)
         : center(cpuMesh.center), extent(cpuMesh.extent), initialized(true) {
         std::vector<float> points;
         std::vector<unsigned int> indices;
@@ -39,6 +39,8 @@ class GPUMesh {
 
     GPUMesh(const GPUMesh&) = delete;
     GPUMesh& operator=(const GPUMesh&) = delete;
+    GPUMesh(GPUMesh&&) = delete;
+    GPUMesh& operator=(GPUMesh&&) = delete;
 
     void load(const std::string& filename) {
         Mesh mesh(filename);
@@ -62,11 +64,13 @@ class GPUMesh {
     }
 
     void draw() const {
+        if (!initialized) return;
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
     }
 
    private:
+    // Sends the interleaved float array (Position: 3, Normal: 3) to the GPU
     void send_arrays_2a3f(const std::vector<float>& points,
                           const std::vector<unsigned int>& indices) {
         indexCount = static_cast<GLsizei>(indices.size());
@@ -78,11 +82,13 @@ class GPUMesh {
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
 
+        // Attribute 0: Vertex Position (vec3)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
         glEnableVertexAttribArray(0);
 
+        // Attribute 1: Vertex Normal (vec3)
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                              (void*)(3 * sizeof(float)));
+                              reinterpret_cast<void*>(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         glGenBuffers(1, &ebo);
@@ -91,5 +97,3 @@ class GPUMesh {
                      GL_STATIC_DRAW);
     }
 };
-
-#endif

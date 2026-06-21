@@ -1,8 +1,4 @@
-#ifndef MESH_HH
-#define MESH_HH
-
-#include <stdio.h>
-#include <stdlib.h>
+#pragma once
 
 #include <fstream>
 #include <glm/ext/vector_uint3.hpp>
@@ -11,18 +7,20 @@
 #include <glm/vec3.hpp>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
+// Handles CPU-side 3D Geometry loading (Object File Format .off) and manipulation
 class Mesh {
    public:
-    glm::vec3 center = {0.0, 0.0, 0.0};
-    float extent = 1.0;
+    glm::vec3 center = {0.0f, 0.0f, 0.0f};
+    float extent = 1.0f;
 
    private:
-    std::vector<glm::vec3> vertices = {};
-    std::vector<glm::vec3> normals = {};
-    std::vector<glm::uvec3> triangles = {};
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
+    std::vector<glm::uvec3> triangles;
 
    public:
     Mesh() = default;
@@ -31,23 +29,20 @@ class Mesh {
         std::ifstream file(filename);
 
         if (!file.is_open()) {
-            fprintf(stderr, "Error: Failed to open file: %s\n", filename.c_str());
-            exit(1);
+            throw std::runtime_error("Failed to open OFF file: " + filename);
         }
 
         std::string line;
 
-        // Read OFF header
+        // Read and validate OFF header
         std::getline(file, line);
         std::erase(line, '\r');
         std::erase(line, '\n');
         if (line != "OFF") {
-            fprintf(stderr, "%s\n", line.c_str());
-            fprintf(stderr, "Error: Invalid OFF file: missing OFF header\n");
-            exit(1);
+            throw std::runtime_error("Invalid OFF file: missing OFF header in " + filename);
         }
 
-        // Skip comments and empty lines
+        // Safely skip any leading comments and empty lines
         while (std::getline(file, line)) {
             std::erase(line, '\r');
             std::erase(line, '\n');
@@ -57,49 +52,45 @@ class Mesh {
             break;
         }
 
-        // Parse header: vnum fnum ednum
+        // Parse format header: vertex_count face_count edge_count
         std::istringstream headerStream(line);
-        unsigned int vnum, fnum, ednum;  // NOSONAR
+        unsigned int vnum = 0;
+        unsigned int fnum = 0;
+        unsigned int ednum = 0;
         if (!(headerStream >> vnum >> fnum >> ednum)) {
-            fprintf(stderr, "Error: Invalid OFF header format\n");
-            exit(1);
+            throw std::runtime_error("Invalid OFF header format in " + filename);
         }
 
         vertices.reserve(vnum);
         normals.reserve(vnum);
         triangles.reserve(fnum);
 
-        // Read vertices, initialize normals
         for (unsigned int i = 0; i < vnum; ++i) {
-            float x, y, z;  // NOSONAR
+            float x = 0.f;
+            float y = 0.f;
+            float z = 0.f;
             if (!(file >> x >> y >> z)) {
-                fprintf(stderr, "Error: Failed to read vertex data at index %u\n", i);
-                exit(1);
+                throw std::runtime_error("Failed to read vertex data in " + filename);
             }
             vertices.emplace_back(x, y, z);
-            normals.emplace_back(0.0, 0.0, 0.0);
+            normals.emplace_back(0.0f, 0.0f, 0.0f);
         }
 
-        // Read faces
         for (unsigned int i = 0; i < fnum; ++i) {
-            unsigned int vcount;
+            unsigned int vcount = 0;
 
             if (!(file >> vcount)) {
-                fprintf(stderr, "Error: Failed to read face count at face %u\n", i);
-                exit(1);
+                throw std::runtime_error("Failed to read face count in " + filename);
             }
 
             if (vcount == 3) {
                 glm::uvec3 triangle;
-
                 if (!(file >> triangle[0] >> triangle[1] >> triangle[2])) {
-                    fprintf(stderr, "Error: Failed to read triangle indices at face %u\n", i);
-                    exit(1);
+                    throw std::runtime_error("Failed to read triangle indices in " + filename);
                 }
                 triangles.push_back(triangle);
             } else {
-                fprintf(stderr, "Error: Face %u is not a triangle\n", i);
-                exit(1);
+                throw std::runtime_error("Mesh contains non-triangle faces. Unsupported.");
             }
         }
 
@@ -109,8 +100,13 @@ class Mesh {
         compute_normals();
     }
 
+    // Merges another mesh into this one while baking in a transformation matrix.
+    // Highly efficient for creating batched geometry (like an entire maze level) as one draw call.
     void appendTransformed(const Mesh& source, const glm::mat4& transform) {
         auto indexOffset = static_cast<unsigned int>(this->vertices.size());
+
+        // Normals require the transpose of the inverse matrix to avoid skewing during scale
+        // operations
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
 
         this->vertices.reserve(this->vertices.size() + source.vertices.size());
@@ -133,53 +129,57 @@ class Mesh {
         }
     }
 
-    void pack4gpu(std::vector<float>& points, std::vector<unsigned int>& indices) {
-        points = {};
-        // fill up flat points
+    // Flattens the structured arrays into interleaved memory ready for OpenGL VBOs
+    void pack4gpu(std::vector<float>& points, std::vector<unsigned int>& indices) const {
+        points.clear();
+        points.reserve(vertices.size() * 6);
+
         for (size_t i = 0; i < vertices.size(); i++) {
             const auto& v = vertices[i];
             const auto& n = normals[i];
-
-            // coords
             points.push_back(v.x);
             points.push_back(v.y);
             points.push_back(v.z);
-            // normals
             points.push_back(n.x);
             points.push_back(n.y);
             points.push_back(n.z);
         }
 
-        indices = {};
-        // fill up flat triangles
-        for (auto t : triangles)
-            for (unsigned i = 0; i < 3; i++) indices.push_back(t[i]);
+        indices.clear();
+        indices.reserve(triangles.size() * 3);
+
+        for (const auto& t : triangles) {
+            indices.push_back(t[0]);
+            indices.push_back(t[1]);
+            indices.push_back(t[2]);
+        }
     }
 
     void compute_normals() {
         for (auto t : triangles) {
-            // get the coordinates of this triangle's vertices
             glm::vec3 v0 = vertices[t[0]];
             glm::vec3 v1 = vertices[t[1]];
             glm::vec3 v2 = vertices[t[2]];
 
-            // compute this triangle's normal
             glm::vec3 n = glm::cross(v1 - v0, v2 - v0);
 
-            // accumulate the triangle normal in its vertices
             normals[t[0]] += n;
             normals[t[1]] += n;
             normals[t[2]] += n;
         }
 
-        // normalize the normals
-        for (auto& n : normals) n = glm::normalize(n);
+        for (auto& n : normals) {
+            // Avoid normalizing zero-length vectors
+            if (glm::length(n) > 0.0001f) {
+                n = glm::normalize(n);
+            }
+        }
     }
 
+    // Computes the Axis-Aligned Bounding Box (AABB) and maximum radius for Frustum Culling
     void compute_scale() {
         if (vertices.empty()) return;
 
-        // Find bounding box
         glm::vec3 min_bounds = vertices[0];
         glm::vec3 max_bounds = vertices[0];
 
@@ -193,10 +193,9 @@ class Mesh {
     }
 
     void rescale() {
-        for (auto& vertex : vertices) vertex = (vertex - center) / extent;
-
+        for (auto& vertex : vertices) {
+            vertex = (vertex - center) / extent;
+        }
         compute_scale();
     }
 };
-
-#endif

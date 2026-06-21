@@ -1,5 +1,4 @@
-#ifndef SCENE_HH
-#define SCENE_HH
+#pragma once
 
 #include <glm/mat4x4.hpp>
 #include <string>
@@ -15,19 +14,19 @@
 #include "maze.hh"
 #include "node.hh"
 
+// Manages the hierarchical node tree, rendering passes, and global uniforms
 class Scene {
    public:
     Camera camera;
     Lights lights;
 
-    // Core Scene Graph
     Node root;
-    Node goalNode;  // Special node for gameplay
+    Node goalNode;
 
    private:
-    GLint model_loc;
-    GLint vp_loc;
-    GLint tr_inv_model_loc;
+    GLint model_loc = -1;
+    GLint vp_loc = -1;
+    GLint tr_inv_model_loc = -1;
     MaterialLocations mat_locs;
 
    public:
@@ -36,23 +35,24 @@ class Scene {
         update_all();
     }
 
+    // Queries and caches all necessary uniform locations from the active shader program
     void locations(const Shaders& shaders) {
         camera.locations(shaders);
         lights.locations(shaders);
+
         model_loc = glGetUniformLocation(shaders.program, "model");
         vp_loc = glGetUniformLocation(shaders.program, "vp");
         tr_inv_model_loc = glGetUniformLocation(shaders.program, "tr_inv_model");
 
-        // Cache the material uniforms here so we only query them once
         mat_locs.diffuse_loc = glGetUniformLocation(shaders.program, "material.diffuse");
         mat_locs.ambient_loc = glGetUniformLocation(shaders.program, "material.ambient");
         mat_locs.specular_loc = glGetUniformLocation(shaders.program, "material.specular");
         mat_locs.shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
         mat_locs.alpha_loc = glGetUniformLocation(shaders.program, "material.alpha");
-
         mat_locs.useTextures_loc = glGetUniformLocation(shaders.program, "useTextures");
         mat_locs.useFlatShading_loc = glGetUniformLocation(shaders.program, "useFlatShading");
 
+        // Set static texture sampler indices once
         glUniform1i(glGetUniformLocation(shaders.program, "diffuseMap"), 0);
         glUniform1i(glGetUniformLocation(shaders.program, "normalMap"), 1);
         glUniform1i(glGetUniformLocation(shaders.program, "roughnessMap"), 2);
@@ -69,7 +69,7 @@ class Scene {
         goalNode.updateTransforms();
     }
 
-    // Handles logic that changes over time (animations)
+    // Processes animations and state that change strictly over time
     void update_gameplay(sf::Time dt, const glm::vec3& goalWorldPos) {
         static float bobAngle = 0.0f;
         static float rotAngle = 0.0f;
@@ -81,18 +81,16 @@ class Scene {
         if (bobAngle > TWO_PI) bobAngle -= TWO_PI;
         if (rotAngle > TWO_PI) rotAngle -= TWO_PI;
 
-        // Animate the goal marker
         glm::mat4 goalTransform = glm::translate(
             glm::mat4(1.0f), goalWorldPos + glm::vec3(0.0f, std::sin(bobAngle) * 0.1f, 0.0f));
         goalTransform = glm::rotate(goalTransform, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
         goalTransform = glm::scale(goalTransform, glm::vec3(0.4f));
 
         goalNode.localMatrix = goalTransform;
-        goalNode.updateTransforms();  // Apply rotation/position safely
+        goalNode.updateTransforms();
     }
 
-    // Checks game rules against scene state
-    bool check_win_condition(const glm::vec3& goalPos) const {
+    [[nodiscard]] bool check_win_condition(const glm::vec3& goalPos) const {
         float distToGoal = glm::distance(camera.getPosition(), goalPos);
         return distToGoal <= Maze::CELL_SIZE * 0.5f;
     }
@@ -105,11 +103,8 @@ class Scene {
         root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, currentMat);
         goalNode.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, currentMat);
 
-        // Safe cleanup if required
         if (currentMat) {
             currentMat->unbind();
         }
     }
 };
-
-#endif

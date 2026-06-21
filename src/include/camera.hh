@@ -1,5 +1,4 @@
-#ifndef CAMERA_HH
-#define CAMERA_HH
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -17,47 +16,42 @@
 
 class Camera {
    public:
-    glm::mat4 v;
-    glm::mat4 inv_v;
-    glm::mat4 vp;
-    std::array<glm::vec4, 6> frustumPlanes;
+    glm::mat4 v;      // View Matrix
+    glm::mat4 inv_v;  // Inverse View Matrix (useful for billboard lighting)
+    glm::mat4 vp;     // View-Projection Matrix (sent directly to shaders)
+    std::array<glm::vec4, 6> frustumPlanes{};
 
    private:
-    GLint camera_pos_loc;
+    GLint camera_pos_loc = -1;
 
-    // Camera Attributes
-    glm::vec3 position = {0.0f, 0.5f, 0.0f};  // Start at height 0.5 (inside the maze)
-    glm::vec3 front = {0.0f, 0.0f, -1.0f};    // Look towards -Z
-    glm::vec3 up = {0.0f, 1.0f, 0.0f};        // Up is +Y
-    glm::vec3 right;
-    glm::vec3 worldUp = {0.0f, 1.0f, 0.0f};  // World up vector
+    glm::vec3 position = {0.0f, 0.5f, 0.0f};
+    glm::vec3 front = {0.0f, 0.0f, -1.0f};
+    glm::vec3 up = {0.0f, 1.0f, 0.0f};
+    glm::vec3 right = {1.0f, 0.0f, 0.0f};
+    glm::vec3 worldUp = {0.0f, 1.0f, 0.0f};
 
-    // Euler angles
     float yaw = -90.0f;
     float pitch = 0.0f;
 
-    // Camera options
-    float baseMovementSpeed = 2.5f;  // Units per second
+    float baseMovementSpeed = 2.5f;
     float sprintMultiplier = 1.6f;
     float mouseSensitivity = 0.2f;
     float aspectRatio = 1.0f;
 
-    // FOV options
     float baseFov = 60.0f;
     float currentRenderFov = 60.0f;
     float sprintFovOffset = 12.0f;
-    float fovTransitionSpeed = 8.0f;  // Interpolation Speed (Lerp)
+    float fovTransitionSpeed = 8.0f;
 
-    // Head-bobbing options
     float baseHeight = 0.5f;
     float walkTimer = 0.0f;
-    float bobbingSpeed = 12.0f;   // Bobbing Speed
-    float bobbingAmount = 0.02f;  // Amplitude
+    float bobbingSpeed = 12.0f;
+    float bobbingAmount = 0.02f;
     float currentBobbingAmplitude = 0.0f;
 
-    // Player collision size
     float collisionRadius = 0.20f;
 
+    // Recalculates the directional vectors based on the current yaw and pitch
     void updateCameraVectors() {
         glm::vec3 newFront;
         newFront.x = static_cast<float>(cos(glm::radians(yaw)) * cos(glm::radians(pitch)));
@@ -69,8 +63,9 @@ class Camera {
         up = glm::normalize(glm::cross(right, front));
     }
 
+    // Extracts the 6 bounding planes of the camera's frustum from the View-Projection matrix
+    // Used heavily for CPU-side culling to prevent the GPU from drawing unseen geometry
     void updateFrustumPlanes() {
-        // Extract matrix rows
         glm::vec4 row0(vp[0][0], vp[1][0], vp[2][0], vp[3][0]);
         glm::vec4 row1(vp[0][1], vp[1][1], vp[2][1], vp[3][1]);
         glm::vec4 row2(vp[0][2], vp[1][2], vp[2][2], vp[3][2]);
@@ -83,23 +78,22 @@ class Camera {
         frustumPlanes[4] = row3 + row2;  // Near
         frustumPlanes[5] = row3 - row2;  // Far
 
-        // Normalize the planes
+        // Normalize the planes to allow accurate distance calculations
         for (auto& plane : frustumPlanes) {
             float length = glm::length(glm::vec3(plane));
             plane /= length;
         }
     }
 
-    // Helper for collision checking
-    bool isAABBIntersecting(const glm::vec3& pos, float minX, float maxX, float minZ,
-                            float maxZ) const {
+    [[nodiscard]] bool isAABBIntersecting(const glm::vec3& pos, float minX, float maxX, float minZ,
+                                          float maxZ) const {
         return (pos.x + collisionRadius > minX) && (pos.x - collisionRadius < maxX) &&
                (pos.z + collisionRadius > minZ) && (pos.z - collisionRadius < maxZ);
     }
 
-    // Helper to evaluate specific walls of a cell
-    bool checkCellWalls(const glm::vec3& pos, const Cell& cell, int x, int y, float cx,
-                        float cz) const {
+    // Evaluates collision against the physical boundaries of a specific maze cell
+    [[nodiscard]] bool checkCellWalls(const glm::vec3& pos, const Cell& cell, int x, int y,
+                                      float cx, float cz) const {
         constexpr float halfCell = Maze::CELL_SIZE * 0.5f;
         constexpr float halfWall = Maze::WALL_THICKNESS * 0.5f;
         constexpr float outer = halfCell + halfWall;
@@ -121,8 +115,10 @@ class Camera {
         return false;
     }
 
-    // Accurate Circle vs AABB collision detection optimized by spatial partitioning
-    bool checkCollision(const glm::vec3& pos, const Maze& maze) const {
+    // High-performance collision detection using spatial partitioning.
+    // Instead of checking every wall in the maze, it only checks the cell the player
+    // is currently in, plus adjacent cells if the player is near a boundary.
+    [[nodiscard]] bool checkCollision(const glm::vec3& pos, const Maze& maze) const {
         float offsetX = (static_cast<float>(maze.width) * Maze::CELL_SIZE) * 0.5f;
         float offsetZ = (static_cast<float>(maze.height) * Maze::CELL_SIZE) * 0.5f;
 
@@ -132,16 +128,15 @@ class Camera {
         auto cellX = static_cast<int>(std::floor(gridPosX / Maze::CELL_SIZE));
         auto cellY = static_cast<int>(std::floor(gridPosZ / Maze::CELL_SIZE));
 
-        // Fractional position inside the current cell [0.0, 1.0)
+        // Calculate sub-cell fractional position to determine boundary proximity
         float localX = gridPosX - (static_cast<float>(cellX) * Maze::CELL_SIZE);
         float localZ = gridPosZ - (static_cast<float>(cellY) * Maze::CELL_SIZE);
 
         float halfCell = Maze::CELL_SIZE * 0.5f;
         float halfWall = Maze::WALL_THICKNESS * 0.5f;
-
-        // Check only adjacent cells if the player is dangerously close to the boundaries
         float threshold = collisionRadius + halfWall;
 
+        // Create a minimal bounding box of cells to check
         int minX = std::max(0, (localX < threshold) ? cellX - 1 : cellX);
         int maxX =
             std::min(maze.width - 1, (localX > Maze::CELL_SIZE - threshold) ? cellX + 1 : cellX);
@@ -161,7 +156,7 @@ class Camera {
             }
         }
 
-        // Restrict to absolute outer maze boundaries
+        // Restrict player to absolute outer maze boundaries
         return (pos.x - collisionRadius < -offsetX || pos.x + collisionRadius > offsetX ||
                 pos.z - collisionRadius < -offsetZ || pos.z + collisionRadius > offsetZ);
     }
@@ -172,9 +167,9 @@ class Camera {
         locations(shaders);
     }
 
-    const glm::vec3& getPosition() const { return position; }
-    const glm::vec3& getFront() const { return front; }
-    float getYaw() const { return yaw; }
+    [[nodiscard]] const glm::vec3& getPosition() const { return position; }
+    [[nodiscard]] const glm::vec3& getFront() const { return front; }
+    [[nodiscard]] float getYaw() const { return yaw; }
 
     void setPosition(const glm::vec3& pos) {
         position = pos;
@@ -202,7 +197,7 @@ class Camera {
         baseFov = newFov;
         currentRenderFov = newFov;
         projection();
-    };
+    }
 
     void setMouseSensitivity(float sensitivity) { mouseSensitivity = sensitivity; }
     void setBobbingAmount(float amount) { bobbingAmount = amount; }
@@ -211,6 +206,7 @@ class Camera {
         camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");
     }
 
+    // Main camera logic pump (handles input, physics, and view interpolation)
     bool update(sf::Time dt, const Maze& maze) {
         float dt_secs = dt.asSeconds();
         float currentSpeed = baseMovementSpeed;
@@ -224,6 +220,7 @@ class Camera {
 
         float velocity = currentSpeed * dt_secs;
 
+        // Flatten vectors to prevent flying when looking up/down
         glm::vec3 flatFront = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
         glm::vec3 flatRight = glm::normalize(glm::vec3(right.x, 0.0f, right.z));
 
@@ -237,18 +234,16 @@ class Camera {
         bool isMoving = glm::length(movement) > 0.0f;
         bool needsProjectionUpdate = false;
 
-        // Collisions and Movement
+        // Process movement using separated axis theorem (sliding collision)
         if (isMoving) {
             movement = glm::normalize(movement) * velocity;
 
-            // X-Axis separated collision check
             glm::vec3 nextPosX = position;
             nextPosX.x += movement.x;
             if (!checkCollision(nextPosX, maze)) {
                 position.x = nextPosX.x;
             }
 
-            // Z-Axis separated collision check
             glm::vec3 nextPosZ = position;
             nextPosZ.z += movement.z;
             if (!checkCollision(nextPosZ, maze)) {
@@ -258,7 +253,7 @@ class Camera {
             needsProjectionUpdate = true;
         }
 
-        // Head Bobbing
+        // Apply smooth head-bobbing using a sine wave synced to movement
         float targetAmplitude = isMoving ? bobbingAmount : 0.0f;
         currentBobbingAmplitude += (targetAmplitude - currentBobbingAmplitude) * 10.0f * dt_secs;
 
@@ -268,7 +263,6 @@ class Camera {
             walkTimer = std::fmod(walkTimer, 2.0f * glm::pi<float>());
         }
 
-        // New camera vertical position
         float targetY = baseHeight + std::sin(walkTimer) * currentBobbingAmplitude;
 
         if (std::abs(position.y - targetY) > 0.001f) {
@@ -276,11 +270,10 @@ class Camera {
             needsProjectionUpdate = true;
         }
 
-        // Dynamic Sprint FOV
+        // Apply dynamic field-of-view when sprinting to simulate speed
         float targetFov = (isSprinting && isMoving) ? (baseFov + sprintFovOffset) : baseFov;
 
         if (std::abs(currentRenderFov - targetFov) > 0.05f) {
-            // Linear Interpolation (Lerp)
             currentRenderFov += (targetFov - currentRenderFov) * fovTransitionSpeed * dt_secs;
             needsProjectionUpdate = true;
         } else if (currentRenderFov != targetFov) {
@@ -297,7 +290,7 @@ class Camera {
     }
 
     void processMouseMovement(float xoffset, float yoffset) {
-        if (xoffset == 0 && yoffset == 0) return;
+        if (std::abs(xoffset) < 0.001f && std::abs(yoffset) < 0.001f) return;
 
         xoffset *= mouseSensitivity;
         yoffset *= mouseSensitivity;
@@ -305,32 +298,22 @@ class Camera {
         yaw += xoffset;
         pitch += yoffset;
 
+        // Clamp pitch to prevent the camera from flipping backwards
         pitch = std::clamp(pitch, -89.0f, 89.0f);
 
-        // Update Front, Right and Up Vectors using the updated Euler angles
         updateCameraVectors();
-
-        // Update the view and projection matrices
         projection();
     }
 
     void projection() {
-        // Build View Matrix
         v = glm::lookAt(position, position + front, up);
         inv_v = glm::inverse(v);
 
-        // Build Projection Matrix
         glm::mat4 pr = glm::perspective(glm::radians(currentRenderFov), aspectRatio, 0.1f, 100.0f);
 
-        // Compute VP matrix
         vp = pr * v;
-
-        // Update the frustum planes for culling
         updateFrustumPlanes();
 
-        // Update the camera position uniform in the shader
         glUniform3fv(camera_pos_loc, 1, &position[0]);
     }
 };
-
-#endif

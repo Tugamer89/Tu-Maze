@@ -1,5 +1,4 @@
-#ifndef GUI_HH
-#define GUI_HH
+#pragma once
 
 #include <imgui-SFML.h>
 #include <imgui.h>
@@ -8,11 +7,13 @@
 #include <SFML/Window.hpp>
 #include <SFML/Window/Event.hpp>
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <ctime>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 #include "scene.hh"
@@ -38,7 +39,6 @@ class Gui {
     bool isPaused = false;
     bool show_fps_overlay = false;
 
-    // Game UI State
     bool inMainMenu = true;
     bool showLeaderboard = false;
     bool showSettings = false;
@@ -50,37 +50,35 @@ class Gui {
     int msaa_level = 0;
     int active_msaa_level = 0;
 
-    // Player / Camera controls
     float camera_fov = 60.0f;
     float camera_sensitivity = 0.2f;
     float camera_bobbing = 0.02f;
 
-    inline static const std::array<const char*, 4> diffLabels = {
+    static constexpr std::array<const char*, 4> diffLabels = {
         "Easy (10x10)",
         "Normal (15x15)",
         "Hard (25x25)",
         "Extreme (40x40)",
     };
-    inline static const std::array<const char*, 4> diffNames = {
+    static constexpr std::array<const char*, 4> diffNames = {
         "Easy",
         "Normal",
         "Hard",
         "Extreme",
     };
-    inline static const std::array<const char*, 3> qualities = {
+    static constexpr std::array<const char*, 3> qualities = {
         "High",
         "Medium",
         "Low",
     };
-    inline static const std::array<const char*, 5> msaaLabels = {
+    static constexpr std::array<const char*, 5> msaaLabels = {
         "Off (Faster)", "2x", "4x", "8x", "16x (Max Quality)",
     };
-    inline static const std::array<int, 5> msaaValues = {0, 2, 4, 8, 16};
+    static constexpr std::array<int, 5> msaaValues = {0, 2, 4, 8, 16};
 
     void setupImGuiStyle() const {
         ImGuiStyle& style = ImGui::GetStyle();
 
-        // Rounding
         style.WindowRounding = 8.0f;
         style.FrameRounding = 6.0f;
         style.PopupRounding = 6.0f;
@@ -88,13 +86,11 @@ class Gui {
         style.GrabRounding = 6.0f;
         style.TabRounding = 6.0f;
 
-        // Padding
         style.WindowPadding = ImVec2(16.0f, 16.0f);
         style.FramePadding = ImVec2(12.0f, 8.0f);
         style.ItemSpacing = ImVec2(8.0f, 12.0f);
         style.ItemInnerSpacing = ImVec2(6.0f, 6.0f);
 
-        // Color Palette (Modern Dark Theme with blue accents)
         ImVec4* colors = style.Colors;
         colors[ImGuiCol_Text] = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
         colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 0.98f);
@@ -124,7 +120,7 @@ class Gui {
     void loadSettings() {
         std::ifstream file(settingsFile);
         if (file.is_open()) {
-            int q;
+            int q = 0;
             file >> q;
             q = std::clamp(q, 0, 2);
             Texture::currentGlobalQuality = static_cast<TextureQuality>(q);
@@ -141,7 +137,6 @@ class Gui {
             file >> camera_bobbing;
 
             selectedDifficulty = std::clamp(selectedDifficulty, 0, 3);
-
             file.close();
         } else {
             Texture::currentGlobalQuality = Texture::autoDetectQuality();
@@ -170,19 +165,16 @@ class Gui {
     void renderCameraSection(Scene& scene) {
         ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Controls & Camera");
 
-        // Sensitivity
         if (ImGui::SliderFloat("Mouse Sensitivity", &camera_sensitivity, 0.01f, 1.0f, "%.2f")) {
             scene.camera.setMouseSensitivity(camera_sensitivity);
             saveSettings();
         }
 
-        // Head Bobbing (Amplitude)
         if (ImGui::SliderFloat("Head Bobbing", &camera_bobbing, 0.0f, 0.05f, "%.3f")) {
             scene.camera.setBobbingAmount(camera_bobbing);
             saveSettings();
         }
 
-        // FOV
         if (ImGui::SliderFloat("Field of View", &camera_fov, 30.0f, 120.0f, "%.1f deg")) {
             scene.camera.setFov(camera_fov);
             saveSettings();
@@ -210,7 +202,6 @@ class Gui {
 
         ImGui::Separator();
 
-        // Texture Quality
         if (auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
             ImGui::Combo("Texture Quality", &currentQuality, qualities.data(),
                          static_cast<int>(qualities.size()))) {
@@ -218,13 +209,11 @@ class Gui {
             saveSettings();
         }
 
-        // V-Sync
         if (ImGui::Checkbox("V-Sync", &vsync_enabled)) {
             window.setVerticalSyncEnabled(vsync_enabled);
             saveSettings();
         }
 
-        // Anti-Aliasing
         int current_msaa_idx = 0;
         for (size_t i = 0; i < msaaValues.size(); ++i) {
             if (msaa_level == msaaValues[i]) current_msaa_idx = static_cast<int>(i);
@@ -311,7 +300,6 @@ class Gui {
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
         float padding = 20.0f;
 
-        // Position Map Top Right
         ImGui::SetNextWindowPos(ImVec2(displaySize.x - padding, padding), ImGuiCond_Always,
                                 ImVec2(1.0f, 0.0f));
 
@@ -326,8 +314,7 @@ class Gui {
             float rounding = ImGui::GetStyle().WindowRounding;
 
             ImGui::GetWindowDrawList()->AddImageRounded(textureId, p_min, p_max, ImVec2(0, 1),
-                                                        ImVec2(1, 0),  // Flip UV for OpenGL
-                                                        IM_COL32_WHITE, rounding);
+                                                        ImVec2(1, 0), IM_COL32_WHITE, rounding);
 
             ImU32 borderColor = ImGui::ColorConvertFloat4ToU32(ImVec4(0.85f, 0.70f, 0.20f, 0.8f));
 
@@ -352,18 +339,13 @@ class Gui {
 
         if (ImGui::BeginChild("LeaderboardList", ImVec2(0, 250), true)) {
             auto allScores = session.getLeaderboard();
-
-            // Filter scores
             std::vector<ScoreRecord> scores;
+
             for (const auto& s : allScores) {
                 if (s.difficulty == targetDiff) {
                     scores.push_back(s);
                 }
-
-                // Top 50 records
-                if (scores.size() == 50) {
-                    break;
-                }
+                if (scores.size() == 50) break;
             }
 
             if (scores.empty()) {
@@ -392,7 +374,6 @@ class Gui {
                     std::tm* local_tm = std::localtime(&time);  // NOSONAR
 
                     std::string timeStr = formatDate(local_tm);
-
                     ImGui::Text("%s", timeStr.c_str());
                 }
                 ImGui::EndTable();
@@ -455,7 +436,6 @@ class Gui {
         } else if (showSettings) {
             renderMainMenuSettingsSection(scene, window);
         } else {
-            // Combo Box for Difficulty
             ImGui::Text("Difficulty:");
             ImGui::SetNextItemWidth(-1.0f);
             if (ImGui::Combo("##Difficulty", &selectedDifficulty, diffLabels.data(),
@@ -563,10 +543,9 @@ class Gui {
    public:
     static int getSavedMSAA() {
         if (std::ifstream file(settingsFile); file.is_open()) {
-            int q;
-            int m;
-            bool v;
-            // Read until MSAA
+            int q = 0;
+            int m = 0;
+            bool v = false;
             if (file >> q >> v >> m) {
                 return m;
             }
@@ -576,13 +555,10 @@ class Gui {
 
     explicit Gui(sf::Window& window) {
         if (!ImGui::SFML::Init(window, sf::Vector2f(window.getSize()), false)) {
-            std::cerr << "Error during ImGui-SFML initialization!" << std::endl;
-            exit(1);
+            throw std::runtime_error("Error during ImGui-SFML initialization!");
         }
-        // Start the native OpenGL 3 backend for GUI rendering
-        ImGui_ImplOpenGL3_Init("#version 410 core");
 
-        // Apply custom theme
+        ImGui_ImplOpenGL3_Init("#version 410 core");
         setupImGuiStyle();
 
         active_msaa_level = getSavedMSAA();
@@ -604,23 +580,20 @@ class Gui {
     Gui(const Gui&) = delete;
     Gui& operator=(Gui&&) = delete;
 
-    // Forward SFML events to ImGui
     void process_event(const sf::Window& window, const sf::Event& event) const {
         ImGui::SFML::ProcessEvent(window, event);
     }
 
-    // Indicates if ImGui is currently capturing the keyboard
-    bool wants_capture_keyboard() const { return ImGui::GetIO().WantCaptureKeyboard; }
+    [[nodiscard]] bool wants_capture_keyboard() const { return ImGui::GetIO().WantCaptureKeyboard; }
 
-    // Indicates if ImGui is currently capturing the mouse
-    bool wants_capture_mouse() const { return ImGui::GetIO().WantCaptureMouse; }
+    [[nodiscard]] bool wants_capture_mouse() const { return ImGui::GetIO().WantCaptureMouse; }
 
-    // Prepares a new frame for the GUI
     void update(const sf::Window& window, sf::Time dt) const {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::SFML::Update(sf::Mouse::getPosition(window), sf::Vector2f(window.getSize()), dt);
     }
 
+    // Main draw loop for all 2D Overlay interfaces (Minimap, HUD, Main Menu)
     void renderUI(Scene& scene, sf::Window& window, const SessionManager& session,
                   const GuiCallbacks& callbacks, GLuint minimapTexture) {
         if (inMainMenu) {
@@ -646,16 +619,13 @@ class Gui {
             isFirstFrame = false;
         }
 
-        // Generate draw data
         ImGui::Render();
 
-        // Disable MSAA for GUI
+        // Standard Practice: Ensure MSAA is deactivated before drawing orthographic UI
+        // to prevent bleeding edge artifacts on ImGui text rendering
         glDisable(GL_MULTISAMPLE);
-
-        // Draw ImGui
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Re-Enable MSAA if necessary
         if (active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
     }
 
@@ -666,29 +636,24 @@ class Gui {
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(windowSize);
 
-        // Push window styles for a borderless and dark background
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.08f, 0.08f, 0.08f, 1.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-        // Disable inputs and saving settings for this window
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
                                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
 
         ImGui::Begin("Loading", nullptr, flags);
 
-        // Prepare text and calculate dimensions for centering
         std::string text = "Loading " + what + "...";
         ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
 
-        float barWidth = windowSize.x * 0.5f;  // Bar takes up 50% of screen width
+        float barWidth = windowSize.x * 0.5f;
         float barHeight = 24.0f;
         float spacing = 12.0f;
 
-        // Calculate starting Y position to vertically center the entire block
         float totalContentHeight = textSize.y + spacing + barHeight;
         float startY = (windowSize.y - totalContentHeight) * 0.5f;
 
-        // Render Centered Text
         ImGui::SetCursorPosY(startY);
         ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
         ImGui::Text("%s", text.c_str());
@@ -701,26 +666,17 @@ class Gui {
         ImGui::SetCursorPosX((windowSize.x - barWidth) * 0.5f);
         ImGui::ProgressBar(progress, ImVec2(barWidth, barHeight));
 
-        // Restore progress bar styles
         ImGui::PopStyleVar();
         ImGui::PopStyleColor(2);
-
         ImGui::End();
 
-        // Restore window styles
         ImGui::PopStyleVar();
         ImGui::PopStyleColor();
 
         ImGui::Render();
-
-        // Disable MSAA
         glDisable(GL_MULTISAMPLE);
-
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Enable MSAA if necessary
         if (active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
     }
 };
-
-#endif

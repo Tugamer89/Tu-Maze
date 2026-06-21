@@ -1,9 +1,10 @@
-#ifndef TEXTURE_HH
-#define TEXTURE_HH
+#pragma once
 
 #include <SFML/Graphics/Image.hpp>
+#include <array>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #ifndef GLAD_GL_IMPLEMENTATION
 #define GLAD_GL_IMPLEMENTATION
@@ -12,6 +13,7 @@
 
 enum class TextureQuality : int { High = 0, Medium = 1, Low = 2 };
 
+// Safe RAII wrapper for OpenGL Textures, managing global quality scaling and fallback logic
 class Texture {
    private:
     GLuint m_textureID = 0;
@@ -23,16 +25,16 @@ class Texture {
 
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
+    Texture(Texture&&) = delete;
+    Texture& operator=(Texture&&) = delete;
 
-    static TextureQuality autoDetectQuality() {
+    [[nodiscard]] static TextureQuality autoDetectQuality() {
         using enum TextureQuality;
 
+        // Query the driver to determine Anisotropic support levels
         if (maxSupportedAnisotropy < 0.0f) {
             glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxSupportedAnisotropy);
         }
-
-        // Simple hardware probe: modern dedicated GPUs support 16x Anisotropy,
-        // while integrated/older GPUs often cap at 2x or 4x.
 
         if (maxSupportedAnisotropy >= 8.0f) return High;
         if (maxSupportedAnisotropy >= 4.0f) return Medium;
@@ -48,14 +50,17 @@ class Texture {
         if (!image.loadFromFile(filepath)) {
             std::cerr << "[Warning] Failed to load texture: " << filepath
                       << ". Generating fallback.\n";
-            // RAII standard: generate a 1x1 magenta fallback texture so the engine doesn't crash
+
             glGenTextures(1, &m_textureID);
             glBindTexture(GL_TEXTURE_2D, m_textureID);
-            unsigned char magenta[] = {255, 0, 255, 255};  // NOSONAR
+
+            // Standard missing-texture fallback to prevent silent geometry blackouts
+            constexpr std::array<uint8_t, 4> magenta = {255, 0, 255, 255};
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, magenta);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         magenta.data());
 
             instances.push_back(this);
             setQuality(currentGlobalQuality);
@@ -64,25 +69,21 @@ class Texture {
             return;
         }
 
-        // OpenGL expects the Y-axis to go upwards, SFML goes downwards
         image.flipVertically();
 
         glGenTextures(1, &m_textureID);
         glBindTexture(GL_TEXTURE_2D, m_textureID);
 
-        // Set wrapping
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        // Determine internal format based on whether it's an albedo texture (needs gamma
-        // correction)
+        // sRGB informs the GPU to perform gamma correction upon sampling
         GLint internalFormat = sRGB ? GL_SRGB_ALPHA : GL_RGBA;
 
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.getSize().x, image.getSize().y, 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, image.getPixelsPtr());
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        // Track instance and apply initial quality settings
         instances.push_back(this);
         setQuality(currentGlobalQuality);
 
@@ -96,7 +97,6 @@ class Texture {
         std::erase(instances, this);
     }
 
-    // Adjust Texture Base Level (forces GPU to use a smaller mipmap scale) & Filter
     void setQuality(TextureQuality quality) const {
         glBindTexture(GL_TEXTURE_2D, m_textureID);
 
@@ -104,28 +104,28 @@ class Texture {
             case TextureQuality::High: {
                 GLfloat aniso = std::min(16.0f, maxSupportedAnisotropy);
                 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                                GL_LINEAR_MIPMAP_LINEAR);                          // Minification
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  // Magnification
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
                 break;
             }
             case TextureQuality::Medium: {
                 GLfloat aniso = std::min(4.0f, maxSupportedAnisotropy);
                 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                                GL_LINEAR_MIPMAP_NEAREST);                         // Minification
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  // Magnification
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);          // 1/2 resolution
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+                // Forces GPU to start sampling from Mip level 1 (Half resolution)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
                 break;
             }
             case TextureQuality::Low: {
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                                1.0f);  // Disable anisotropic filter
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                                GL_LINEAR_MIPMAP_NEAREST);                          // Minification
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  // Magnification
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 2);  // 1/4 resolution
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+                // Forces GPU to start sampling from Mip level 2 (Quarter resolution)
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 2);
                 break;
             }
         }
@@ -146,7 +146,5 @@ class Texture {
 
     void unbind() const { glBindTexture(GL_TEXTURE_2D, 0); }
 
-    GLuint getID() const { return m_textureID; }
+    [[nodiscard]] GLuint getID() const { return m_textureID; }
 };
-
-#endif

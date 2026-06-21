@@ -1,8 +1,8 @@
-#ifndef SETUP_HH
-#define SETUP_HH
+#pragma once
 
 #include <SFML/Window.hpp>
 #include <iostream>
+#include <stdexcept>
 
 #ifndef GLAD_GL_IMPLEMENTATION
 #define GLAD_GL_IMPLEMENTATION
@@ -16,6 +16,7 @@ class Setup {
     sf::Window window;
 
     Setup() {
+        // Request Core profile (mandatory for Mac and modern pipeline rendering)
         sf::ContextSettings settings;
         settings.depthBits = 24;
         settings.stencilBits = 8;
@@ -24,37 +25,35 @@ class Setup {
         settings.majorVersion = 4;
         settings.minorVersion = 1;
 
-        const int window_width = 800;
-        const int window_height = 800;
+        const unsigned int window_width = 800;
+        const unsigned int window_height = 800;
 
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-        sf::Vector2i centerPosition((desktop.size.x - window_width) / 2,
-                                    (desktop.size.y - window_height) / 2);
+        sf::Vector2i centerPosition(static_cast<int>(desktop.size.x - window_width) / 2,
+                                    static_cast<int>(desktop.size.y - window_height) / 2);
 
-        window = sf::Window(sf::VideoMode({window_width, window_height}), "Tu Maze",
-                            sf::Style::Default, sf::State::Windowed, settings);
+        window.create(sf::VideoMode({window_width, window_height}), "Tu Maze", sf::Style::Default,
+                      sf::State::Windowed, settings);
         window.setPosition(centerPosition);
 
         if (!window.setActive(true)) {
-            std::cerr << "Failure: error during SFML OpenGL Activation." << std::endl;
-            exit(1);
+            throw std::runtime_error("Failure: error during SFML OpenGL Activation.");
         }
+
         sf::ContextSettings gotten = window.getSettings();
 
-        std::cout << "depth bits: " << gotten.depthBits << std::endl;
-        std::cout << "stencil bits: " << gotten.stencilBits << std::endl;
-        std::cout << "antialiasing level: " << gotten.antiAliasingLevel << std::endl;
+        std::cout << "Depth bits: " << gotten.depthBits << std::endl;
+        std::cout << "Stencil bits: " << gotten.stencilBits << std::endl;
+        std::cout << "Antialiasing level: " << gotten.antiAliasingLevel << std::endl;
         std::cout << "SFML GL version: " << gotten.majorVersion << "." << gotten.minorVersion
                   << std::endl;
 
+        // Initialize GLAD to map hardware-specific OpenGL function pointers
         int version = gladLoadGL(sf::Context::getFunction);
         if (!version) {
-            std::cerr << "Failure: error during glad loading." << std::endl;
-            exit(1);
+            throw std::runtime_error("Failure: error during GLAD loading.");
         }
         std::cout << "GLAD GL version: " << GLAD_VERSION_MAJOR(version) << "."
                   << GLAD_VERSION_MINOR(version) << std::endl;
     }
 };
-
-#endif
