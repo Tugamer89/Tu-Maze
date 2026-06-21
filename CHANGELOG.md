@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.29.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.28.0...v0.29.0) (2026-06-21)
+
+
+### Features
+
+* add macOS cross-compilation support and update Makefile targets ([b0af22a](https://github.com/Tugamer89/Tu-Maze/commit/b0af22ac28431fd0fa3279f8c067557c6e97565e))
+* add mouse movement handling for macOS to improve user experience ([b864b99](https://github.com/Tugamer89/Tu-Maze/commit/b864b99054b03362adbf8515cb2456062b71bde8))
+* fixed minimap rendering on MacOS using ImGui instead of native OpenGL ([bb2570f](https://github.com/Tugamer89/Tu-Maze/commit/bb2570f17b7354a70c88c3ead75698849a541076))
+* implement mouse state management and improve mouse handling in game events ([7e3d969](https://github.com/Tugamer89/Tu-Maze/commit/7e3d9691e90462acbf0e857024daeab843bbe569))
+
+
+### Bug Fixes
+
+* adjust minimap display size for improved visibility ([c90057c](https://github.com/Tugamer89/Tu-Maze/commit/c90057cb8d81782d6f3fc6eaea5ef7d5bd5bd606))
+* correct depth attachment type in framebuffer setup and fix typo in comment ([d828c33](https://github.com/Tugamer89/Tu-Maze/commit/d828c339d02754d5ecd912a8dd2e435df120fab8))
+* correct depthBits setting in SFML context to 24 ([a44d32a](https://github.com/Tugamer89/Tu-Maze/commit/a44d32ade84e32d70a08c4a6fce54fc08280a0d9))
+* disable mouse cursor grabbing on macOS for improved compatibility ([ab286e3](https://github.com/Tugamer89/Tu-Maze/commit/ab286e3144325efaa28cd43766e1e59d1de46e2a))
+* improve FBO initialization for better MSAA compatibility on macOS ([048e29a](https://github.com/Tugamer89/Tu-Maze/commit/048e29a4b0c110147d4ecdd9a6dc0012c95f77d6))
+* improve mouse cursor handling for macOS compatibility ([f09dd19](https://github.com/Tugamer89/Tu-Maze/commit/f09dd19a83124ffacc6e55ad66c2a8e460baeb7e))
+* removed cursor grabbed for MacOS compatibility ([b38482f](https://github.com/Tugamer89/Tu-Maze/commit/b38482fd1c5ca57ff58eb8ffe78501df8b6ac517))
+* update artifact name format to include 'tu-maze' prefix ([50c2dae](https://github.com/Tugamer89/Tu-Maze/commit/50c2dae6a20133c0576d58caa4af66272bb2c1ab))
+* update renderbuffer and texture formats to use GL_RGBA8 for improved color accuracy ([e28cdd3](https://github.com/Tugamer89/Tu-Maze/commit/e28cdd39106e7ef0e4a2bf80da997e92133c9333))
+
+
+### Documentation
+
+* update macOS configuration notes and improve cross-platform compatibility details ([3b46c0b](https://github.com/Tugamer89/Tu-Maze/commit/3b46c0b8aa11eb3eafe0b9d1004c7b3e0e7d3123))
+* update macOS configuration notes to clarify mouse movement issues ([c90a719](https://github.com/Tugamer89/Tu-Maze/commit/c90a719a1f93dc4afa828ca0d682487ec8b5e170))
+* updated REPORT with latest changes ([43a08c2](https://github.com/Tugamer89/Tu-Maze/commit/43a08c2c3c3258b0ff2d8035bac4c9fd3ea15132))
+* updated with Stage 28 features ([d71606d](https://github.com/Tugamer89/Tu-Maze/commit/d71606d165d2ed3556fad3a89ddf0a824f90a9c9))
+
 ## [0.28.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.27.0...v0.28.0) (2026-06-18)
 
 
