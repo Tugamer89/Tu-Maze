@@ -310,7 +310,7 @@ int run_engine() {
     };
 
     // Bind GUI events to core engine logic
-    Gui::GuiCallbacks callbacks{
+    GuiCallbacks callbacks{
         .onPlayRandom =
             [&currentCustomSeed, restartGame](int diffIdx) {
                 currentCustomSeed = std::nullopt;

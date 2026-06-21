@@ -11,7 +11,7 @@ Setup::Setup() {
     sf::ContextSettings settings;
     settings.depthBits = 24;
     settings.stencilBits = 8;
-    settings.antiAliasingLevel = Gui::getSavedMSAA();
+    settings.antiAliasingLevel = GuiState::getSavedMSAA();
     settings.attributeFlags = sf::ContextSettings::Attribute::Core;
     settings.majorVersion = 4;
     settings.minorVersion = 1;

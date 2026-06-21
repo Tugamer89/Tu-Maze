@@ -1,4 +1,3 @@
-
 #include "core/camera.hpp"
 
 #include <SFML/Window.hpp>
@@ -18,20 +17,20 @@ void Camera::updateCameraVectors() {
 }
 
 void Camera::updateFrustumPlanes() {
-    glm::vec4 row0(vp[0][0], vp[1][0], vp[2][0], vp[3][0]);
-    glm::vec4 row1(vp[0][1], vp[1][1], vp[2][1], vp[3][1]);
-    glm::vec4 row2(vp[0][2], vp[1][2], vp[2][2], vp[3][2]);
-    glm::vec4 row3(vp[0][3], vp[1][3], vp[2][3], vp[3][3]);
+    glm::vec4 row0(matrices.vp[0][0], matrices.vp[1][0], matrices.vp[2][0], matrices.vp[3][0]);
+    glm::vec4 row1(matrices.vp[0][1], matrices.vp[1][1], matrices.vp[2][1], matrices.vp[3][1]);
+    glm::vec4 row2(matrices.vp[0][2], matrices.vp[1][2], matrices.vp[2][2], matrices.vp[3][2]);
+    glm::vec4 row3(matrices.vp[0][3], matrices.vp[1][3], matrices.vp[2][3], matrices.vp[3][3]);
 
-    frustumPlanes[0] = row3 + row0;  // Left
-    frustumPlanes[1] = row3 - row0;  // Right
-    frustumPlanes[2] = row3 + row1;  // Bottom
-    frustumPlanes[3] = row3 - row1;  // Top
-    frustumPlanes[4] = row3 + row2;  // Near
-    frustumPlanes[5] = row3 - row2;  // Far
+    matrices.frustumPlanes[0] = row3 + row0;  // Left
+    matrices.frustumPlanes[1] = row3 - row0;  // Right
+    matrices.frustumPlanes[2] = row3 + row1;  // Bottom
+    matrices.frustumPlanes[3] = row3 - row1;  // Top
+    matrices.frustumPlanes[4] = row3 + row2;  // Near
+    matrices.frustumPlanes[5] = row3 - row2;  // Far
 
     // Normalize the planes to allow accurate distance calculations
-    for (auto& plane : frustumPlanes) {
+    for (auto& plane : matrices.frustumPlanes) {
         float length = glm::length(glm::vec3(plane));
         plane /= length;
     }
@@ -39,8 +38,8 @@ void Camera::updateFrustumPlanes() {
 
 bool Camera::isAABBIntersecting(const glm::vec3& pos, float minX, float maxX, float minZ,
                                 float maxZ) const {
-    return (pos.x + collisionRadius > minX) && (pos.x - collisionRadius < maxX) &&
-           (pos.z + collisionRadius > minZ) && (pos.z - collisionRadius < maxZ);
+    return (pos.x + settings.collisionRadius > minX) && (pos.x - settings.collisionRadius < maxX) &&
+           (pos.z + settings.collisionRadius > minZ) && (pos.z - settings.collisionRadius < maxZ);
 }
 
 bool Camera::checkCellWalls(const glm::vec3& pos, const Cell& cell, int x, int y, float cx,
@@ -80,7 +79,7 @@ bool Camera::checkCollision(const glm::vec3& pos, const Maze& maze) const {
 
     float halfCell = Maze::CELL_SIZE * 0.5f;
     float halfWall = Maze::WALL_THICKNESS * 0.5f;
-    float threshold = collisionRadius + halfWall;
+    float threshold = settings.collisionRadius + halfWall;
 
     // Create a minimal bounding box of cells to check
     int minX = std::max(0, (localX < threshold) ? cellX - 1 : cellX);
@@ -103,8 +102,10 @@ bool Camera::checkCollision(const glm::vec3& pos, const Maze& maze) const {
     }
 
     // Restrict player to absolute outer maze boundaries
-    return (pos.x - collisionRadius < -offsetX || pos.x + collisionRadius > offsetX ||
-            pos.z - collisionRadius < -offsetZ || pos.z + collisionRadius > offsetZ);
+    return pos.x - settings.collisionRadius < -offsetX ||
+           pos.x + settings.collisionRadius > offsetX ||
+           pos.z - settings.collisionRadius < -offsetZ ||
+           pos.z + settings.collisionRadius > offsetZ;
 }
 
 Camera::Camera(const Shaders& shaders) {
@@ -135,7 +136,7 @@ void Camera::setAspectRatio(float ratio) {
 }
 
 void Camera::setFov(float newFov) {
-    baseFov = newFov;
+    settings.baseFov = newFov;
     currentRenderFov = newFov;
     projection();
 }
@@ -146,13 +147,13 @@ void Camera::locations(const Shaders& shaders) {
 
 bool Camera::update(sf::Time dt, const Maze& maze) {
     float dt_secs = dt.asSeconds();
-    float currentSpeed = baseMovementSpeed;
+    float currentSpeed = settings.baseMovementSpeed;
 
     bool isSprinting = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) ||
                        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RShift);
 
     if (isSprinting) {
-        currentSpeed *= sprintMultiplier;
+        currentSpeed *= settings.sprintMultiplier;
     }
 
     float velocity = currentSpeed * dt_secs;
@@ -191,12 +192,12 @@ bool Camera::update(sf::Time dt, const Maze& maze) {
     }
 
     // Apply smooth head-bobbing using a sine wave synced to movement
-    float targetAmplitude = isMoving ? bobbingAmount : 0.0f;
+    float targetAmplitude = isMoving ? settings.bobbingAmount : 0.0f;
     currentBobbingAmplitude += (targetAmplitude - currentBobbingAmplitude) * 10.0f * dt_secs;
 
     if (isMoving) {
-        float speedMult = isSprinting ? sprintMultiplier : 1.0f;
-        walkTimer += dt_secs * bobbingSpeed * speedMult;
+        float speedMult = isSprinting ? settings.sprintMultiplier : 1.0f;
+        walkTimer += dt_secs * settings.bobbingSpeed * speedMult;
         walkTimer = std::fmod(walkTimer, 2.0f * glm::pi<float>());
     }
 
@@ -207,9 +208,10 @@ bool Camera::update(sf::Time dt, const Maze& maze) {
     }
 
     // Apply dynamic field-of-view when sprinting to simulate speed
-    if (float targetFov = (isSprinting && isMoving) ? (baseFov + sprintFovOffset) : baseFov;
+    if (float targetFov = (isSprinting && isMoving) ? (settings.baseFov + settings.sprintFovOffset)
+                                                    : settings.baseFov;
         std::abs(currentRenderFov - targetFov) > 0.05f) {
-        currentRenderFov += (targetFov - currentRenderFov) * fovTransitionSpeed * dt_secs;
+        currentRenderFov += (targetFov - currentRenderFov) * settings.fovTransitionSpeed * dt_secs;
         needsProjectionUpdate = true;
     } else if (currentRenderFov != targetFov) {
         currentRenderFov = targetFov;
@@ -227,8 +229,8 @@ bool Camera::update(sf::Time dt, const Maze& maze) {
 void Camera::processMouseMovement(float xoffset, float yoffset) {
     if (std::abs(xoffset) < 0.001f && std::abs(yoffset) < 0.001f) return;
 
-    xoffset *= mouseSensitivity;
-    yoffset *= mouseSensitivity;
+    xoffset *= settings.mouseSensitivity;
+    yoffset *= settings.mouseSensitivity;
 
     yaw += xoffset;
     pitch += yoffset;
@@ -241,12 +243,12 @@ void Camera::processMouseMovement(float xoffset, float yoffset) {
 }
 
 void Camera::projection() {
-    v = glm::lookAt(position, position + front, up);
-    inv_v = glm::inverse(v);
+    matrices.v = glm::lookAt(position, position + front, up);
+    matrices.inv_v = glm::inverse(matrices.v);
 
     glm::mat4 pr = glm::perspective(glm::radians(currentRenderFov), aspectRatio, 0.1f, 100.0f);
 
-    vp = pr * v;
+    matrices.vp = pr * matrices.v;
     updateFrustumPlanes();
 
     glUniform3fv(camera_pos_loc, 1, &position[0]);

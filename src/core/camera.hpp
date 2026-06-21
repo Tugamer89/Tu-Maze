@@ -9,11 +9,29 @@
 #include "render/hotshaders.hpp"
 
 class Camera {
+   public:
+    struct Matrices {
+        glm::mat4 v{1.0f};      // View Matrix
+        glm::mat4 inv_v{1.0f};  // Inverse View Matrix (useful for billboard lighting)
+        glm::mat4 vp{1.0f};     // View-Projection Matrix (sent directly to shaders)
+        std::array<glm::vec4, 6> frustumPlanes{};
+    };
+
+    struct Settings {
+        float baseMovementSpeed = 2.5f;
+        float sprintMultiplier = 1.6f;
+        float mouseSensitivity = 0.2f;
+        float baseFov = 60.0f;
+        float sprintFovOffset = 12.0f;
+        float fovTransitionSpeed = 8.0f;
+        float bobbingSpeed = 12.0f;
+        float bobbingAmount = 0.02f;
+        float collisionRadius = 0.20f;
+    };
+
    private:
-    glm::mat4 v;      // View Matrix
-    glm::mat4 inv_v;  // Inverse View Matrix (useful for billboard lighting)
-    glm::mat4 vp;     // View-Projection Matrix (sent directly to shaders)
-    std::array<glm::vec4, 6> frustumPlanes{};
+    Matrices matrices;
+    Settings settings;
 
     GLint camera_pos_loc = -1;
 
@@ -25,24 +43,12 @@ class Camera {
 
     float yaw = -90.0f;
     float pitch = 0.0f;
-
-    float baseMovementSpeed = 2.5f;
-    float sprintMultiplier = 1.6f;
-    float mouseSensitivity = 0.2f;
     float aspectRatio = 1.0f;
-
-    float baseFov = 60.0f;
     float currentRenderFov = 60.0f;
-    float sprintFovOffset = 12.0f;
-    float fovTransitionSpeed = 8.0f;
 
     float baseHeight = 0.5f;
     float walkTimer = 0.0f;
-    float bobbingSpeed = 12.0f;
-    float bobbingAmount = 0.02f;
     float currentBobbingAmplitude = 0.0f;
-
-    float collisionRadius = 0.20f;
 
     // Recalculates the directional vectors based on the current yaw and pitch
     void updateCameraVectors();
@@ -66,10 +72,12 @@ class Camera {
    public:
     explicit Camera(const Shaders& shaders);
 
-    [[nodiscard]] const glm::mat4& getViewMatrix() const { return v; }
-    [[nodiscard]] const glm::mat4& getInverseViewMatrix() const { return inv_v; }
-    [[nodiscard]] const glm::mat4& getViewProjectionMatrix() const { return vp; }
-    [[nodiscard]] const std::array<glm::vec4, 6>& getFrustumPlanes() const { return frustumPlanes; }
+    [[nodiscard]] const glm::mat4& getViewMatrix() const { return matrices.v; }
+    [[nodiscard]] const glm::mat4& getInverseViewMatrix() const { return matrices.inv_v; }
+    [[nodiscard]] const glm::mat4& getViewProjectionMatrix() const { return matrices.vp; }
+    [[nodiscard]] const std::array<glm::vec4, 6>& getFrustumPlanes() const {
+        return matrices.frustumPlanes;
+    }
     [[nodiscard]] const glm::vec3& getPosition() const { return position; }
     [[nodiscard]] const glm::vec3& getFront() const { return front; }
     [[nodiscard]] float getYaw() const { return yaw; }
@@ -80,8 +88,8 @@ class Camera {
     void setAspectRatio(float ratio);
     void setFov(float newFov);
 
-    void setMouseSensitivity(float sensitivity) { mouseSensitivity = sensitivity; }
-    void setBobbingAmount(float amount) { bobbingAmount = amount; }
+    void setMouseSensitivity(float sensitivity) { settings.mouseSensitivity = sensitivity; }
+    void setBobbingAmount(float amount) { settings.bobbingAmount = amount; }
 
     void locations(const Shaders& shaders);
 
