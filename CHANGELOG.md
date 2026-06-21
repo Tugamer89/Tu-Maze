@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.30.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.29.0...v0.30.0) (2026-06-21)
+
+
+### Features
+
+* enhance camera controls with sensitivity and bobbing settings ([64c9600](https://github.com/Tugamer89/Tu-Maze/commit/64c96005f297a21226f54d3e1c1c3b6b4413fa83))
+
+
+### Documentation
+
+* updated with Stage 29 features ([030a8ef](https://github.com/Tugamer89/Tu-Maze/commit/030a8ef42b423fdf3db394bb96b308064a621f14))
+
 ## [0.29.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.28.0...v0.29.0) (2026-06-21)
 
 
