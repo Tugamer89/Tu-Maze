@@ -338,7 +338,7 @@ Dal punto di vista architetturale e stilistico, sono stati implementati i seguen
 * **Documentazione Architetturale**: Il codice è stato sottoposto a una profonda revisione. I commenti puramente didascalici ("cosa fa il codice") sono stati rimossi a favore di descrizioni tecniche mirate ("perché lo fa"), focalizzandosi sui fondamenti matematici e sistemici (es. *Frustum Culling*, *Spatial Partitioning*) per garantire una base solida e manutenibile.
 * **Incapsulamento, Memoria e Gestione Errori**: L'architettura delle classi è stata blindata correggendo l'esposizione impropria delle variabili di stato (ora rigorosamente `private` ed esposte tramite *getter/setter*). Il lancio di errori generici è stato sostituito da un sistema di eccezioni fortemente tipizzate (tramite un nuovo header `exceptions.hh`), mentre le conversioni di memoria a basso livello (`reinterpret_cast`) sono state rimpiazzate con la funzione sicura `std::bit_cast` introdotta nello standard C++20.
 
-### Stage 31 (v0.32.x)
+### Stage 31 (v1.0.x)
 
 L'obiettivo di questa tappa è stato il definitivo abbandono dell'approccio *header-only* a favore di un'architettura modulare standard, unito a un profondo *refactoring* del codice mirato a rispettare i vincoli di complessità strutturale e a ottimizzare i tempi di compilazione.
 
