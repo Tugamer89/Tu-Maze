@@ -328,7 +328,7 @@ Dal punto di vista architetturale e funzionale, sono state implementate le segue
 * **Sensibilità del Mouse**: È stato esposto un parametro moltiplicatore dinamico nell'interfaccia utente (GUI) che aggiorna istantaneamente la classe `Camera`, consentendo di personalizzare la reattività della visuale a 360 gradi.
 * **Intensità dell'Head-Bobbing**: L'ampiezza dell'onda sinusoidale che simula il passo del giocatore è ora modulabile. Questa integrazione favorisce l'accessibilità, permettendo agli utenti sensibili alla *motion sickness* (cinetosi) di attenuare o disabilitare completamente l'oscillazione della telecamera.
 
-### Stage 30 (v1.0.x)
+### Stage 30 (v0.31.x)
 
 L'obiettivo di questa tappa è stata la rifinitura strutturale e documentale del motore grafico in preparazione alla prima *release* stabile, allineando l'intero ecosistema ai più alti standard dell'ingegneria del software in C++ moderno.
 
