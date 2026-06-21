@@ -7,11 +7,6 @@
 #include <optional>
 #include <stdexcept>
 
-#ifndef GLAD_GL_IMPLEMENTATION
-#define GLAD_GL_IMPLEMENTATION
-#include "glad/gl.h"
-#endif
-
 #include "core/camera.hh"
 #include "core/exceptions.hh"
 #include "core/node.hh"
@@ -20,6 +15,7 @@
 #include "core/setup.hh"
 #include "game/maze.hh"
 #include "game/minimap.hh"
+#include "glad/gl.h"
 #include "render/gpumesh.hh"
 #include "render/hotshaders.hh"
 #include "render/lights.hh"

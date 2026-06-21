@@ -12,10 +12,7 @@ struct LoadingTask {
 // Pseudo-asynchronous queue system allowing UI updates during heavy initializations
 class AssetLoader {
    public:
-    void addTask(std::string desc, std::function<void()> act) {
-        tasks.emplace(std::move(desc), std::move(act));
-        totalTasks++;
-    }
+    void addTask(std::string desc, std::function<void()> act);
 
     [[nodiscard]] bool isFinished() const { return tasks.empty(); }
 
@@ -24,17 +21,7 @@ class AssetLoader {
         return 1.0f - (static_cast<float>(tasks.size()) / static_cast<float>(totalTasks));
     }
 
-    std::string processNext() {
-        if (tasks.empty()) {
-            return "";
-        }
-
-        LoadingTask currentTask = std::move(tasks.front());
-        tasks.pop();
-        currentTask.action();
-
-        return currentTask.description;
-    }
+    std::string processNext();
 
    private:
     std::queue<LoadingTask> tasks;

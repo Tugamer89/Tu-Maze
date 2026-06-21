@@ -2,11 +2,7 @@
 
 #include <glm/mat4x4.hpp>
 
-#ifndef GLAD_GL_IMPLEMENTATION
-#define GLAD_GL_IMPLEMENTATION
-#include "../glad/gl.h"
-#endif
-
+#include "glad/gl.h"
 #include "render/hotshaders.hh"
 
 class Lights {
@@ -35,23 +31,10 @@ class Lights {
     [[nodiscard]] bool isOn() const { return is_on; }
     void setOn(bool on) { is_on = on; }
 
-    void locations(const Shaders& shaders) {
-        light_direct_pos_loc = glGetUniformLocation(shaders.getProgram(), "light.direct_pos");
-        light_direct_val_loc = glGetUniformLocation(shaders.getProgram(), "light.direct_val");
-        light_ambient_val_loc = glGetUniformLocation(shaders.getProgram(), "light.ambient_val");
-    }
+    void locations(const Shaders& shaders);
 
-    void parameters() const {
-        glm::vec3 current_direct_val = is_on ? light_direct_val : glm::vec3(0.0f);
-        glUniform3fv(light_direct_val_loc, 1, &current_direct_val[0]);
-        glUniform3fv(light_ambient_val_loc, 1, &light_ambient_val[0]);
-    }
+    void parameters() const;
 
     // Transforms light coordinates relative to camera view space for shader calculations
-    void position(const glm::mat4& inverse_view_matrix) const {
-        glm::vec4 ldp4(light_direct_pos, 1.0f);
-        ldp4 = inverse_view_matrix * ldp4;
-        glm::vec3 ldp3 = {ldp4.x, ldp4.y, ldp4.z};
-        glUniform3fv(light_direct_pos_loc, 1, &ldp3[0]);
-    }
+    void position(const glm::mat4& inverse_view_matrix) const;
 };
