@@ -14,6 +14,7 @@
 
 #include "include/assetloader.hh"
 #include "include/camera.hh"
+#include "include/exceptions.hh"
 #include "include/gpumesh.hh"
 #include "include/gui.hh"
 #include "include/hotshaders.hh"
@@ -91,26 +92,26 @@ void center_mouse(const sf::Window& window, MouseState& mouseState) {
 
 // SFML Event Callbacks
 void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& running) {
-    if (key.scancode == sf::Keyboard::Scancode::Escape && !gui.hasWon) {
-        if (!gui.inMainMenu)
-            gui.isPaused = !gui.isPaused;
-        else if (gui.showLeaderboard)
-            gui.showLeaderboard = false;
-        else if (gui.showSettings)
-            gui.showSettings = false;
+    if (key.scancode == sf::Keyboard::Scancode::Escape && !gui.hasWon()) {
+        if (!gui.isInMainMenu())
+            gui.setPaused(!gui.isPaused());
+        else if (gui.isShowingLeaderboard())
+            gui.setShowingLeaderboard(false);
+        else if (gui.isShowingSettings())
+            gui.setShowingSettings(false);
         else
             running = false;
-    } else if (key.scancode == sf::Keyboard::Scancode::F && !gui.inMainMenu && !gui.hasWon &&
-               !gui.isPaused) {
+    } else if (key.scancode == sf::Keyboard::Scancode::F && !gui.isInMainMenu() && !gui.hasWon() &&
+               !gui.isPaused()) {
         // Toggle global flashlight/directional light
-        scene.lights.is_on = !scene.lights.is_on;
+        scene.getLights().setOn(!scene.getLights().isOn());
         scene.update_all();
     }
 }
 
 void handle_mouse_movement(const sf::Event::MouseMoved& mouse_moved, const sf::Window& window,
                            const Gui& gui, Scene& scene, MouseState& mouseState) {
-    if (!window.hasFocus() || gui.isPaused || gui.hasWon || gui.inMainMenu) {
+    if (!window.hasFocus() || gui.isPaused() || gui.hasWon() || gui.isInMainMenu()) {
         return;
     }
 
@@ -127,8 +128,8 @@ void handle_mouse_movement(const sf::Event::MouseMoved& mouse_moved, const sf::W
 
     if (std::abs(dx) > 0.1f || std::abs(dy) > 0.1f) {
         // Invert Y axis for standard FPS controls
-        scene.camera.processMouseMovement(dx, -dy);
-        scene.lights.position(scene.camera.inv_v);
+        scene.getCamera().processMouseMovement(dx, -dy);
+        scene.getLights().position(scene.getCamera().getInverseViewMatrix());
         center_mouse(window, mouseState);
     }
 }
@@ -193,12 +194,12 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
     });
 
     loader.addTask("scene build", [&assets, &scene, &minimap]() {
-        scene.goalNode.mesh = assets.goalMesh.get();
-        scene.goalNode.material = &assets.goalMat.value();
-        scene.goalNode.is_goal = true;
-        scene.goalNode.updateTransforms();
+        scene.getGoalNode().setMesh(assets.goalMesh.get());
+        scene.getGoalNode().setMaterial(&assets.goalMat.value());
+        scene.getGoalNode().setIsGoal(true);
+        scene.getGoalNode().updateTransforms();
 
-        minimap.playerMesh = assets.playerMesh.get();
+        minimap.setPlayerMesh(assets.playerMesh.get());
     });
 }
 
@@ -209,12 +210,12 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running,
 
         if (event->is<sf::Event::Closed>())
             running = false;
-        else if (event->is<sf::Event::FocusLost>() && !gui.hasWon && !gui.inMainMenu)
-            gui.isPaused = true;
+        else if (event->is<sf::Event::FocusLost>() && !gui.hasWon() && !gui.isInMainMenu())
+            gui.setPaused(true);
         else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
             glViewport(0, 0, resized->size.x, resized->size.y);
-            scene.camera.setAspectRatio(static_cast<float>(resized->size.x) /
-                                        static_cast<float>(resized->size.y));
+            scene.getCamera().setAspectRatio(static_cast<float>(resized->size.x) /
+                                             static_cast<float>(resized->size.y));
         } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                    key_pressed && !gui.wants_capture_keyboard()) {
             handle_key(*key_pressed, gui, scene, running);
@@ -227,7 +228,8 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running,
 // Transitions between Game/Pause/Menu logic (toggles cursor visibilities and game timers)
 bool update_pause_state(sf::Window& window, const Gui& gui, SessionManager& session,
                         bool& wasPaused, MouseState& mouseState) {
-    bool isGameActive = window.hasFocus() && !gui.isPaused && !gui.hasWon && !gui.inMainMenu;
+    bool isGameActive =
+        window.hasFocus() && !gui.isPaused() && !gui.hasWon() && !gui.isInMainMenu();
 
     if (wasPaused && isGameActive) {
         // Returning to game: hide cursor and lock it to the window
@@ -250,7 +252,7 @@ bool update_pause_state(sf::Window& window, const Gui& gui, SessionManager& sess
 
 int run_engine() {
     Setup setup;
-    sf::Window& window = setup.window;
+    sf::Window& window = setup.getWindow();
     Gui gui(window);
 
     Shaders shaders(default_vert, default_frag);
@@ -261,14 +263,6 @@ int run_engine() {
     GameAssets assets;
     SessionManager session;
     MouseState mouseState;
-
-    // Core OpenGL Settings
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     AssetLoader loader;
     register_asset_tasks(loader, assets, scene, minimap);
@@ -284,7 +278,7 @@ int run_engine() {
     // Rebuilds the maze dynamically without requiring a full engine restart
     auto resetMaze = [&scene, &assets, &difficultySizes](
                          std::optional<unsigned int> seed = std::nullopt, int diffIdx = 1) {
-        scene.root.children.clear();
+        scene.getRoot().clearChildren();
 
         int size = difficultySizes[diffIdx];
         assets.maze = std::make_unique<Maze>(size, size, seed);
@@ -292,15 +286,15 @@ int run_engine() {
                                                        *assets.wallMat, *assets.floorMat,
                                                        assets.wallMesh, assets.floorMesh);
 
-        scene.root.children.push_back(std::move(mazeNode));
+        scene.getRoot().addChild(std::move(mazeNode));
         scene.build_static_tree();
 
         // Reset camera to the new maze's spawn location
-        scene.camera.setPosition(assets.maze->getStartWorldPosition());
-        scene.camera.setYaw(135.0f);
-        scene.camera.setPitch(0.0f);
-        scene.lights.is_on = true;
-        scene.lights.position(scene.camera.inv_v);
+        scene.getCamera().setPosition(assets.maze->getStartWorldPosition());
+        scene.getCamera().setYaw(135.0f);
+        scene.getCamera().setPitch(0.0f);
+        scene.getLights().setOn(true);
+        scene.getLights().position(scene.getCamera().getInverseViewMatrix());
 
         scene.update_all();
     };
@@ -310,9 +304,9 @@ int run_engine() {
         currentDifficulty = diffIdx;
         resetMaze(seed, diffIdx);
 
-        gui.hasWon = false;
-        gui.isPaused = false;
-        gui.inMainMenu = false;
+        gui.setHasWon(false);
+        gui.setPaused(false);
+        gui.setInMainMenu(false);
 
         center_mouse(window, mouseState);
         session.reset();
@@ -335,9 +329,9 @@ int run_engine() {
                         restartGame]() { restartGame(currentCustomSeed, currentDifficulty); },
         .onReturnToMenu =
             [&gui, &session]() {
-                gui.inMainMenu = true;
-                gui.hasWon = false;
-                gui.isPaused = false;
+                gui.setInMainMenu(true);
+                gui.setHasWon(false);
+                gui.setPaused(false);
                 session.stop();
             },
         .onQuitDesktop = [&running]() { running = false; },
@@ -350,7 +344,7 @@ int run_engine() {
         process_events(window, gui, scene, running, mouseState);
         gui.update(window, dt);
 
-        if (gui.inMainMenu)
+        if (gui.isInMainMenu())
             glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         else
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -369,20 +363,20 @@ int run_engine() {
         // Process physics and camera movement only if actively playing
         if (update_pause_state(window, gui, session, wasPaused, mouseState)) {
             session.update();
-            if (assets.maze && scene.camera.update(dt, *assets.maze.get())) {
-                scene.lights.position(scene.camera.inv_v);
+            if (assets.maze && scene.getCamera().update(dt, *assets.maze.get())) {
+                scene.getLights().position(scene.getCamera().getInverseViewMatrix());
             }
         }
 
-        if (!gui.inMainMenu && assets.maze) {
+        if (!gui.isInMainMenu() && assets.maze) {
             glm::vec3 goalPos = assets.maze->getGoalWorldPosition();
             scene.update_gameplay(dt, goalPos);
 
-            if (!gui.hasWon && scene.check_win_condition(goalPos)) {
-                gui.hasWon = true;
-                gui.isPaused = false;
+            if (!gui.hasWon() && scene.check_win_condition(goalPos)) {
+                gui.setHasWon(true);
+                gui.setPaused(false);
                 session.stop();
-                session.saveScore(assets.maze->currentSeed, currentDifficulty);
+                session.saveScore(assets.maze->getCurrentSeed(), currentDifficulty);
             }
 
             scene.draw();
@@ -404,6 +398,15 @@ int run_engine() {
 int main(int argc, char* argv[]) {
     try {
         return run_engine();
+    } catch (const exceptions::EngineSetupException& e) {
+        std::cerr << "Engine Setup Fatal Error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    } catch (const exceptions::ShaderException& e) {
+        std::cerr << "Shader Fatal Error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    } catch (const exceptions::MeshException& e) {
+        std::cerr << "Mesh Fatal Error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
     } catch (const std::exception& e) {
         std::cerr << "Fatal Error: " << e.what() << std::endl;
         return EXIT_FAILURE;

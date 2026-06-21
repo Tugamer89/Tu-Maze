@@ -3,18 +3,19 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 
 #ifndef GLAD_GL_IMPLEMENTATION
 #define GLAD_GL_IMPLEMENTATION
 #include "../glad/gl.h"
 #endif
-// Returns a C++ string loaded with the contents of a whole file
+
+#include "exceptions.hh"
+
 inline std::string read_file(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open shader file: " + filename);
+        throw exceptions::ShaderException("Failed to open shader file: " + filename);
     }
 
     std::string s;
@@ -44,15 +45,16 @@ inline std::string getInfoLog(GLuint object, GetIvFunc get_iv, GetInfoLogFunc ge
 
 // Manages the compilation, linking, and hot-reloading of GLSL Shader Programs
 class Shaders {
-   public:
+   private:
     GLuint program = 0;
 
+   public:
     Shaders() { load_fallback(); }
 
     Shaders(const std::string& vertex_file, const std::string& fragment_file) {
         try {
             load(vertex_file, fragment_file);
-        } catch (const std::exception& e) {
+        } catch (const exceptions::ShaderException& e) {
             std::cerr << "WARNING (Shaders): " << e.what()
                       << "\nReverting to static fallback shader.\n";
             load_fallback();
@@ -65,6 +67,8 @@ class Shaders {
     Shaders& operator=(const Shaders&) = delete;
     Shaders(Shaders&&) = delete;
     Shaders& operator=(Shaders&&) = delete;
+
+    [[nodiscard]] GLuint getProgram() const { return program; }
 
     // Hardcoded minimal shader to ensure the engine doesn't crash if external assets are missing
     void load_fallback() {
@@ -82,7 +86,8 @@ class Shaders {
             "}";
 
         if (!compile_attach_link(&vertex_source, &fragment_source)) {
-            throw std::runtime_error("Critical error: Failed to compile fallback shaders.");
+            throw exceptions::ShaderException(
+                "Critical error: Failed to compile fallback shaders.");
         }
     }
 
@@ -93,7 +98,7 @@ class Shaders {
         const char* fragment_source = fragment_string.c_str();
 
         if (!compile_attach_link(&vertex_source, &fragment_source)) {
-            throw std::runtime_error("Failed to compile or link provided shader files.");
+            throw exceptions::ShaderException("Failed to compile or link provided shader files.");
         }
     }
 
@@ -108,7 +113,7 @@ class Shaders {
         clean();
         try {
             load(vertex_file, fragment_file);
-        } catch (const std::exception& e) {
+        } catch (const exceptions::ShaderException& e) {
             std::cerr << "Shader reload failed: " << e.what() << "\n";
             load_fallback();
         }

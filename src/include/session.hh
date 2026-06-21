@@ -23,6 +23,9 @@ class SessionManager {
     double elapsedTime = 0.0;
     double accumulatedTime = 0.0;
     std::chrono::time_point<std::chrono::steady_clock> startTime;
+    bool running = false;
+
+    static constexpr const char* scoresFile = "tu-maze_scores.txt";
 
     void updateElapsedTime() {
         auto currentTime = std::chrono::steady_clock::now();
@@ -31,34 +34,33 @@ class SessionManager {
     }
 
    public:
-    inline static const std::string scoresFile = "tu-maze_scores.txt";
-    bool isRunning = false;
-
     SessionManager() = default;
 
+    [[nodiscard]] bool isRunning() const { return running; }
+
     void start() {
-        if (!isRunning) {
+        if (!running) {
             startTime = std::chrono::steady_clock::now();
-            isRunning = true;
+            running = true;
         }
     }
 
     void stop() {
-        if (isRunning) {
+        if (running) {
             updateElapsedTime();
             accumulatedTime = elapsedTime;
-            isRunning = false;
+            running = false;
         }
     }
 
     void reset() {
-        isRunning = false;
+        running = false;
         elapsedTime = 0.0;
         accumulatedTime = 0.0;
     }
 
     void update() {
-        if (isRunning) {
+        if (running) {
             updateElapsedTime();
         }
     }

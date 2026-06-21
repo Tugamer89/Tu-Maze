@@ -16,14 +16,13 @@
 
 // Manages the hierarchical node tree, rendering passes, and global uniforms
 class Scene {
-   public:
+   private:
     Camera camera;
     Lights lights;
 
     Node root;
     Node goalNode;
 
-   private:
     GLint model_loc = -1;
     GLint vp_loc = -1;
     GLint tr_inv_model_loc = -1;
@@ -35,33 +34,44 @@ class Scene {
         update_all();
     }
 
+    Camera& getCamera() { return camera; }
+    [[nodiscard]] const Camera& getCamera() const { return camera; }
+
+    Lights& getLights() { return lights; }
+    [[nodiscard]] const Lights& getLights() const { return lights; }
+
+    Node& getRoot() { return root; }
+    [[nodiscard]] const Node& getRoot() const { return root; }
+
+    Node& getGoalNode() { return goalNode; }
+    [[nodiscard]] const Node& getGoalNode() const { return goalNode; }
+
     // Queries and caches all necessary uniform locations from the active shader program
     void locations(const Shaders& shaders) {
         camera.locations(shaders);
         lights.locations(shaders);
 
-        model_loc = glGetUniformLocation(shaders.program, "model");
-        vp_loc = glGetUniformLocation(shaders.program, "vp");
-        tr_inv_model_loc = glGetUniformLocation(shaders.program, "tr_inv_model");
+        model_loc = glGetUniformLocation(shaders.getProgram(), "model");
+        vp_loc = glGetUniformLocation(shaders.getProgram(), "vp");
+        tr_inv_model_loc = glGetUniformLocation(shaders.getProgram(), "tr_inv_model");
 
-        mat_locs.diffuse_loc = glGetUniformLocation(shaders.program, "material.diffuse");
-        mat_locs.ambient_loc = glGetUniformLocation(shaders.program, "material.ambient");
-        mat_locs.specular_loc = glGetUniformLocation(shaders.program, "material.specular");
-        mat_locs.shininess_loc = glGetUniformLocation(shaders.program, "material.shininess");
-        mat_locs.alpha_loc = glGetUniformLocation(shaders.program, "material.alpha");
-        mat_locs.useTextures_loc = glGetUniformLocation(shaders.program, "useTextures");
-        mat_locs.useFlatShading_loc = glGetUniformLocation(shaders.program, "useFlatShading");
+        mat_locs.diffuse_loc = glGetUniformLocation(shaders.getProgram(), "material.diffuse");
+        mat_locs.ambient_loc = glGetUniformLocation(shaders.getProgram(), "material.ambient");
+        mat_locs.specular_loc = glGetUniformLocation(shaders.getProgram(), "material.specular");
+        mat_locs.shininess_loc = glGetUniformLocation(shaders.getProgram(), "material.shininess");
+        mat_locs.alpha_loc = glGetUniformLocation(shaders.getProgram(), "material.alpha");
+        mat_locs.useTextures_loc = glGetUniformLocation(shaders.getProgram(), "useTextures");
+        mat_locs.useFlatShading_loc = glGetUniformLocation(shaders.getProgram(), "useFlatShading");
 
-        // Set static texture sampler indices once
-        glUniform1i(glGetUniformLocation(shaders.program, "diffuseMap"), 0);
-        glUniform1i(glGetUniformLocation(shaders.program, "normalMap"), 1);
-        glUniform1i(glGetUniformLocation(shaders.program, "roughnessMap"), 2);
+        glUniform1i(glGetUniformLocation(shaders.getProgram(), "diffuseMap"), 0);
+        glUniform1i(glGetUniformLocation(shaders.getProgram(), "normalMap"), 1);
+        glUniform1i(glGetUniformLocation(shaders.getProgram(), "roughnessMap"), 2);
     }
 
     void update_all() {
         camera.projection();
         lights.parameters();
-        lights.position(camera.inv_v);
+        lights.position(camera.getInverseViewMatrix());
     }
 
     void build_static_tree() {
@@ -86,7 +96,7 @@ class Scene {
         goalTransform = glm::rotate(goalTransform, rotAngle, glm::vec3(0.0f, 1.0f, 0.0f));
         goalTransform = glm::scale(goalTransform, glm::vec3(0.4f));
 
-        goalNode.localMatrix = goalTransform;
+        goalNode.setLocalMatrix(goalTransform);
         goalNode.updateTransforms();
     }
 
@@ -96,12 +106,12 @@ class Scene {
     }
 
     void draw() {
-        glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.vp));
+        glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(camera.getViewProjectionMatrix()));
 
         const Material* currentMat = nullptr;
 
-        root.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, currentMat);
-        goalNode.draw(model_loc, tr_inv_model_loc, camera.frustumPlanes, mat_locs, currentMat);
+        root.draw(model_loc, tr_inv_model_loc, camera.getFrustumPlanes(), mat_locs, currentMat);
+        goalNode.draw(model_loc, tr_inv_model_loc, camera.getFrustumPlanes(), mat_locs, currentMat);
 
         if (currentMat) {
             currentMat->unbind();

@@ -9,9 +9,9 @@
 #include <optional>
 #include <random>
 #include <stack>
-#include <stdexcept>
 #include <vector>
 
+#include "exceptions.hh"
 #include "gpumesh.hh"
 #include "material.hh"
 #include "mesh.hh"
@@ -33,15 +33,97 @@ class Maze {
     static constexpr float WALL_THICKNESS = 0.1f;
     static constexpr float WALL_HEIGHT = 1.0f;
 
+   private:
     int width;
     int height;
     unsigned int currentSeed = 0;
     std::vector<Cell> grid;
 
+    Cell& getCellModifiable(int x, int y) {
+        if (x < 0 || x >= width || y < 0 || y >= height)
+            throw exceptions::MazeException("Maze coordinate out of bounds");
+        return grid[y * width + x];
+    }
+
+    // Depth-First Search Maze Algorithm (Randomized backtracking)
+    void generate(std::optional<unsigned int> seed) {
+        std::stack<int> stack;
+
+        currentSeed = seed.value_or(static_cast<unsigned int>(
+            std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+
+        std::mt19937 rng(currentSeed);
+        std::cout << "Maze generated with seed: " << currentSeed << std::endl;
+
+        int currentIndex = 0;
+        grid[currentIndex].visited = true;
+        stack.push(currentIndex);
+
+        struct DirInfo {
+            int dx;
+            int dy;
+            bool Cell::*wallCurrent;
+            bool Cell::*wallNext;
+        };
+
+        static constexpr std::array<DirInfo, 4> dirTable = {{
+            {0, -1, &Cell::wallTop, &Cell::wallBottom},
+            {1, 0, &Cell::wallRight, &Cell::wallLeft},
+            {0, 1, &Cell::wallBottom, &Cell::wallTop},
+            {-1, 0, &Cell::wallLeft, &Cell::wallRight},
+        }};
+
+        std::vector<std::pair<int, int>> neighbors;
+        neighbors.reserve(4);
+
+        while (!stack.empty()) {
+            currentIndex = stack.top();
+            int cx = currentIndex % width;
+            int cy = currentIndex / width;
+
+            neighbors.clear();
+
+            for (int i = 0; i < 4; ++i) {
+                int nx = cx + dirTable[i].dx;
+                int ny = cy + dirTable[i].dy;
+
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height &&
+                    !grid[ny * width + nx].visited) {
+                    neighbors.emplace_back(ny * width + nx, i);
+                }
+            }
+
+            if (neighbors.empty()) {
+                stack.pop();
+                continue;
+            }
+
+            std::uniform_int_distribution<size_t> dist(0, neighbors.size() - 1);
+            auto [nextIndex, dIdx] = neighbors[dist(rng)];
+
+            grid[currentIndex].*dirTable[dIdx].wallCurrent = false;
+            grid[nextIndex].*dirTable[dIdx].wallNext = false;
+
+            grid[nextIndex].visited = true;
+            stack.push(nextIndex);
+        }
+    }
+
+   public:
     Maze(int width, int height, std::optional<unsigned int> seed = std::nullopt)
         : width(width), height(height) {
         grid.resize(static_cast<size_t>(width) * static_cast<size_t>(height));
         generate(seed);
+    }
+
+    [[nodiscard]] int getWidth() const { return width; }
+    [[nodiscard]] int getHeight() const { return height; }
+    [[nodiscard]] unsigned int getCurrentSeed() const { return currentSeed; }
+
+    [[nodiscard]] const Cell& getCellAt(int x, int y) const {
+        if (x < 0 || x >= width || y < 0 || y >= height)
+            throw exceptions::MazeException("Maze coordinate out of bounds");
+        return grid[y * width + x];
     }
 
     // Translates integer cell grid indices into 3D World space coordinates
@@ -112,95 +194,18 @@ class Maze {
         Node mazeRoot;
 
         Node wallsNode;
-        wallsNode.mesh = outBatchedWalls.get();
-        wallsNode.material = &wallMat;
-        wallsNode.is_wall = true;
+        wallsNode.setMesh(outBatchedWalls.get());
+        wallsNode.setMaterial(&wallMat);
+        wallsNode.setIsWall(true);
 
         Node floorsNode;
-        floorsNode.mesh = outBatchedFloors.get();
-        floorsNode.material = &floorMat;
-        floorsNode.is_wall = false;
+        floorsNode.setMesh(outBatchedFloors.get());
+        floorsNode.setMaterial(&floorMat);
+        floorsNode.setIsWall(false);
 
-        mazeRoot.children.push_back(std::move(wallsNode));
-        mazeRoot.children.push_back(std::move(floorsNode));
+        mazeRoot.addChild(std::move(wallsNode));
+        mazeRoot.addChild(std::move(floorsNode));
 
         return mazeRoot;
-    }
-
-   private:
-    Cell& getCell(int x, int y) {
-        if (x < 0 || x >= width || y < 0 || y >= height)
-            throw std::out_of_range("Maze coordinate out of bounds");
-        return grid[y * width + x];
-    }
-
-    const Cell& getCell(int x, int y) const {
-        if (x < 0 || x >= width || y < 0 || y >= height)
-            throw std::out_of_range("Maze coordinate out of bounds");
-        return grid[y * width + x];
-    }
-
-    // Depth-First Search Maze Algorithm (Randomized backtracking)
-    void generate(std::optional<unsigned int> seed) {
-        std::stack<int> stack;
-
-        currentSeed = seed.value_or(static_cast<unsigned int>(
-            std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-
-        std::mt19937 rng(currentSeed);
-        std::cout << "Maze generated with seed: " << currentSeed << std::endl;
-
-        int currentIndex = 0;
-        grid[currentIndex].visited = true;
-        stack.push(currentIndex);
-
-        struct DirInfo {
-            int dx;
-            int dy;
-            bool Cell::*wallCurrent;
-            bool Cell::*wallNext;
-        };
-
-        static constexpr std::array<DirInfo, 4> dirTable = {{
-            {0, -1, &Cell::wallTop, &Cell::wallBottom},
-            {1, 0, &Cell::wallRight, &Cell::wallLeft},
-            {0, 1, &Cell::wallBottom, &Cell::wallTop},
-            {-1, 0, &Cell::wallLeft, &Cell::wallRight},
-        }};
-
-        std::vector<std::pair<int, int>> neighbors;
-        neighbors.reserve(4);
-
-        while (!stack.empty()) {
-            currentIndex = stack.top();
-            int cx = currentIndex % width;
-            int cy = currentIndex / width;
-
-            neighbors.clear();
-
-            for (int i = 0; i < 4; ++i) {
-                int nx = cx + dirTable[i].dx;
-                int ny = cy + dirTable[i].dy;
-
-                if (nx >= 0 && nx < width && ny >= 0 && ny < height &&
-                    !grid[ny * width + nx].visited) {
-                    neighbors.emplace_back(ny * width + nx, i);
-                }
-            }
-
-            if (neighbors.empty()) {
-                stack.pop();
-                continue;
-            }
-
-            std::uniform_int_distribution<size_t> dist(0, neighbors.size() - 1);
-            auto [nextIndex, dIdx] = neighbors[dist(rng)];
-
-            grid[currentIndex].*dirTable[dIdx].wallCurrent = false;
-            grid[nextIndex].*dirTable[dIdx].wallNext = false;
-
-            grid[nextIndex].visited = true;
-            stack.push(nextIndex);
-        }
     }
 };

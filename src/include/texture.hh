@@ -19,10 +19,9 @@ class Texture {
     GLuint m_textureID = 0;
     inline static std::vector<Texture*> instances;
     inline static GLfloat maxSupportedAnisotropy = -1.0f;
-
-   public:
     inline static TextureQuality currentGlobalQuality = TextureQuality::Medium;
 
+   public:
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
     Texture(Texture&&) = delete;
@@ -130,6 +129,8 @@ class Texture {
             }
         }
     }
+
+    [[nodiscard]] static TextureQuality getGlobalQuality() { return currentGlobalQuality; }
 
     static void setGlobalQuality(TextureQuality quality) {
         currentGlobalQuality = quality;

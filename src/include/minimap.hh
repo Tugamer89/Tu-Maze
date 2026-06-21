@@ -28,6 +28,8 @@ class Minimap {
     GLuint fboResolve = 0;
     GLuint texColorResolve = 0;
 
+    const GPUMesh* playerMesh = nullptr;
+
     const int renderResolution = 512;
     const int msaaSamples = 8;
 
@@ -77,21 +79,21 @@ class Minimap {
 
     void setupProjection(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const {
         // Orthographic projection provides a flat, 2D top-down view
-        glm::mat4 pr = glm::ortho(-gui.minimap_zoom, gui.minimap_zoom, -gui.minimap_zoom,
-                                  gui.minimap_zoom, 0.1f, 100.0f);
+        glm::mat4 pr = glm::ortho(-gui.getMinimapZoom(), gui.getMinimapZoom(),
+                                  -gui.getMinimapZoom(), gui.getMinimapZoom(), 0.1f, 100.0f);
 
         glm::vec3 up;
-        if (gui.minimap_fix_north) {
+        if (gui.isMinimapFixNorth()) {
             up = glm::vec3(0.0f, 0.0f, -1.0f);
         } else {
-            glm::vec3 front = scene.camera.getFront();
+            glm::vec3 front = scene.getCamera().getFront();
             up = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
         }
 
         glm::mat4 view = glm::lookAt(camPos + glm::vec3(0.0f, 40.0f, 0.0f), camPos, up);
         glm::mat4 vp = pr * view;
 
-        glUniformMatrix4fv(glGetUniformLocation(shaders.program, "vp"), 1, GL_FALSE,
+        glUniformMatrix4fv(glGetUniformLocation(shaders.getProgram(), "vp"), 1, GL_FALSE,
                            glm::value_ptr(vp));
     }
 
@@ -100,10 +102,10 @@ class Minimap {
         if (!playerMesh) return;
 
         glm::mat4 model = glm::translate(glm::mat4(1.0f), camPos);
-        model =
-            glm::rotate(model, glm::radians(-scene.camera.getYaw() - 90.0f), glm::vec3(0, 1, 0));
+        model = glm::rotate(model, glm::radians(-scene.getCamera().getYaw() - 90.0f),
+                            glm::vec3(0, 1, 0));
 
-        float markerScale = gui.minimap_zoom * 0.15f;
+        float markerScale = gui.getMinimapZoom() * 0.15f;
         model = glm::scale(model, glm::vec3(markerScale));
 
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -115,8 +117,6 @@ class Minimap {
     }
 
    public:
-    const GPUMesh* playerMesh = nullptr;
-
     Minimap(const std::string& vert_path, const std::string& frag_path)
         : shaders(vert_path, frag_path) {}
 
@@ -134,6 +134,8 @@ class Minimap {
         if (texColorResolve != 0) glDeleteTextures(1, &texColorResolve);
     }
 
+    void setPlayerMesh(const GPUMesh* mesh) { playerMesh = mesh; }
+
     void reloadShaders(const std::string& vert_path, const std::string& frag_path) {
         shaders.reload(vert_path, frag_path);
     }
@@ -141,7 +143,7 @@ class Minimap {
     [[nodiscard]] GLuint getTextureID() const { return texColorResolve; }
 
     void draw(const Scene& scene, const Gui& gui) {
-        if (!gui.minimap_enabled) return;
+        if (!gui.isMinimapEnabled()) return;
 
         initFBO();
 
@@ -160,16 +162,16 @@ class Minimap {
 
         shaders.use();
 
-        glm::vec3 camPos = scene.camera.getPosition();
+        glm::vec3 camPos = scene.getCamera().getPosition();
         setupProjection(scene, gui, camPos);
 
-        GLint modelLoc = glGetUniformLocation(shaders.program, "model");
-        GLint colorLoc = glGetUniformLocation(shaders.program, "color");
+        GLint modelLoc = glGetUniformLocation(shaders.getProgram(), "model");
+        GLint colorLoc = glGetUniformLocation(shaders.getProgram(), "color");
 
         // Radially cull minimap geometry that exists beyond the map zoom
-        float cullRadius = gui.minimap_zoom * 1.5f;
-        scene.root.drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
-        scene.goalNode.drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
+        float cullRadius = gui.getMinimapZoom() * 1.5f;
+        scene.getRoot().drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
+        scene.getGoalNode().drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
         drawPlayerMarker(scene, gui, modelLoc, colorLoc, camPos);
 
         // Blit resolves the Multisampled FBO into a readable 2D Texture for ImGui

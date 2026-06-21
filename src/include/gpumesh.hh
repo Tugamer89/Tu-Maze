@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bit>
 #include <glm/mat4x4.hpp>
 #include <string>
 #include <vector>
@@ -11,14 +12,12 @@
 
 #include "mesh.hh"
 
-// Wraps OpenGL Vertex Array Objects (VAO) and Vertex Buffer Objects (VBO)
 class GPUMesh {
-   public:
+   private:
     glm::vec3 center = {0.0f, 0.0f, 0.0f};
     float extent = 1.0f;
     GLsizei indexCount = 0;
 
-   private:
     GLuint vbo = 0;
     GLuint ebo = 0;
     GLuint vao = 0;
@@ -28,7 +27,7 @@ class GPUMesh {
     explicit GPUMesh(const std::string& filename) { load(filename); }
 
     explicit GPUMesh(const Mesh& cpuMesh)
-        : center(cpuMesh.center), extent(cpuMesh.extent), initialized(true) {
+        : center(cpuMesh.getCenter()), extent(cpuMesh.getExtent()), initialized(true) {
         std::vector<float> points;
         std::vector<unsigned int> indices;
         cpuMesh.pack4gpu(points, indices);
@@ -42,10 +41,14 @@ class GPUMesh {
     GPUMesh(GPUMesh&&) = delete;
     GPUMesh& operator=(GPUMesh&&) = delete;
 
+    [[nodiscard]] const glm::vec3& getCenter() const { return center; }
+    [[nodiscard]] float getExtent() const { return extent; }
+    [[nodiscard]] GLsizei getIndexCount() const { return indexCount; }
+
     void load(const std::string& filename) {
         Mesh mesh(filename);
-        center = mesh.center;
-        extent = mesh.extent;
+        center = mesh.getCenter();
+        extent = mesh.getExtent();
 
         std::vector<float> points;
         std::vector<unsigned int> indices;
@@ -88,7 +91,7 @@ class GPUMesh {
 
         // Attribute 1: Vertex Normal (vec3)
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                              reinterpret_cast<void*>(3 * sizeof(float)));
+                              std::bit_cast<void*>(static_cast<std::uintptr_t>(3 * sizeof(float))));
         glEnableVertexAttribArray(1);
 
         glGenBuffers(1, &ebo);

@@ -16,7 +16,7 @@
 
 // Scene Graph node allowing hierarchical rendering and transformations
 class Node {
-   public:
+   private:
     glm::mat4 localMatrix = glm::mat4(1.0f);
     glm::mat4 globalMatrix = glm::mat4(1.0f);
     glm::mat3 normalMatrix = glm::mat3(1.0f);
@@ -31,7 +31,19 @@ class Node {
     bool is_wall = false;
     bool is_goal = false;
 
+   public:
     Node() = default;
+
+    void setLocalMatrix(const glm::mat4& mat) { localMatrix = mat; }
+    [[nodiscard]] const glm::mat4& getLocalMatrix() const { return localMatrix; }
+
+    void setMesh(GPUMesh* mesh) { this->mesh = mesh; }
+    void setMaterial(const Material* mat) { material = mat; }
+    void addChild(Node&& child) { children.push_back(std::move(child)); }
+    void clearChildren() { children.clear(); }
+
+    void setIsWall(bool val) { is_wall = val; }
+    void setIsGoal(bool val) { is_goal = val; }
 
     // Recursively bakes local transforms down the tree and updates bounding volumes
     void updateTransforms(const glm::mat4& parentMatrix = glm::mat4(1.0f)) {
@@ -39,14 +51,14 @@ class Node {
         normalMatrix = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
 
         if (mesh) {
-            worldCenter = glm::vec3(globalMatrix * glm::vec4(mesh->center, 1.0f));
+            worldCenter = glm::vec3(globalMatrix * glm::vec4(mesh->getCenter(), 1.0f));
 
             float scaleX2 = glm::dot(glm::vec3(globalMatrix[0]), glm::vec3(globalMatrix[0]));
             float scaleY2 = glm::dot(glm::vec3(globalMatrix[1]), glm::vec3(globalMatrix[1]));
             float scaleZ2 = glm::dot(glm::vec3(globalMatrix[2]), glm::vec3(globalMatrix[2]));
 
             float maxScale = std::sqrt(std::max({scaleX2, scaleY2, scaleZ2}));
-            worldRadius = mesh->extent * maxScale;
+            worldRadius = mesh->getExtent() * maxScale;
         }
 
         for (Node& child : children) {

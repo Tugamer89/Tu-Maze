@@ -12,18 +12,14 @@
 #include <ctime>
 #include <fstream>
 #include <functional>
-#include <iostream>
-#include <stdexcept>
-#include <string>
 
+#include "exceptions.hh"
 #include "scene.hh"
 #include "session.hh"
 #include "texture.hh"
 
 class Gui {
    public:
-    inline static const std::string settingsFile = "tu-maze_settings.txt";
-
     struct GuiCallbacks {
         std::function<void(int)> onPlayRandom;
         std::function<void(unsigned int, int)> onPlayCustom;
@@ -32,11 +28,14 @@ class Gui {
         std::function<void()> onQuitDesktop;
     };
 
+   private:
+    static constexpr const char* settingsFile = "tu-maze_settings.txt";
+
     bool minimap_enabled = true;
     bool minimap_fix_north = true;
     float minimap_zoom = 8.0f;
-    bool hasWon = false;
-    bool isPaused = false;
+    bool won = false;
+    bool paused = false;
     bool show_fps_overlay = false;
 
     bool inMainMenu = true;
@@ -45,7 +44,6 @@ class Gui {
     int customSeedInput = 0;
     int selectedDifficulty = 1;
 
-   private:
     bool vsync_enabled = true;
     int msaa_level = 0;
     int active_msaa_level = 0;
@@ -123,23 +121,16 @@ class Gui {
             int q = 0;
             file >> q;
             q = std::clamp(q, 0, 2);
-            Texture::currentGlobalQuality = static_cast<TextureQuality>(q);
+            Texture::setGlobalQuality(static_cast<TextureQuality>(q));
 
-            file >> vsync_enabled;
-            file >> msaa_level;
-            file >> camera_fov;
-            file >> minimap_enabled;
-            file >> minimap_fix_north;
-            file >> minimap_zoom;
-            file >> show_fps_overlay;
-            file >> selectedDifficulty;
-            file >> camera_sensitivity;
-            file >> camera_bobbing;
+            file >> vsync_enabled >> msaa_level >> camera_fov >> minimap_enabled >>
+                minimap_fix_north >> minimap_zoom >> show_fps_overlay >> selectedDifficulty >>
+                camera_sensitivity >> camera_bobbing;
 
             selectedDifficulty = std::clamp(selectedDifficulty, 0, 3);
             file.close();
         } else {
-            Texture::currentGlobalQuality = Texture::autoDetectQuality();
+            Texture::setGlobalQuality(Texture::autoDetectQuality());
             saveSettings();
         }
     }
@@ -147,17 +138,17 @@ class Gui {
     void saveSettings() const {
         std::ofstream file(settingsFile);
         if (file.is_open()) {
-            file << static_cast<int>(Texture::currentGlobalQuality) << "\n";
-            file << vsync_enabled << "\n";
-            file << msaa_level << "\n";
-            file << camera_fov << "\n";
-            file << minimap_enabled << "\n";
-            file << minimap_fix_north << "\n";
-            file << minimap_zoom << "\n";
-            file << show_fps_overlay << "\n";
-            file << selectedDifficulty << "\n";
-            file << camera_sensitivity << "\n";
-            file << camera_bobbing << "\n";
+            file << static_cast<int>(Texture::getGlobalQuality()) << "\n"
+                 << vsync_enabled << "\n"
+                 << msaa_level << "\n"
+                 << camera_fov << "\n"
+                 << minimap_enabled << "\n"
+                 << minimap_fix_north << "\n"
+                 << minimap_zoom << "\n"
+                 << show_fps_overlay << "\n"
+                 << selectedDifficulty << "\n"
+                 << camera_sensitivity << "\n"
+                 << camera_bobbing << "\n";
             file.close();
         }
     }
@@ -166,17 +157,17 @@ class Gui {
         ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Controls & Camera");
 
         if (ImGui::SliderFloat("Mouse Sensitivity", &camera_sensitivity, 0.01f, 1.0f, "%.2f")) {
-            scene.camera.setMouseSensitivity(camera_sensitivity);
+            scene.getCamera().setMouseSensitivity(camera_sensitivity);
             saveSettings();
         }
 
         if (ImGui::SliderFloat("Head Bobbing", &camera_bobbing, 0.0f, 0.05f, "%.3f")) {
-            scene.camera.setBobbingAmount(camera_bobbing);
+            scene.getCamera().setBobbingAmount(camera_bobbing);
             saveSettings();
         }
 
         if (ImGui::SliderFloat("Field of View", &camera_fov, 30.0f, 120.0f, "%.1f deg")) {
-            scene.camera.setFov(camera_fov);
+            scene.getCamera().setFov(camera_fov);
             saveSettings();
         }
 
@@ -202,7 +193,7 @@ class Gui {
 
         ImGui::Separator();
 
-        if (auto currentQuality = static_cast<int>(Texture::currentGlobalQuality);
+        if (auto currentQuality = static_cast<int>(Texture::getGlobalQuality());
             ImGui::Combo("Texture Quality", &currentQuality, qualities.data(),
                          static_cast<int>(qualities.size()))) {
             Texture::setGlobalQuality(static_cast<TextureQuality>(currentQuality));
@@ -273,12 +264,9 @@ class Gui {
             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground |
             ImGuiWindowFlags_NoInputs;
 
-        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        ImVec2 windowPos(ImGui::GetIO().DisplaySize.x * 0.5f, 30.0f);
 
-        ImVec2 windowPos(displaySize.x * 0.5f, 30.0f);
-        ImVec2 windowPosPivot(0.5f, 0.0f);
-
-        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, windowPosPivot);
+        ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always, ImVec2(0.5f, 0.0f));
         ImGui::SetNextWindowBgAlpha(0.0f);
 
         if (ImGui::Begin("GameHUD", nullptr, windowFlags)) {
@@ -372,9 +360,7 @@ class Gui {
 
                     auto time = static_cast<std::time_t>(s.timestamp);
                     std::tm* local_tm = std::localtime(&time);  // NOSONAR
-
-                    std::string timeStr = formatDate(local_tm);
-                    ImGui::Text("%s", timeStr.c_str());
+                    ImGui::Text("%s", formatDate(local_tm).c_str());
                 }
                 ImGui::EndTable();
             }
@@ -521,10 +507,10 @@ class Gui {
 
         ImGuiWindowFlags pauseFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
                                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-        ImGui::Begin("Game Paused", &isPaused, pauseFlags);
+        ImGui::Begin("Game Paused", &paused, pauseFlags);
 
         if (ImGui::Button("Resume Game", ImVec2(-1.0f, 38.0f))) {
-            isPaused = false;
+            paused = false;
         }
         if (ImGui::Button("Return to Main Menu", ImVec2(-1.0f, 38.0f)) &&
             callbacks.onReturnToMenu) {
@@ -555,7 +541,7 @@ class Gui {
 
     explicit Gui(sf::Window& window) {
         if (!ImGui::SFML::Init(window, sf::Vector2f(window.getSize()), false)) {
-            throw std::runtime_error("Error during ImGui-SFML initialization!");
+            throw exceptions::GuiException("Error during ImGui-SFML initialization!");
         }
 
         ImGui_ImplOpenGL3_Init("#version 410 core");
@@ -580,6 +566,25 @@ class Gui {
     Gui(const Gui&) = delete;
     Gui& operator=(Gui&&) = delete;
 
+    [[nodiscard]] bool isMinimapEnabled() const { return minimap_enabled; }
+    [[nodiscard]] bool isMinimapFixNorth() const { return minimap_fix_north; }
+    [[nodiscard]] float getMinimapZoom() const { return minimap_zoom; }
+
+    [[nodiscard]] bool hasWon() const { return won; }
+    void setHasWon(bool val) { won = val; }
+
+    [[nodiscard]] bool isPaused() const { return paused; }
+    void setPaused(bool val) { paused = val; }
+
+    [[nodiscard]] bool isInMainMenu() const { return inMainMenu; }
+    void setInMainMenu(bool val) { inMainMenu = val; }
+
+    [[nodiscard]] bool isShowingLeaderboard() const { return showLeaderboard; }
+    void setShowingLeaderboard(bool val) { showLeaderboard = val; }
+
+    [[nodiscard]] bool isShowingSettings() const { return showSettings; }
+    void setShowingSettings(bool val) { showSettings = val; }
+
     void process_event(const sf::Window& window, const sf::Event& event) const {
         ImGui::SFML::ProcessEvent(window, event);
     }
@@ -599,13 +604,13 @@ class Gui {
         if (inMainMenu) {
             renderMainMenuSection(scene, window, session, callbacks);
         } else {
-            if (hasWon) {
+            if (won) {
                 renderVictorySection(callbacks);
             }
-            if (isPaused) {
+            if (paused) {
                 renderPauseSection(scene, window, callbacks);
             }
-            if (!hasWon && !isPaused) {
+            if (!won && !paused) {
                 renderHUD(session.getFormattedTime());
                 renderMinimapWindow(minimapTexture);
             }
@@ -613,9 +618,9 @@ class Gui {
         }
 
         if (static bool isFirstFrame = true; isFirstFrame) {
-            scene.camera.setFov(camera_fov);
-            scene.camera.setMouseSensitivity(camera_sensitivity);
-            scene.camera.setBobbingAmount(camera_bobbing);
+            scene.getCamera().setFov(camera_fov);
+            scene.getCamera().setMouseSensitivity(camera_sensitivity);
+            scene.getCamera().setBobbingAmount(camera_bobbing);
             isFirstFrame = false;
         }
 

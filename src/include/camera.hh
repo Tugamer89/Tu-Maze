@@ -15,13 +15,12 @@
 #include "maze.hh"
 
 class Camera {
-   public:
+   private:
     glm::mat4 v;      // View Matrix
     glm::mat4 inv_v;  // Inverse View Matrix (useful for billboard lighting)
     glm::mat4 vp;     // View-Projection Matrix (sent directly to shaders)
     std::array<glm::vec4, 6> frustumPlanes{};
 
-   private:
     GLint camera_pos_loc = -1;
 
     glm::vec3 position = {0.0f, 0.5f, 0.0f};
@@ -119,8 +118,8 @@ class Camera {
     // Instead of checking every wall in the maze, it only checks the cell the player
     // is currently in, plus adjacent cells if the player is near a boundary.
     [[nodiscard]] bool checkCollision(const glm::vec3& pos, const Maze& maze) const {
-        float offsetX = (static_cast<float>(maze.width) * Maze::CELL_SIZE) * 0.5f;
-        float offsetZ = (static_cast<float>(maze.height) * Maze::CELL_SIZE) * 0.5f;
+        float offsetX = (static_cast<float>(maze.getWidth()) * Maze::CELL_SIZE) * 0.5f;
+        float offsetZ = (static_cast<float>(maze.getHeight()) * Maze::CELL_SIZE) * 0.5f;
 
         float gridPosX = pos.x + offsetX;
         float gridPosZ = pos.z + offsetZ;
@@ -138,15 +137,15 @@ class Camera {
 
         // Create a minimal bounding box of cells to check
         int minX = std::max(0, (localX < threshold) ? cellX - 1 : cellX);
-        int maxX =
-            std::min(maze.width - 1, (localX > Maze::CELL_SIZE - threshold) ? cellX + 1 : cellX);
+        int maxX = std::min(maze.getWidth() - 1,
+                            (localX > Maze::CELL_SIZE - threshold) ? cellX + 1 : cellX);
         int minZ = std::max(0, (localZ < threshold) ? cellY - 1 : cellY);
-        int maxZ =
-            std::min(maze.height - 1, (localZ > Maze::CELL_SIZE - threshold) ? cellY + 1 : cellY);
+        int maxZ = std::min(maze.getHeight() - 1,
+                            (localZ > Maze::CELL_SIZE - threshold) ? cellY + 1 : cellY);
 
         for (int y = minZ; y <= maxZ; ++y) {
             for (int x = minX; x <= maxX; ++x) {
-                const Cell& cell = maze.grid[y * maze.width + x];
+                const Cell& cell = maze.getCellAt(x, y);
                 float cx = (static_cast<float>(x) * Maze::CELL_SIZE) - offsetX + halfCell;
                 float cz = (static_cast<float>(y) * Maze::CELL_SIZE) - offsetZ + halfCell;
 
@@ -167,6 +166,10 @@ class Camera {
         locations(shaders);
     }
 
+    [[nodiscard]] const glm::mat4& getViewMatrix() const { return v; }
+    [[nodiscard]] const glm::mat4& getInverseViewMatrix() const { return inv_v; }
+    [[nodiscard]] const glm::mat4& getViewProjectionMatrix() const { return vp; }
+    [[nodiscard]] const std::array<glm::vec4, 6>& getFrustumPlanes() const { return frustumPlanes; }
     [[nodiscard]] const glm::vec3& getPosition() const { return position; }
     [[nodiscard]] const glm::vec3& getFront() const { return front; }
     [[nodiscard]] float getYaw() const { return yaw; }
@@ -203,7 +206,7 @@ class Camera {
     void setBobbingAmount(float amount) { bobbingAmount = amount; }
 
     void locations(const Shaders& shaders) {
-        camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");
+        camera_pos_loc = glGetUniformLocation(shaders.getProgram(), "camera_pos");
     }
 
     // Main camera logic pump (handles input, physics, and view interpolation)

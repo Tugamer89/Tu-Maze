@@ -7,17 +7,17 @@
 #include <glm/vec3.hpp>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "exceptions.hh"
+
 // Handles CPU-side 3D Geometry loading (Object File Format .off) and manipulation
 class Mesh {
-   public:
+   private:
     glm::vec3 center = {0.0f, 0.0f, 0.0f};
     float extent = 1.0f;
 
-   private:
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<glm::uvec3> triangles;
@@ -29,7 +29,7 @@ class Mesh {
         std::ifstream file(filename);
 
         if (!file.is_open()) {
-            throw std::runtime_error("Failed to open OFF file: " + filename);
+            throw exceptions::MeshException("Failed to open OFF file: " + filename);
         }
 
         std::string line;
@@ -39,26 +39,23 @@ class Mesh {
         std::erase(line, '\r');
         std::erase(line, '\n');
         if (line != "OFF") {
-            throw std::runtime_error("Invalid OFF file: missing OFF header in " + filename);
+            throw exceptions::MeshException("Invalid OFF file: missing OFF header in " + filename);
         }
 
         // Safely skip any leading comments and empty lines
         while (std::getline(file, line)) {
             std::erase(line, '\r');
             std::erase(line, '\n');
-            if (line.empty() || line[0] == '#') {
-                continue;
-            }
+            if (line.empty() || line[0] == '#') continue;
             break;
         }
 
-        // Parse format header: vertex_count face_count edge_count
         std::istringstream headerStream(line);
         unsigned int vnum = 0;
         unsigned int fnum = 0;
         unsigned int ednum = 0;
         if (!(headerStream >> vnum >> fnum >> ednum)) {
-            throw std::runtime_error("Invalid OFF header format in " + filename);
+            throw exceptions::MeshException("Invalid OFF header format in " + filename);
         }
 
         vertices.reserve(vnum);
@@ -70,7 +67,7 @@ class Mesh {
             float y = 0.f;
             float z = 0.f;
             if (!(file >> x >> y >> z)) {
-                throw std::runtime_error("Failed to read vertex data in " + filename);
+                throw exceptions::MeshException("Failed to read vertex data in " + filename);
             }
             vertices.emplace_back(x, y, z);
             normals.emplace_back(0.0f, 0.0f, 0.0f);
@@ -78,19 +75,19 @@ class Mesh {
 
         for (unsigned int i = 0; i < fnum; ++i) {
             unsigned int vcount = 0;
-
             if (!(file >> vcount)) {
-                throw std::runtime_error("Failed to read face count in " + filename);
+                throw exceptions::MeshException("Failed to read face count in " + filename);
             }
 
             if (vcount == 3) {
                 glm::uvec3 triangle;
                 if (!(file >> triangle[0] >> triangle[1] >> triangle[2])) {
-                    throw std::runtime_error("Failed to read triangle indices in " + filename);
+                    throw exceptions::MeshException("Failed to read triangle indices in " +
+                                                    filename);
                 }
                 triangles.push_back(triangle);
             } else {
-                throw std::runtime_error("Mesh contains non-triangle faces. Unsupported.");
+                throw exceptions::MeshException("Mesh contains non-triangle faces. Unsupported.");
             }
         }
 
@@ -100,13 +97,13 @@ class Mesh {
         compute_normals();
     }
 
+    [[nodiscard]] const glm::vec3& getCenter() const { return center; }
+    [[nodiscard]] float getExtent() const { return extent; }
+
     // Merges another mesh into this one while baking in a transformation matrix.
     // Highly efficient for creating batched geometry (like an entire maze level) as one draw call.
     void appendTransformed(const Mesh& source, const glm::mat4& transform) {
         auto indexOffset = static_cast<unsigned int>(this->vertices.size());
-
-        // Normals require the transpose of the inverse matrix to avoid skewing during scale
-        // operations
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
 
         this->vertices.reserve(this->vertices.size() + source.vertices.size());
