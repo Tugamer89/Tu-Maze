@@ -86,7 +86,9 @@ struct GameAssets {
 ////////////////////
 
 struct MouseState {
+#ifdef __APPLE__
     bool ignoreNextMovement = false;
+#endif
     sf::Vector2i savedMenuMousePos;
     sf::Vector2i lastMousePos;
 };
@@ -96,7 +98,9 @@ void center_mouse(const sf::Window& window, MouseState& mouseState) {
     sf::Vector2i center(window.getSize() / 2u);
     sf::Mouse::setPosition(center, window);
     mouseState.lastMousePos = sf::Mouse::getPosition(window);
+#ifdef __APPLE__
     mouseState.ignoreNextMovement = true;
+#endif
 }
 
 ////////////////////
@@ -127,12 +131,14 @@ void handle_mouse_movement(const sf::Event::MouseMoved& mouse_moved, const sf::W
         return;
     }
 
+#ifdef __APPLE__
     // Catch the intentional event triggered by center_mouse
     if (mouseState.ignoreNextMovement) {
         mouseState.ignoreNextMovement = false;
 
         if (mouseState.lastMousePos == mouse_moved.position) return;
     }
+#endif
 
     auto dx = static_cast<float>(mouse_moved.position.x - mouseState.lastMousePos.x);
     auto dy = static_cast<float>(mouse_moved.position.y - mouseState.lastMousePos.y);
