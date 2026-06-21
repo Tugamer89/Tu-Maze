@@ -22,7 +22,7 @@ all-mac: format configure-mac build-mac
 # ==========================================
 
 format:
-	clang-format-15 -i src/*.cpp src/*/*.hh resources/shaders/*
+	clang-format-15 -i src/*.cpp src/*/*.hh src/*/*.cpp resources/shaders/*
 
 # ==========================================
 # NATIVE ENVIRONMENT
