@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.31.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.30.0...v0.31.0) (2026-06-21)
+
+
+### Features
+
+* bump new version ([8c7c671](https://github.com/Tugamer89/Tu-Maze/commit/8c7c67196864090f9b70540ffadb7b816ec19b59))
+
+
+### Bug Fixes
+
+* update format target to include all header files in subdirectories ([df6b064](https://github.com/Tugamer89/Tu-Maze/commit/df6b0646edac4fd88beb7841d3fb168e66d2c267))
+
+
+### Code Refactoring
+
+* error handling and improve encapsulation across multiple classes ([a89767e](https://github.com/Tugamer89/Tu-Maze/commit/a89767e894d0e350eadd9a089d6abe4e0a1b3480))
+* improved codebase for readability and maintainability ([fac4a5b](https://github.com/Tugamer89/Tu-Maze/commit/fac4a5b1093b77869f1eb0e7f0ecfacefc4f0f92))
+
+
+### Documentation
+
+* update Stage 30 versioning ([0695c98](https://github.com/Tugamer89/Tu-Maze/commit/0695c98234f20740a97ba8fe150d439d0269595e))
+* updated with Stage 30 features ([bbf5c55](https://github.com/Tugamer89/Tu-Maze/commit/bbf5c55348348821a588c0b249453790cdc260b4))
+
 ## [0.30.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.29.0...v0.30.0) (2026-06-21)
 
 
