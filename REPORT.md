@@ -328,6 +328,16 @@ Dal punto di vista architetturale e funzionale, sono state implementate le segue
 * **Sensibilità del Mouse**: È stato esposto un parametro moltiplicatore dinamico nell'interfaccia utente (GUI) che aggiorna istantaneamente la classe `Camera`, consentendo di personalizzare la reattività della visuale a 360 gradi.
 * **Intensità dell'Head-Bobbing**: L'ampiezza dell'onda sinusoidale che simula il passo del giocatore è ora modulabile. Questa integrazione favorisce l'accessibilità, permettendo agli utenti sensibili alla *motion sickness* (cinetosi) di attenuare o disabilitare completamente l'oscillazione della telecamera.
 
+### Stage 30 (v1.0.x)
+
+L'obiettivo di questa tappa è stata la rifinitura strutturale e documentale del motore grafico in preparazione alla prima *release* stabile, allineando l'intero ecosistema ai più alti standard dell'ingegneria del software in C++ moderno.
+
+Dal punto di vista architetturale e stilistico, sono stati implementati i seguenti interventi:
+
+* **Direttive Preprocessore (`#pragma once`)**: Le obsolete macro di inclusione in stile C (`#ifndef ... #define`) sono state interamente sostituite dalla direttiva standard `#pragma once`. Questa transizione snellisce la sintassi degli header (`.hh`), previene conflitti accidentali di denominazione e demanda direttamente al compilatore l'ottimizzazione dei tempi di analisi.
+* **Documentazione Architetturale**: Il codice è stato sottoposto a una profonda revisione. I commenti puramente didascalici ("cosa fa il codice") sono stati rimossi a favore di descrizioni tecniche mirate ("perché lo fa"), focalizzandosi sui fondamenti matematici e sistemici (es. *Frustum Culling*, *Spatial Partitioning*) per garantire una base solida e manutenibile.
+* **Incapsulamento, Memoria e Gestione Errori**: L'architettura delle classi è stata blindata correggendo l'esposizione impropria delle variabili di stato (ora rigorosamente `private` ed esposte tramite *getter/setter*). Il lancio di errori generici è stato sostituito da un sistema di eccezioni fortemente tipizzate (tramite un nuovo header `exceptions.hh`), mentre le conversioni di memoria a basso livello (`reinterpret_cast`) sono state rimpiazzate con la funzione sicura `std::bit_cast` introdotta nello standard C++20.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
