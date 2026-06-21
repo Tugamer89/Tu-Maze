@@ -319,6 +319,15 @@ Dal punto di vista tecnico e architetturale, sono stati implementati i seguenti 
 * **Supporto High-DPI (Retina) per la Minimappa**: Per superare i limiti dell'implementazione OpenGL sui display ad altissima densità di pixel (es. Mac Retina), il rendering della minimappa è stato riprogettato. Il problematico trasferimento dell'immagine sul *Default Framebuffer* tramite `glBlitFramebuffer` è stato abbandonato in favore della risoluzione dell'output multisamplato in una singola Texture OpenGL. Quest'ultima viene passata a ImGui, delegando nativamente al framework la corretta scalatura visiva indipendente dal sistema operativo.
 * **UI Polishing e Custom DrawList**: L'integrazione della texture della minimappa nell'HUD è stata raffinata scavalcando i classici *widget* di ImGui per evitare difetti di *padding* o spigoli vivi. Ottenendo l'accesso a basso livello alla `DrawList` della finestra, l'immagine renderizzata viene ora stampata con angoli elegantemente smussati (`AddImageRounded`) e incorniciata da un bordo personalizzato disegnato direttamente in sovraimpressione.
 
+### Stage 29 (v0.30.x)
+
+L'obiettivo di questa tappa è stato il miglioramento della *Quality of Life* (QoL) e dell'accessibilità dell'applicativo, introducendo nuove opzioni per permettere al giocatore di calibrare l'esperienza visiva in prima persona direttamente dal menu delle impostazioni.
+
+Dal punto di vista architetturale e funzionale, sono state implementate le seguenti aggiunte:
+
+* **Sensibilità del Mouse**: È stato esposto un parametro moltiplicatore dinamico nell'interfaccia utente (GUI) che aggiorna istantaneamente la classe `Camera`, consentendo di personalizzare la reattività della visuale a 360 gradi.
+* **Intensità dell'Head-Bobbing**: L'ampiezza dell'onda sinusoidale che simula il passo del giocatore è ora modulabile. Questa integrazione favorisce l'accessibilità, permettendo agli utenti sensibili alla *motion sickness* (cinetosi) di attenuare o disabilitare completamente l'oscillazione della telecamera.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
