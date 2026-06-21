@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.0.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.31.0...v1.0.0) (2026-06-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* bump new version
+
+### Features
+
+* bump new version ([400a3b0](https://github.com/Tugamer89/Tu-Maze/commit/400a3b0c48f31e17f06e796d8b768cee3bda0886))
+* bump new version ([c1716b4](https://github.com/Tugamer89/Tu-Maze/commit/c1716b41e54f222befada97444e453a6374e81ec))
+
+
+### Bug Fixes
+
+* **build:** update source file globbing to include main.cpp and subdirectory sources ([91dd6b9](https://github.com/Tugamer89/Tu-Maze/commit/91dd6b9b702da0560217c1815e5b6a8a53ac20a2))
+* **format:** include additional source files in clang-format command ([7c12012](https://github.com/Tugamer89/Tu-Maze/commit/7c12012fb6d29619266b56e31f1555a72ad2465d))
+* **format:** update file extension from .hh to .hpp in clang-format command ([e6e6f1d](https://github.com/Tugamer89/Tu-Maze/commit/e6e6f1d1a85e4fee372b433abe0ad331caa80be9))
+* **release:** set bump-minor-pre-major to false in release configuration ([d6059d5](https://github.com/Tugamer89/Tu-Maze/commit/d6059d533269b8fba376fad614105fdefaa033fd))
+
+
+### Code Refactoring
+
+* **arch:** reorganize project files into subdirectories ([f1bbc66](https://github.com/Tugamer89/Tu-Maze/commit/f1bbc66b637a42fe82e7fc8ce43720d8488fe94f))
+* **arch:** separate interfaces from implementations and modularize source ([7ffb423](https://github.com/Tugamer89/Tu-Maze/commit/7ffb42323caac945325eebc325e3f6a9bfdd0777))
+* **engine:** split Gui class and group Camera fields to meet SonarQube limits ([d84f4a2](https://github.com/Tugamer89/Tu-Maze/commit/d84f4a2707308a9c17cdbd0cb24dda39728f97ff))
+* renamed headers from .hh to .hpp ([4682dff](https://github.com/Tugamer89/Tu-Maze/commit/4682dffa7a37e05df1874133cdd2fb36b00fbc92))
+
+
+### Documentation
+
+* update Stage 31 REPORT ([08f7ce5](https://github.com/Tugamer89/Tu-Maze/commit/08f7ce57c605c2d72048f2eb8e5132401f5a3567))
+* update Stage 31 version from v0.32.x to v1.0.x ([d7bf25d](https://github.com/Tugamer89/Tu-Maze/commit/d7bf25deed6d2024caf4fea0ccee046dd3a46ce2))
+* update Stage 31 versioning ([396bcae](https://github.com/Tugamer89/Tu-Maze/commit/396bcae977d36a6ea8c97c7e47934159e1c2d020))
+
 ## [0.31.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.30.0...v0.31.0) (2026-06-21)
 
 
