@@ -340,13 +340,13 @@ Dal punto di vista architetturale e stilistico, sono stati implementati i seguen
 
 ### Stage 31 (v0.32.x)
 
-L'obiettivo di questa tappa è stato il definitivo abbandono dell'approccio *header-only* in favore di un'architettura modulare standard, mirata a ottimizzare drasticamente i tempi di compilazione e a risolvere conflitti strutturali.
+L'obiettivo di questa tappa è stato il definitivo abbandono dell'approccio *header-only* a favore di un'architettura modulare standard, unito a un profondo *refactoring* del codice mirato a rispettare i vincoli di complessità strutturale e a ottimizzare i tempi di compilazione.
 
 Dal punto di vista architetturale e tecnico, sono stati implementati i seguenti interventi:
 
-* **Separazione Interfaccia-Implementazione**: L'intera logica delle classi è stata estratta dai file header (ora rinominati `.hpp`) e incapsulata in file sorgente dedicati (`.cpp`). Questo abbatte il tempo di ricompilazione qualora venga modificata una singola funzione e permette di compilare ogni sorgente in parallelo.
-* **Modularizzazione dei Sottosistemi**: La cartella generica `include/` è stata abolita. Il codice sorgente è ora classificato in moduli logici a singola responsabilità (`core`, `render`, `game`, `ui`, `utils`), garantendo un albero delle dipendenze molto più pulito e leggibile.
-* **Isolamento del Backend Grafico**: L'implementazione dei puntatori alle funzioni OpenGL è stata isolata all'interno di una singola *translation unit* dedicata (`glad.cpp`). Questo intervento ha risolto in via definitiva i gravi *crash* del linker dovuti alle violazioni della *One Definition Rule* (ODR).
+* **Separazione Interfaccia-Implementazione**: L'intera logica delle classi è stata estratta dai file *header* (ora rinominati `.hpp`) e incapsulata in *translation unit* dedicate (`.cpp`). Questo approccio abilita la compilazione parallela e abbatte drasticamente i tempi di ricompilazione a seguito di modifiche interne ai metodi.
+* **Modularizzazione e Refactoring Architetturale**: La cartella generica `include/` è stata abolita in favore di moduli a singola responsabilità (`core`, `render`, `game`, `ui`, `utils`). Parallelamente, per risolvere le criticità di design segnalate dall'analisi statica, classi monolitiche come `Gui` sono state frammentate in componenti isolati (`GuiState`, `GuiMenus`, `GuiOverlays`), implementando una netta separazione degli intenti (*Separation of Concerns*). La classe `Camera` è stata invece razionalizzata raggruppando l'elevato numero di campi in strutture dati nidificate.
+* **Isolamento del Backend Grafico**: L'implementazione dei puntatori alle funzioni OpenGL è stata confinata all'interno di un singolo file sorgente dedicato (`glad.cpp`). Questo intervento risolve in modo definitivo i *crash* del *linker* causati dalle violazioni della *One Definition Rule* (ODR).
 
 ## Crediti
 
