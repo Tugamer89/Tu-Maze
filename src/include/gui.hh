@@ -49,7 +49,11 @@ class Gui {
     bool vsync_enabled = true;
     int msaa_level = 0;
     int active_msaa_level = 0;
+
+    // Player / Camera controls
     float camera_fov = 60.0f;
+    float camera_sensitivity = 0.2f;
+    float camera_bobbing = 0.02f;
 
     inline static const std::array<const char*, 4> diffLabels = {
         "Easy (10x10)",
@@ -133,6 +137,8 @@ class Gui {
             file >> minimap_zoom;
             file >> show_fps_overlay;
             file >> selectedDifficulty;
+            file >> camera_sensitivity;
+            file >> camera_bobbing;
 
             selectedDifficulty = std::clamp(selectedDifficulty, 0, 3);
 
@@ -155,19 +161,38 @@ class Gui {
             file << minimap_zoom << "\n";
             file << show_fps_overlay << "\n";
             file << selectedDifficulty << "\n";
+            file << camera_sensitivity << "\n";
+            file << camera_bobbing << "\n";
             file.close();
         }
     }
 
     void renderCameraSection(Scene& scene) {
+        ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Controls & Camera");
+
+        // Sensitivity
+        if (ImGui::SliderFloat("Mouse Sensitivity", &camera_sensitivity, 0.01f, 1.0f, "%.2f")) {
+            scene.camera.setMouseSensitivity(camera_sensitivity);
+            saveSettings();
+        }
+
+        // Head Bobbing (Amplitude)
+        if (ImGui::SliderFloat("Head Bobbing", &camera_bobbing, 0.0f, 0.05f, "%.3f")) {
+            scene.camera.setBobbingAmount(camera_bobbing);
+            saveSettings();
+        }
+
         // FOV
         if (ImGui::SliderFloat("Field of View", &camera_fov, 30.0f, 120.0f, "%.1f deg")) {
             scene.camera.setFov(camera_fov);
             saveSettings();
         }
 
+        ImGui::Spacing();
         ImGui::Separator();
-        ImGui::Text("Minimap Settings");
+        ImGui::Spacing();
+
+        ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Minimap Settings");
 
         if (ImGui::Checkbox("Show Minimap", &minimap_enabled)) saveSettings();
 
@@ -616,6 +641,8 @@ class Gui {
 
         if (static bool isFirstFrame = true; isFirstFrame) {
             scene.camera.setFov(camera_fov);
+            scene.camera.setMouseSensitivity(camera_sensitivity);
+            scene.camera.setBobbingAmount(camera_bobbing);
             isFirstFrame = false;
         }
 

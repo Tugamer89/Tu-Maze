@@ -193,10 +193,6 @@ class Camera {
         projection();
     }
 
-    void locations(const Shaders& shaders) {
-        camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");
-    }
-
     void setAspectRatio(float ratio) {
         aspectRatio = ratio;
         projection();
@@ -207,6 +203,13 @@ class Camera {
         currentRenderFov = newFov;
         projection();
     };
+
+    void setMouseSensitivity(float sensitivity) { mouseSensitivity = sensitivity; }
+    void setBobbingAmount(float amount) { bobbingAmount = amount; }
+
+    void locations(const Shaders& shaders) {
+        camera_pos_loc = glGetUniformLocation(shaders.program, "camera_pos");
+    }
 
     bool update(sf::Time dt, const Maze& maze) {
         float dt_secs = dt.asSeconds();
