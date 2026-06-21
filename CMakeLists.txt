@@ -109,7 +109,7 @@ endif()
 # DEVELOPMENT TARGET CONFIGURATION
 # ============================================================================
 # Collect all source files inside src/
-file(GLOB_RECURSE SRC_FILES "src/*.cpp" "src/*.cc" "src/*.hpp" "src/*.hh")
+file(GLOB_RECURSE SRC_FILES "src/main.cpp" "src/*/*.cpp")
 
 if(SRC_FILES)
     add_executable(tu-maze
