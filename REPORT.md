@@ -344,7 +344,7 @@ L'obiettivo di questa tappa è stato il definitivo abbandono dell'approccio *hea
 
 Dal punto di vista architetturale e tecnico, sono stati implementati i seguenti interventi:
 
-* **Separazione Interfaccia-Implementazione**: L'intera logica delle classi è stata estratta dai file header (`.hh`) e incapsulata in file sorgente dedicati (`.cpp`). Questo abbatte il tempo di ricompilazione qualora venga modificata una singola funzione e permette di compilare ogni sorgente in parallelo.
+* **Separazione Interfaccia-Implementazione**: L'intera logica delle classi è stata estratta dai file header (ora rinominati `.hpp`) e incapsulata in file sorgente dedicati (`.cpp`). Questo abbatte il tempo di ricompilazione qualora venga modificata una singola funzione e permette di compilare ogni sorgente in parallelo.
 * **Modularizzazione dei Sottosistemi**: La cartella generica `include/` è stata abolita. Il codice sorgente è ora classificato in moduli logici a singola responsabilità (`core`, `render`, `game`, `ui`, `utils`), garantendo un albero delle dipendenze molto più pulito e leggibile.
 * **Isolamento del Backend Grafico**: L'implementazione dei puntatori alle funzioni OpenGL è stata isolata all'interno di una singola *translation unit* dedicata (`glad.cpp`). Questo intervento ha risolto in via definitiva i gravi *crash* del linker dovuti alle violazioni della *One Definition Rule* (ODR).
 

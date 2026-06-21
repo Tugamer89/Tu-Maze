@@ -1,4 +1,4 @@
-#include "render/lights.hh"
+#include "render/lights.hpp"
 
 void Lights::locations(const Shaders& shaders) {
     light_direct_pos_loc = glGetUniformLocation(shaders.getProgram(), "light.direct_pos");

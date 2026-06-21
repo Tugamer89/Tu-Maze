@@ -1,4 +1,4 @@
-#include "render/gpumesh.hh"
+#include "render/gpumesh.hpp"
 
 #include <bit>
 

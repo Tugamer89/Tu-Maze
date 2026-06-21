@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "glad/gl.h"
-#include "render/gpumesh.hh"
-#include "render/material.hh"
+#include "render/gpumesh.hpp"
+#include "render/material.hpp"
 
 // Scene Graph node allowing hierarchical rendering and transformations
 class Node {

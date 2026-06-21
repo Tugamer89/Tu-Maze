@@ -1,4 +1,4 @@
-#include "render/texture.hh"
+#include "render/texture.hpp"
 
 #include <SFML/Graphics/Image.hpp>
 #include <array>

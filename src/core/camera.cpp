@@ -1,5 +1,5 @@
 
-#include "core/camera.hh"
+#include "core/camera.hpp"
 
 #include <SFML/Window.hpp>
 #include <algorithm>

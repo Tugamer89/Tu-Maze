@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/camera.hh"
-#include "core/node.hh"
+#include "core/camera.hpp"
+#include "core/node.hpp"
 #include "glad/gl.h"
-#include "render/lights.hh"
+#include "render/lights.hpp"
 
 // Manages the hierarchical node tree, rendering passes, and global uniforms
 class Scene {

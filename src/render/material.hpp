@@ -3,7 +3,7 @@
 #include <glm/vec3.hpp>
 
 #include "glad/gl.h"
-#include "render/texture.hh"
+#include "render/texture.hpp"
 
 struct MaterialLocations {
     GLint diffuse_loc = -1;

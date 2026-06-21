@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "glad/gl.h"
-#include "render/mesh.hh"
+#include "render/mesh.hpp"
 
 class GPUMesh {
    private:

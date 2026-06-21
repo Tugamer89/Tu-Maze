@@ -1,9 +1,9 @@
-#include "render/mesh.hh"
+#include "render/mesh.hpp"
 
 #include <fstream>
 #include <sstream>
 
-#include "core/exceptions.hh"
+#include "core/exceptions.hpp"
 
 Mesh::Mesh(const std::string& filename) {
     std::ifstream file(filename);

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 
-#include "core/exceptions.hh"
+#include "core/exceptions.hpp"
 #include "glad/gl.h"
 
 inline std::string read_file(const std::string& filename) {

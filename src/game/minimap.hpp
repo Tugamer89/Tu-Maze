@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/scene.hh"
+#include "core/scene.hpp"
 #include "glad/gl.h"
-#include "render/gpumesh.hh"
-#include "render/hotshaders.hh"
-#include "ui/gui.hh"
+#include "render/gpumesh.hpp"
+#include "render/hotshaders.hpp"
+#include "ui/gui.hpp"
 
 class Minimap {
    private:

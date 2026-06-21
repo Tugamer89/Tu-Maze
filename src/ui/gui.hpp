@@ -5,8 +5,8 @@
 
 #include <array>
 
-#include "core/scene.hh"
-#include "core/session.hh"
+#include "core/scene.hpp"
+#include "core/session.hpp"
 
 class Gui {
    public:

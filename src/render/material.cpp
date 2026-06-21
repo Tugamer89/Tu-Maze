@@ -1,4 +1,4 @@
-#include "render/material.hh"
+#include "render/material.hpp"
 
 void Material::bind(const MaterialLocations& locs) const {
     if (diffuse) diffuse->bind(0);

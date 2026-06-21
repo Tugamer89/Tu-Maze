@@ -7,21 +7,21 @@
 #include <optional>
 #include <stdexcept>
 
-#include "core/camera.hh"
-#include "core/exceptions.hh"
-#include "core/node.hh"
-#include "core/scene.hh"
-#include "core/session.hh"
-#include "core/setup.hh"
-#include "game/maze.hh"
-#include "game/minimap.hh"
+#include "core/camera.hpp"
+#include "core/exceptions.hpp"
+#include "core/node.hpp"
+#include "core/scene.hpp"
+#include "core/session.hpp"
+#include "core/setup.hpp"
+#include "game/maze.hpp"
+#include "game/minimap.hpp"
 #include "glad/gl.h"
-#include "render/gpumesh.hh"
-#include "render/hotshaders.hh"
-#include "render/lights.hh"
-#include "render/mesh.hh"
-#include "ui/gui.hh"
-#include "utils/assetloader.hh"
+#include "render/gpumesh.hpp"
+#include "render/hotshaders.hpp"
+#include "render/lights.hpp"
+#include "render/mesh.hpp"
+#include "ui/gui.hpp"
+#include "utils/assetloader.hpp"
 
 // Constants
 constexpr const char* default_vert = "resources/shaders/default.vert";

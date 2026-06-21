@@ -1,4 +1,4 @@
-#include "render/hotshaders.hh"
+#include "render/hotshaders.hpp"
 
 #include <iostream>
 

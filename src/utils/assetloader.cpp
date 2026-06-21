@@ -1,4 +1,4 @@
-#include "utils/assetloader.hh"
+#include "utils/assetloader.hpp"
 
 void AssetLoader::addTask(std::string desc, std::function<void()> act) {
     tasks.emplace(std::move(desc), std::move(act));

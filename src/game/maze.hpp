@@ -4,10 +4,10 @@
 #include <optional>
 #include <vector>
 
-#include "core/node.hh"
-#include "render/gpumesh.hh"
-#include "render/material.hh"
-#include "render/mesh.hh"
+#include "core/node.hpp"
+#include "render/gpumesh.hpp"
+#include "render/material.hpp"
+#include "render/mesh.hpp"
 
 struct Cell {
     bool wallTop = true;

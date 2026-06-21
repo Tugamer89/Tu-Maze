@@ -1,10 +1,10 @@
-#include "core/scene.hh"
+#include "core/scene.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <string>
 
-#include "game/maze.hh"
+#include "game/maze.hpp"
 
 Scene::Scene(const Shaders& shaders) : camera(shaders), lights(shaders) {
     locations(shaders);

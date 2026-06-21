@@ -3,7 +3,7 @@
 #include <glm/mat4x4.hpp>
 
 #include "glad/gl.h"
-#include "render/hotshaders.hh"
+#include "render/hotshaders.hpp"
 
 class Lights {
    private:

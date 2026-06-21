@@ -4,9 +4,9 @@
 #include <array>
 #include <glm/mat4x4.hpp>
 
-#include "game/maze.hh"
+#include "game/maze.hpp"
 #include "glad/gl.h"
-#include "render/hotshaders.hh"
+#include "render/hotshaders.hpp"
 
 class Camera {
    private:

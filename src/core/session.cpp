@@ -1,4 +1,4 @@
-#include "core/session.hh"
+#include "core/session.hpp"
 
 #include <algorithm>
 #include <fstream>

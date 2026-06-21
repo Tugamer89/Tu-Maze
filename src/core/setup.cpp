@@ -1,10 +1,10 @@
-#include "core/setup.hh"
+#include "core/setup.hpp"
 
 #include <iostream>
 
-#include "core/exceptions.hh"
+#include "core/exceptions.hpp"
 #include "glad/gl.h"
-#include "ui/gui.hh"
+#include "ui/gui.hpp"
 
 Setup::Setup() {
     // Request Core profile (mandatory for Mac and modern pipeline rendering)

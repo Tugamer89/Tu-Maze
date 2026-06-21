@@ -1,4 +1,4 @@
-#include "game/maze.hh"
+#include "game/maze.hpp"
 
 #include <algorithm>
 #include <array>
@@ -8,7 +8,7 @@
 #include <random>
 #include <stack>
 
-#include "core/exceptions.hh"
+#include "core/exceptions.hpp"
 
 Cell& Maze::getCellModifiable(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height)

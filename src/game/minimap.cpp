@@ -1,4 +1,4 @@
-#include "game/minimap.hh"
+#include "game/minimap.hpp"
 
 #include <algorithm>
 #include <array>

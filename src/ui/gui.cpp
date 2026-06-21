@@ -1,4 +1,4 @@
-#include "ui/gui.hh"
+#include "ui/gui.hpp"
 
 #include <imgui_impl_opengl3.h>
 
@@ -10,7 +10,7 @@
 #include <fstream>
 #include <functional>
 
-#include "core/exceptions.hh"
+#include "core/exceptions.hpp"
 
 void Gui::setupImGuiStyle() const {
     ImGuiStyle& style = ImGui::GetStyle();

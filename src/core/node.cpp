@@ -1,4 +1,4 @@
-#include "core/node.hh"
+#include "core/node.hpp"
 
 #include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
