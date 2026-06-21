@@ -10,10 +10,10 @@
 #include "../glad/gl.h"
 #endif
 
-#include "gpumesh.hh"
-#include "gui.hh"
-#include "hotshaders.hh"
-#include "scene.hh"
+#include "core/scene.hh"
+#include "render/gpumesh.hh"
+#include "render/hotshaders.hh"
+#include "ui/gui.hh"
 
 class Minimap {
    private:

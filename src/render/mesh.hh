@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "exceptions.hh"
+#include "core/exceptions.hh"
 
 // Handles CPU-side 3D Geometry loading (Object File Format .off) and manipulation
 class Mesh {

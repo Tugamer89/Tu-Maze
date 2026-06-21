@@ -11,8 +11,8 @@
 #include "../glad/gl.h"
 #endif
 
-#include "hotshaders.hh"
-#include "maze.hh"
+#include "game/maze.hh"
+#include "render/hotshaders.hh"
 
 class Camera {
    private:

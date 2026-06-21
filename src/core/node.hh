@@ -11,8 +11,8 @@
 #include "../glad/gl.h"
 #endif
 
-#include "gpumesh.hh"
-#include "material.hh"
+#include "render/gpumesh.hh"
+#include "render/material.hh"
 
 // Scene Graph node allowing hierarchical rendering and transformations
 class Node {

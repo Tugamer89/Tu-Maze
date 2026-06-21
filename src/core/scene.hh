@@ -8,11 +8,11 @@
 #include "../glad/gl.h"
 #endif
 
-#include "camera.hh"
-#include "gpumesh.hh"
-#include "lights.hh"
-#include "maze.hh"
-#include "node.hh"
+#include "core/camera.hh"
+#include "core/node.hh"
+#include "game/maze.hh"
+#include "render/gpumesh.hh"
+#include "render/lights.hh"
 
 // Manages the hierarchical node tree, rendering passes, and global uniforms
 class Scene {

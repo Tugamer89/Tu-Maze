@@ -8,8 +8,8 @@
 #include "../glad/gl.h"
 #endif
 
-#include "exceptions.hh"
-#include "gui.hh"
+#include "core/exceptions.hh"
+#include "ui/gui.hh"
 
 class Setup {
    private:

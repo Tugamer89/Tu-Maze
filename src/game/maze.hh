@@ -11,11 +11,11 @@
 #include <stack>
 #include <vector>
 
-#include "exceptions.hh"
-#include "gpumesh.hh"
-#include "material.hh"
-#include "mesh.hh"
-#include "node.hh"
+#include "core/exceptions.hh"
+#include "core/node.hh"
+#include "render/gpumesh.hh"
+#include "render/material.hh"
+#include "render/mesh.hh"
 
 struct Cell {
     bool wallTop = true;

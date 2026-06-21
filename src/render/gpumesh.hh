@@ -10,7 +10,7 @@
 #include "../glad/gl.h"
 #endif
 
-#include "mesh.hh"
+#include "render/mesh.hh"
 
 class GPUMesh {
    private:

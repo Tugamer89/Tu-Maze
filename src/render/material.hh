@@ -7,7 +7,7 @@
 #include "../glad/gl.h"
 #endif
 
-#include "texture.hh"
+#include "render/texture.hh"
 
 struct MaterialLocations {
     GLint diffuse_loc = -1;

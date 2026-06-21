@@ -10,7 +10,7 @@
 #include "../glad/gl.h"
 #endif
 
-#include "exceptions.hh"
+#include "core/exceptions.hh"
 
 inline std::string read_file(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);

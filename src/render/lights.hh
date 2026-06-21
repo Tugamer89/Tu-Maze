@@ -7,7 +7,7 @@
 #include "../glad/gl.h"
 #endif
 
-#include "hotshaders.hh"
+#include "render/hotshaders.hh"
 
 class Lights {
    private:

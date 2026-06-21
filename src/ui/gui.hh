@@ -13,10 +13,10 @@
 #include <fstream>
 #include <functional>
 
-#include "exceptions.hh"
-#include "scene.hh"
-#include "session.hh"
-#include "texture.hh"
+#include "core/exceptions.hh"
+#include "core/scene.hh"
+#include "core/session.hh"
+#include "render/texture.hh"
 
 class Gui {
    public:
