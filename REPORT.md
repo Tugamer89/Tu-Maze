@@ -348,6 +348,14 @@ Dal punto di vista architetturale e tecnico, sono stati implementati i seguenti 
 * **Modularizzazione e Refactoring Architetturale**: La cartella generica `include/` è stata abolita in favore di moduli a singola responsabilità (`core`, `render`, `game`, `ui`, `utils`). Parallelamente, per risolvere le criticità di design segnalate dall'analisi statica, classi monolitiche come `Gui` sono state frammentate in componenti isolati (`GuiState`, `GuiMenus`, `GuiOverlays`), implementando una netta separazione degli intenti (*Separation of Concerns*). La classe `Camera` è stata invece razionalizzata raggruppando l'elevato numero di campi in strutture dati nidificate.
 * **Isolamento del Backend Grafico**: L'implementazione dei puntatori alle funzioni OpenGL è stata confinata all'interno di un singolo file sorgente dedicato (`glad.cpp`). Questo intervento risolve in modo definitivo i *crash* del *linker* causati dalle violazioni della *One Definition Rule* (ODR).
 
+### Stage 32 (v1.1.x)
+
+L'obiettivo di questa tappa è stato il perfezionamento dell'interfaccia utente (UX) e la riorganizzazione spaziale del pannello delle impostazioni, al fine di ottimizzare la navigazione e la leggibilità dei parametri di gioco.
+
+Dal punto di vista dell'interfaccia, è stato implementato il seguente intervento:
+
+* **Espansione della Tab Bar**: Per prevenire il sovraffollamento visivo (*clutter*) all'interno di una singola schermata e limitare la necessità di scorrimento verticale, il layout delle impostazioni è stato riprogettato. La precedente sezione combinata del gameplay è stata segmentata: l'interfaccia a schede (*Tab Bar*) di ImGui ospita ora tre sezioni distinte ("Video & Display", "Controls & Camera" e un nuovo tab esclusivo per la "Minimap"). Questa separazione netta tra i controlli di movimento della telecamera e le opzioni dell'HUD rende la configurazione molto più ordinata e immediata per il giocatore.
+
 ## Crediti
 
 Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
