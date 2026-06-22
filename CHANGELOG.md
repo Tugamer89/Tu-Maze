@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/Tugamer89/Tu-Maze/compare/v1.0.0...v1.1.0) (2026-06-22)
+
+
+### Features
+
+* splitted minimap and controls & camera settings into separate tabs ([739033c](https://github.com/Tugamer89/Tu-Maze/commit/739033ca3767f5a3141dc13b5a6ad6f16c685363))
+
+
+### Documentation
+
+* updated with Stage 32 features ([e1daf04](https://github.com/Tugamer89/Tu-Maze/commit/e1daf0421cd6c931e196d1125a026524cd881ded))
+
 ## [1.0.0](https://github.com/Tugamer89/Tu-Maze/compare/v0.31.0...v1.0.0) (2026-06-21)
 
 
