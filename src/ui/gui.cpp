@@ -91,9 +91,7 @@ int GuiState::getSavedMSAA() {
 // GuiMenus Implementation
 // -------------------------------------------------------------------------------------------------
 
-void GuiMenus::renderCameraSection(GuiState& state, Scene& scene) {
-    ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Controls & Camera");
-
+void GuiMenus::renderControlsSection(GuiState& state, Scene& scene) {
     if (ImGui::SliderFloat("Mouse Sensitivity", &state.camera_sensitivity, 0.01f, 1.0f, "%.2f")) {
         scene.getCamera().setMouseSensitivity(state.camera_sensitivity);
         state.saveSettings();
@@ -108,13 +106,9 @@ void GuiMenus::renderCameraSection(GuiState& state, Scene& scene) {
         scene.getCamera().setFov(state.camera_fov);
         state.saveSettings();
     }
+}
 
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    ImGui::TextColored(ImVec4(0.2f, 0.70f, 1.0f, 1.0f), "Minimap Settings");
-
+void GuiMenus::renderMinimapSection(GuiState& state) {
     if (ImGui::Checkbox("Show Minimap", &state.minimap_enabled)) state.saveSettings();
 
     if (state.minimap_enabled) {
@@ -167,9 +161,14 @@ void GuiMenus::renderSettingsContent(GuiState& state, Scene& scene, sf::Window& 
             renderVideoSection(state, window);
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Gameplay & UI")) {
+        if (ImGui::BeginTabItem("Controls & Camera")) {
             ImGui::Spacing();
-            renderCameraSection(state, scene);
+            renderControlsSection(state, scene);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Minimap")) {
+            ImGui::Spacing();
+            renderMinimapSection(state);
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();

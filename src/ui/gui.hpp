@@ -59,7 +59,8 @@ class GuiMenus {
     static void renderSettingsContent(GuiState& state, Scene& scene, sf::Window& window);
 
    private:
-    static void renderCameraSection(GuiState& state, Scene& scene);
+    static void renderControlsSection(GuiState& state, Scene& scene);
+    static void renderMinimapSection(GuiState& state);
     static void renderVideoSection(GuiState& state, sf::Window& window);
     static void renderLeaderboardSection(GuiState& state, const SessionManager& session);
     static void renderLeaderboardTable(const SessionManager& session, int targetDiff);
