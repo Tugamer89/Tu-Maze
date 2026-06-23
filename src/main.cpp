@@ -313,7 +313,7 @@ int run_engine() {
             std::string what = loader.processNext();
             gui.renderLoading(window, what, loader.getProgress());
             window.display();
-            mouseState.savedMenuMousePos = sf::Mouse::getPosition(window);
+            mouseState.savedMenuMousePos = sf::Mouse::getPosition();
             continue;
         }
 
