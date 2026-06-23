@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/Tugamer89/Tu-Maze/compare/v1.1.1...v1.2.0) (2026-06-23)
+
+
+### Features
+
+* implement RawMouse class for improved mouse handling on macOS ([1a30683](https://github.com/Tugamer89/Tu-Maze/commit/1a3068399d837232561ff6335dd59fa3dfd811a3))
+
+
+### Documentation
+
+* update README.md to reorganize user interface controls and add stage-specific commands ([e38e817](https://github.com/Tugamer89/Tu-Maze/commit/e38e81729618bcf6cd17a79523fdbb0757f9606b))
+* update REPORT.md to format key controls with keyboard notation ([c5495e7](https://github.com/Tugamer89/Tu-Maze/commit/c5495e734ee9db76e2925ee25ad605febd08c8a5))
+* update REPORT.md to include Stage 33 details and clarify macOS compatibility issues ([d0424c2](https://github.com/Tugamer89/Tu-Maze/commit/d0424c2b66710a33c9efab0d5b9edc75a24f1c34))
+
 ## [1.1.1](https://github.com/Tugamer89/Tu-Maze/compare/v1.1.0...v1.1.1) (2026-06-23)
 
 
