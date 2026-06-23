@@ -17,24 +17,28 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 * **Aggiunte:** Configurazione del template di base con integrazione di ImGui-SFML e del contesto OpenGL.
 * **Risultato visivo:** Creazione di un pavimento di base, liberamente ruotabile tramite trascinamento del mouse, e di un pannello GUI rudimentale per testare i parametri di scena.
+
 ![Vista di default](resources/screenshots/stage1.png)
 
 ### Stage 2 (v0.3.x)
 
 * **Aggiunte:** Generazione di una griglia tridimensionale posizionata all'origine degli assi (attualmente riempita solo di muri).
 * **Soluzioni Tecniche:** Transizione architetturale da una scena a singolo oggetto a una scena complessa gestita tramite un **grafo di scena** (*Scene Graph*).
+
 ![Labirinto completo](resources/screenshots/stage2.png)
 
 ### Stage 3 (v0.4.x)
 
 * **Aggiunte:** Generazione procedurale dei percorsi del labirinto.
 * **Soluzioni Tecniche:** Implementazione di un algoritmo basato su visita DFS (Depth-First Search) randomizzata per garantire percorsi unici e sempre completabili.
+
 ![Vero labirinto](resources/screenshots/stage3.png)
 
 ### Stage 4 (v0.5.x)
 
 * **Aggiunte:** Innalzamento della fedeltà visiva tramite texture ad alta risoluzione. Rimozione dei vecchi shader "Normal" e "Gouraud", divenuti obsoleti.
 * **Soluzioni Tecniche:** Sviluppo di un sistema di materiali PBR-lite basato su tre mappe: **Albedo** (colore), **Roughness** (ruvidezza/riflessi) e **Normal** (micro-rilievi e illuminazione).
+
 ![Labirinto con shader flat](resources/screenshots/stage4_flat.png)
 ![Dettagli fotorealismo texture](resources/screenshots/stage4_photo.png)
 
@@ -42,6 +46,7 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 * **Aggiunte:** Contatore FPS nell'interfaccia, schermata di caricamento progressiva per gli asset pesanti e raffinamento del sistema di illuminazione Phong.
 * **Problemi Risolti:** Corretti artefatti visivi agli spigoli dei muri causati da un calcolo errato dell'illuminazione.
+
 ![Schermata di caricamento](resources/screenshots/stage5.gif)
 
 | Prima (Spigoli rotti) | Dopo (Spigoli corretti) |
@@ -75,6 +80,7 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 * **Aggiunte:** Espansione del pannello impostazioni (GUI) con nuovi parametri configurabili in tempo reale: V-Sync, MSAA (Multi-Sample Anti-Aliasing), FOV e modalità Wireframe.
 * **Soluzioni Tecniche:** La modalità Wireframe (`glPolygonMode`) è stata utilizzata come strumento di *debugging* visivo per verificare il corretto scarto dei poligoni da parte del Frustum Culling.
+
 ![Nuove impostazioni + wireframe](resources/screenshots/stage9.png)
 
 ### Stage 10 (v0.11.x)
@@ -84,6 +90,7 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
   1. **Shader Unlit:** Telecamera ortografica dedicata e shader specifico privo di illuminazione per ridurre il carico.
   2. **Distance Culling:** Rendering limitato ai soli nodi visibili entro il raggio della mappa.
   3. **MSAA FBO:** Rendering *off-screen* isolato in un Multisampled Framebuffer Object per garantire bordi smussati alla UI senza forzare il costoso MSAA su tutta la scena 3D.
+
 ![Minimappa](resources/screenshots/stage10.png)
 
 ### Stage 11 (v0.12.x)
@@ -102,12 +109,14 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 * **Soluzioni Tecniche:**
   1. Risolto il problema MSAA "appiattendo" l'immagine tramite *blitting* su un Resolve Framebuffer prima del render su schermo, disabilitando temporaneamente `GL_MULTISAMPLE` per i testi ImGui.
   2. Vincolato il *polling* della tastiera al solo stato di focus attivo della finestra.
+
 ![Bug visivo prima del fix](resources/screenshots/stage13.png)
 
 ### Stage 14 (v0.15.x)
 
 * **Aggiunte:** Atmosfera dark-fantasy tramite nuovi materiali e nuova calibrazione dell'illuminazione (luce direzionale calda, ambientale fredda).
 * **Soluzioni Tecniche:** Disaccoppiamento di luci e materiali. Implementazione del caching delle variabili *uniform* (`MaterialLocations`) nei nodi base dello *Scene Graph* per limitare le chiamate ad OpenGL durante il render loop. Configurazione delle costanti fisiche tramite *designated initializers* (C++20).
+
 ![Nuove luci](resources/screenshots/stage14.png)
 
 ### Stage 15 (v0.16.x)
@@ -119,6 +128,7 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 * **Aggiunte:** Obiettivo di gioco (raggiungere l'uscita), spawn system, cristallo di fine livello e modale di Vittoria con logica di riavvio.
 * **Soluzioni Tecniche:** L'animazione del cristallo sfrutta il *delta-time* con wrapping angolare per evitare perdita di precisione in virgola mobile. Introduzione dei **Material Flags**: tramite un uniform `useTextures`, gli Uber Shader ignorano UV e mapping testuale per il cristallo, ottimizzandone il rendering come solido puro illuminato.
+
 ![Animazione cristallo](resources/screenshots/stage16.gif)
 ![Popup di vittoria](resources/screenshots/stage16.png)
 
@@ -126,12 +136,14 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 * **Aggiunte:** Tracciamento prestazioni del giocatore, cristallo traslucido e salvataggio dei record su disco.
 * **Soluzioni Tecniche:** Abilitato l'Alpha Blending nativo di OpenGL. Sviluppo del `SessionManager` per gestire il timer (con pausa automatica in caso di perdita focus) e serializzare su file di testo il tempo di completamento, strettamente associato al seme generazionale (*seed*) della partita.
+
 ![Cristallo traslucido + timer](resources/screenshots/stage17.png)
 
 ### Stage 18 (v0.19.x)
 
 * **Aggiunte:** Consolidamento della pipeline grafica in un singolo **Uber Shader** (`standard.vert/frag`).
 * **Soluzioni Tecniche:** La transizione tra ombreggiatura piatta e smussata fotorealistica avviene ora a *runtime* tramite la variabile `useFlatShading`, abbattendo i cambi di contesto (`glUseProgram`). Micro-ottimizzazioni in *screen-space* (derivate `dFdx/dFdy` calcolate solo se richieste) per la riduzione dei campionamenti VRAM.
+
 ![Nuovo shading](resources/screenshots/stage18.png)
 
 ### Stage 19 (v0.20.x)
@@ -142,12 +154,14 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 ### Stage 20 (v0.21.x)
 
 * **Aggiunte:** Restyling UI con *Dark Theme* custom (angoli smussati e spaziature), riorganizzazione menu Pausa a schede (*Tabs*) bloccato centralmente e Overlay FPS indipendente su schermo.
+
 ![Nuovo menu di pausa e overlay FPS](resources/screenshots/stage20.png)
 
 ### Stage 21 (v0.22.x)
 
 * **Aggiunte:** Menu Principale (idle rendering), inserimento Seme Personalizzato (*Custom Seed*) e Leaderboard dei migliori 50 tempi.
 * **Soluzioni Tecniche:** Lettura e ordinamento automatico (tramite `std::range::sort`) del file di testo locale contenente i record del Session Manager e rendering tramite API tabellari di ImGui.
+
 ![Menu principale](resources/screenshots/stage21_menu.png)
 ![Leaderboard](resources/screenshots/stage21_leaderboard.png)
 
@@ -173,12 +187,14 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 * **Aggiunte:** Miglioramento del *Game Feel* e interattività ambientale.
 * **Soluzioni Tecniche:** Interpolazione lineare (*Lerp*) del FOV durante lo scatto (Dynamic Sprint FOV); modulazione sinusoidale parametrica sull'asse Y per simulare il peso corporeo durante il movimento (Head-Bobbing); gestione interattiva dell'uniform shader della luce per accendere/spegnere la torcia tramite `F`.
+
 ![Head bobbing + dynamic FOV](resources/screenshots/stage25.gif)
 
 ### Stage 26 (v0.27.x)
 
 * **Aggiunte:** Selettore difficoltà (scalabilità dimensioni labirinto da 10x10 a 40x40) e aggiornamento Leaderboard.
 * **Soluzioni Tecniche:** Categorizzazione dei record in Leaderboard tramite *Tab Bar* separate per difficoltà.
+
 ![Selezione difficoltà nel menu](resources/screenshots/stage26_menu.png)
 ![Leaderboard suddivisa a schede](resources/screenshots/stage26_leaderboard.png)
 
@@ -200,6 +216,8 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 * **Aggiunte:** Accessibilità e Quality of Life (QoL) nel menu impostazioni.
 * **Soluzioni Tecniche:** Parametrizzazione tramite GUI della sensibilità del mouse (moltiplicatore sulla telecamera) e dell'intensità dell'Head-Bobbing, utile per attenuare gli effetti legati alla cinetosi (*motion sickness*).
 
+![Menu Mouse](resources/screenshots/stage29.png)
+
 ### Stage 30 (v0.31.x)
 
 * **Aggiunte:** Consolidamento standard C++ moderno.
@@ -214,6 +232,9 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 * **Aggiunte:** Pulizia visiva delle impostazioni.
 * **Soluzioni Tecniche:** L'eccessivo caricamento visivo del pannello impostazioni è stato snellito espandendo la *Tab Bar* in tre sezioni logiche: Video & Display, Controls & Camera, e Minimap.
+
+![Sezione Camera](resources/screenshots/stage32_camera.png)
+![Sezione Minimappa](resources/screenshots/stage32_minimap.png)
 
 ---
 
