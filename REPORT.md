@@ -246,6 +246,8 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 * **Aggiunte:** Integrazione della modalità a schermo intero (Fullscreen) configurabile dal menu video.
 * **Soluzioni Tecniche:** Il passaggio a schermo intero sfrutta il paradigma *Restart Required* (salvataggio su file). Questa scelta architetturale previene la distruzione a *runtime* del contesto OpenGL (causata da `window.create()`), evitando crash legati all'improvvisa invalidazione della VRAM (Shader, Texture e VBO), criticità severa specie su macOS.
 
+![Impostazione schermo intero](resources/screenshots/stage34.png)
+
 ---
 
 ## Crediti e Risorse Esterne
