@@ -323,7 +323,6 @@ int run_engine() {
 
             if (sf::Vector2f mDelta = rawMouse.delta();
                 std::abs(mDelta.x) > 0.0f || std::abs(mDelta.y) > 0.0f) {
-                // Invert Y axis as in the original code
                 scene.getCamera().processMouseMovement(mDelta.x, -mDelta.y);
                 scene.getLights().position(scene.getCamera().getInverseViewMatrix());
             }
