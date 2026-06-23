@@ -327,12 +327,12 @@ int run_engine() {
                 scene.getLights().position(scene.getCamera().getInverseViewMatrix());
             }
 
-            if (assets.maze && scene.getCamera().update(dt, *assets.maze.get())) {
+            if (scene.getCamera().update(dt, *assets.maze.get())) {
                 scene.getLights().position(scene.getCamera().getInverseViewMatrix());
             }
         }
 
-        if (!gui.isInMainMenu() && assets.maze) {
+        if (!gui.isInMainMenu()) {
             glm::vec3 goalPos = assets.maze->getGoalWorldPosition();
             scene.update_gameplay(dt, goalPos);
 
@@ -349,8 +349,7 @@ int run_engine() {
 
         // Render ImGui Overlays
         shaders.use();
-        GLuint minimapTex = assets.maze ? minimap.getTextureID() : 0;
-        gui.renderUI(scene, window, session, callbacks, minimapTex);
+        gui.renderUI(scene, window, session, callbacks, minimap.getTextureID());
 
         window.display();
     }
