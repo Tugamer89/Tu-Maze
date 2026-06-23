@@ -241,6 +241,11 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 * **Aggiunte:** Acquisizione nativa dell'input hardware del mouse (*Raw Input*) per una telecamera FPS più fluida e totalmente priva di *stuttering* su tutti i sistemi operativi, macOS incluso.
 * **Soluzioni Tecniche:** Sostituzione del ricentramento forzato del cursore con il blocco nativo della finestra (`setMouseCursorGrabbed`). Implementazione della classe `RawMouse` per l'estrazione dei delta di movimento puri (tramite `MouseMovedRaw` su Windows/Linux o API `CGGetLastMouseDelta` per Apple). Prevenzione dei salti improvvisi della telecamera (*camera snap*) al rientro in gioco scartando proattivamente i delta accumulati in background dall'OS durante la navigazione nei menu.
 
+### Stage 34 (v1.3.x)
+
+* **Aggiunte:** Integrazione della modalità a schermo intero (Fullscreen) configurabile dal menu video.
+* **Soluzioni Tecniche:** Il passaggio a schermo intero sfrutta il paradigma *Restart Required* (salvataggio su file). Questa scelta architetturale previene la distruzione a *runtime* del contesto OpenGL (causata da `window.create()`), evitando crash legati all'improvvisa invalidazione della VRAM (Shader, Texture e VBO), criticità severa specie su macOS.
+
 ---
 
 ## Crediti e Risorse Esterne
