@@ -41,8 +41,7 @@ void RawMouse::setPosition(sf::Vector2i position) const {
 #else
 
 void RawMouse::event(const sf::Event::MouseMovedRaw& e) {
-    accumulated_delta.x += static_cast<float>(e.delta.x);
-    accumulated_delta.y += static_cast<float>(e.delta.y);
+    accumulated_delta += sf::Vector2f(e.delta);
 };
 
 sf::Vector2f RawMouse::delta() {
