@@ -148,7 +148,7 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 ### Stage 19 (v0.20.x)
 
-* **Aggiunte:** Implementazione dei controlli da FPS moderno, stato formale di Pausa (tasto `ESC`) e refactoring del game loop principale.
+* **Aggiunte:** Implementazione dei controlli da FPS moderno, stato formale di Pausa (tasto <kbd>Esc</kbd>) e refactoring del game loop principale.
 * **Soluzioni Tecniche:** Il sistema **True FPS Camera** nasconde il cursore e lo blocca al centro della finestra a ogni frame, calcolandone il delta di spostamento per permettere una rotazione visiva a 360° fluida e ininterrotta.
 
 ### Stage 20 (v0.21.x)
@@ -186,7 +186,7 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 ### Stage 25 (v0.26.x)
 
 * **Aggiunte:** Miglioramento del *Game Feel* e interattività ambientale.
-* **Soluzioni Tecniche:** Interpolazione lineare (*Lerp*) del FOV durante lo scatto (Dynamic Sprint FOV); modulazione sinusoidale parametrica sull'asse Y per simulare il peso corporeo durante il movimento (Head-Bobbing); gestione interattiva dell'uniform shader della luce per accendere/spegnere la torcia tramite `F`.
+* **Soluzioni Tecniche:** Interpolazione lineare (*Lerp*) del FOV durante lo scatto (Dynamic Sprint FOV); modulazione sinusoidale parametrica sull'asse Y per simulare il peso corporeo durante il movimento (Head-Bobbing); gestione interattiva dell'uniform shader della luce per accendere/spegnere la torcia tramite <kbd>F</kbd>.
 
 ![Head bobbing + dynamic FOV](resources/screenshots/stage25.gif)
 
