@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.0...v1.2.1) (2026-06-23)
+
+
+### Bug Fixes
+
+* simplify event handling in RawMouse for improved delta accumulation ([8d7f0b1](https://github.com/Tugamer89/Tu-Maze/commit/8d7f0b11138702340a1eabf1bce935fb0c45dca1))
+
 ## [1.2.0](https://github.com/Tugamer89/Tu-Maze/compare/v1.1.1...v1.2.0) (2026-06-23)
 
 
