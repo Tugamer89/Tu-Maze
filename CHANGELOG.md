@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.1...v1.2.2) (2026-06-23)
+
+
+### Bug Fixes
+
+* remove redundant comment about Y-axis inversion in mouse movement ([772c3df](https://github.com/Tugamer89/Tu-Maze/commit/772c3df2482286b41c1a56d82e673843b7969662))
+* simplify conditions in run_engine for clarity and performance ([320cd82](https://github.com/Tugamer89/Tu-Maze/commit/320cd82a3dfa2ff4dd5f63c05c0395ebc7193046))
+
 ## [1.2.1](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.0...v1.2.1) (2026-06-23)
 
 
