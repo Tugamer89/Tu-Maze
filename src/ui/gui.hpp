@@ -39,6 +39,9 @@ struct GuiState {
     int msaa_level = 0;
     int active_msaa_level = 0;
 
+    bool fullscreen = false;
+    bool active_fullscreen = false;
+
     float camera_fov = 60.0f;
     float camera_sensitivity = 0.2f;
     float camera_bobbing = 0.02f;
@@ -46,6 +49,7 @@ struct GuiState {
     void loadSettings();
     void saveSettings() const;
     static int getSavedMSAA();
+    static bool getSavedFullscreen();
 };
 
 // UI Class for Menus

@@ -92,7 +92,8 @@ void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& 
 }
 
 // Asynchronous Asset Initialization Pipeline
-void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap) {
+void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene, Minimap& minimap,
+                          const sf::Window& window) {
     loader.addTask("mossy bricks texture",
                    [&assets]() { assets.wallDiff = std::make_unique<Texture>(wall_diff, true); });
     loader.addTask("mossy bricks normals map",
@@ -150,13 +151,16 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
         };
     });
 
-    loader.addTask("scene build", [&assets, &scene, &minimap]() {
+    loader.addTask("scene build", [&assets, &scene, &minimap, &window]() {
         scene.getGoalNode().setMesh(assets.goalMesh.get());
         scene.getGoalNode().setMaterial(&assets.goalMat.value());
         scene.getGoalNode().setIsGoal(true);
         scene.getGoalNode().updateTransforms();
 
         minimap.setPlayerMesh(assets.playerMesh.get());
+
+        sf::Vector2u size = window.getSize();
+        scene.getCamera().setAspectRatio(static_cast<float>(size.x) / static_cast<float>(size.y));
     });
 }
 
@@ -222,7 +226,7 @@ int run_engine() {
     RawMouse rawMouse;
 
     AssetLoader loader;
-    register_asset_tasks(loader, assets, scene, minimap);
+    register_asset_tasks(loader, assets, scene, minimap, window);
 
     sf::Clock deltaClock;
     bool running = true;

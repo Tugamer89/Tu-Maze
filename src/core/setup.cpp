@@ -16,6 +16,8 @@ Setup::Setup() {
     settings.majorVersion = 4;
     settings.minorVersion = 1;
 
+    bool fullscreen = GuiState::getSavedFullscreen();
+
     const unsigned int window_width = 800;
     const unsigned int window_height = 800;
 
@@ -23,9 +25,15 @@ Setup::Setup() {
     sf::Vector2i centerPosition(static_cast<int>(desktop.size.x - window_width) / 2,
                                 static_cast<int>(desktop.size.y - window_height) / 2);
 
-    window.create(sf::VideoMode({window_width, window_height}), "Tu Maze", sf::Style::Default,
-                  sf::State::Windowed, settings);
-    window.setPosition(centerPosition);
+    sf::State state = fullscreen ? sf::State::Fullscreen : sf::State::Windowed;
+    sf::VideoMode mode =
+        fullscreen ? sf::VideoMode::getDesktopMode() : sf::VideoMode({window_width, window_height});
+
+    window.create(mode, "Tu Maze", sf::Style::Default, state, settings);
+
+    if (!fullscreen) {
+        window.setPosition(centerPosition);
+    }
 
     if (!window.setActive(true)) {
         throw exceptions::EngineSetupException("Failure: error during SFML OpenGL Activation.");

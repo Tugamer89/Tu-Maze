@@ -47,7 +47,7 @@ void GuiState::loadSettings() {
 
         file >> vsync_enabled >> msaa_level >> camera_fov >> minimap_enabled >> minimap_fix_north >>
             minimap_zoom >> show_fps_overlay >> selectedDifficulty >> camera_sensitivity >>
-            camera_bobbing;
+            camera_bobbing >> fullscreen;
 
         selectedDifficulty = std::clamp(selectedDifficulty, 0, 3);
         file.close();
@@ -70,7 +70,8 @@ void GuiState::saveSettings() const {
              << show_fps_overlay << "\n"
              << selectedDifficulty << "\n"
              << camera_sensitivity << "\n"
-             << camera_bobbing << "\n";
+             << camera_bobbing << "\n"
+             << fullscreen << "\n";
         file.close();
     }
 }
@@ -80,11 +81,34 @@ int GuiState::getSavedMSAA() {
         int q = 0;
         int m = 0;
         bool v = false;
+        // Parse the entire line up to fullscreen setting
         if (file >> q >> v >> m) {
             return m;
         }
     }
     return 0;
+}
+
+bool GuiState::getSavedFullscreen() {
+    if (std::ifstream file(settingsFile); file.is_open()) {
+        int q = 0;
+        int m = 0;
+        int sd = 0;
+        bool v = false;
+        bool me = false;
+        bool mfn = false;
+        bool sfo = false;
+        bool fs = false;
+        float fov = 0.0f;
+        float mz = 0.0f;
+        float cs = 0.0f;
+        float cb = 0.0f;
+        // Parse the entire line up to fullscreen setting
+        if (file >> q >> v >> m >> fov >> me >> mfn >> mz >> sfo >> sd >> cs >> cb >> fs) {
+            return fs;
+        }
+    }
+    return false;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -119,6 +143,15 @@ void GuiMenus::renderMinimapSection(GuiState& state) {
 }
 
 void GuiMenus::renderVideoSection(GuiState& state, sf::Window& window) {
+    if (ImGui::Checkbox("Fullscreen", &state.fullscreen)) {
+        state.saveSettings();
+    }
+
+    if (state.fullscreen != state.active_fullscreen) {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f),
+                           "Restart required to apply Fullscreen changes.");
+    }
+
     if (ImGui::Checkbox("Show FPS Overlay", &state.show_fps_overlay)) {
         state.saveSettings();
     }
@@ -561,8 +594,10 @@ Gui::Gui(sf::Window& window) {
     ImGui_ImplOpenGL3_Init("#version 410 core");
     setupImGuiStyle();
 
-    state.active_msaa_level = GuiState::getSavedMSAA();
     state.loadSettings();
+
+    state.active_msaa_level = state.msaa_level;
+    state.active_fullscreen = state.fullscreen;
 
     window.setVerticalSyncEnabled(state.vsync_enabled);
 
