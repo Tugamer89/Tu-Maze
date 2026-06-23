@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/Tugamer89/Tu-Maze/compare/v1.1.0...v1.1.1) (2026-06-23)
+
+
+### Documentation
+
+* add new screenshots for Stage 29 and Stage 32 ([c14fbcb](https://github.com/Tugamer89/Tu-Maze/commit/c14fbcbc9e623534543949636ed44bdc90d35385))
+* enhanced REPORT.md ([f06eed2](https://github.com/Tugamer89/Tu-Maze/commit/f06eed2ce5e725ac50427e62f000fa47949d922d))
+
 ## [1.1.0](https://github.com/Tugamer89/Tu-Maze/compare/v1.0.0...v1.1.0) (2026-06-22)
 
 
