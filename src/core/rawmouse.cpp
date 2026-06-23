@@ -7,6 +7,7 @@
 #endif
 
 #ifdef __APPLE__
+
 void RawMouse::event(const sf::Event::MouseMovedRaw& /* event */) {
     // No-op: on macOS deltas are polled inside consumeDelta(), not fed from events.
 }
@@ -36,7 +37,9 @@ void RawMouse::setPosition(sf::Vector2i position) const {
 
     CGWarpMouseCursorPosition(warpPoint);
 }
+
 #else
+
 void RawMouse::event(const sf::Event::MouseMovedRaw& e) {
     accumulated_delta.x += static_cast<float>(e.delta.x);
     accumulated_delta.y += static_cast<float>(e.delta.y);
@@ -51,4 +54,5 @@ sf::Vector2f RawMouse::delta() {
 void RawMouse::setPosition(sf::Vector2i position) const {
     sf::Mouse::setPosition(position);
 }
+
 #endif
