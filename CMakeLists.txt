@@ -91,6 +91,11 @@ FetchContent_Declare(
 set(IMGUI_DIR ${imgui_SOURCE_DIR})
 FetchContent_MakeAvailable(imgui_sfml)
 
+# CoreGraphics Library for raw mouse in MacOS
+if(APPLE)
+    find_library(CORE_GRAPHICS_LIB CoreGraphics REQUIRED)
+endif()
+
 # ============================================================================
 # System Resources (Windows Icons & Metadata)
 # ============================================================================

@@ -10,6 +10,7 @@
 #include "core/camera.hpp"
 #include "core/exceptions.hpp"
 #include "core/node.hpp"
+#include "core/rawmouse.hpp"
 #include "core/scene.hpp"
 #include "core/session.hpp"
 #include "core/setup.hpp"
@@ -66,25 +67,10 @@ struct GameAssets {
     std::unique_ptr<Maze> maze;
 };
 
-// Mouse State tracking for smooth camera movement
+// Mouse State tracking for UI interaction recovery
 struct MouseState {
-#ifdef __APPLE__
-    // Prevents stuttering on macOS caused by forced mouse re-centering
-    bool ignoreNextMovement = false;
-#endif
     sf::Vector2i savedMenuMousePos;
-    sf::Vector2i lastMousePos;
 };
-
-// Helper to keep the mouse bound to the window center during gameplay
-void center_mouse(const sf::Window& window, MouseState& mouseState) {
-    sf::Vector2i center(window.getSize() / 2u);
-    sf::Mouse::setPosition(center, window);
-    mouseState.lastMousePos = sf::Mouse::getPosition(window);
-#ifdef __APPLE__
-    mouseState.ignoreNextMovement = true;
-#endif
-}
 
 // SFML Event Callbacks
 void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& running) {
@@ -102,31 +88,6 @@ void handle_key(const sf::Event::KeyPressed& key, Gui& gui, Scene& scene, bool& 
         // Toggle global flashlight/directional light
         scene.getLights().setOn(!scene.getLights().isOn());
         scene.update_all();
-    }
-}
-
-void handle_mouse_movement(const sf::Event::MouseMoved& mouse_moved, const sf::Window& window,
-                           const Gui& gui, Scene& scene, MouseState& mouseState) {
-    if (!window.hasFocus() || gui.isPaused() || gui.hasWon() || gui.isInMainMenu()) {
-        return;
-    }
-
-#ifdef __APPLE__
-    if (mouseState.ignoreNextMovement) {
-        mouseState.ignoreNextMovement = false;
-        if (mouseState.lastMousePos == mouse_moved.position) return;
-    }
-#endif
-
-    // Calculate delta movement from the center of the screen
-    auto dx = static_cast<float>(mouse_moved.position.x - mouseState.lastMousePos.x);
-    auto dy = static_cast<float>(mouse_moved.position.y - mouseState.lastMousePos.y);
-
-    if (std::abs(dx) > 0.1f || std::abs(dy) > 0.1f) {
-        // Invert Y axis for standard FPS controls
-        scene.getCamera().processMouseMovement(dx, -dy);
-        scene.getLights().position(scene.getCamera().getInverseViewMatrix());
-        center_mouse(window, mouseState);
     }
 }
 
@@ -199,8 +160,7 @@ void register_asset_tasks(AssetLoader& loader, GameAssets& assets, Scene& scene,
     });
 }
 
-void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running,
-                    MouseState& mouseState) {
+void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running, RawMouse& rawMouse) {
     while (const std::optional event = window.pollEvent()) {
         gui.process_event(window, *event);
 
@@ -215,31 +175,31 @@ void process_events(sf::Window& window, Gui& gui, Scene& scene, bool& running,
         } else if (const auto* key_pressed = event->getIf<sf::Event::KeyPressed>();
                    key_pressed && !gui.wants_capture_keyboard()) {
             handle_key(*key_pressed, gui, scene, running);
-        } else if (const auto* mouse_moved = event->getIf<sf::Event::MouseMoved>()) {
-            handle_mouse_movement(*mouse_moved, window, gui, scene, mouseState);
+        } else if (const auto* mouse_raw = event->getIf<sf::Event::MouseMovedRaw>()) {
+            rawMouse.event(*mouse_raw);
         }
     }
 }
 
 // Transitions between Game/Pause/Menu logic (toggles cursor visibilities and game timers)
 bool update_pause_state(sf::Window& window, const Gui& gui, SessionManager& session,
-                        bool& wasPaused, MouseState& mouseState) {
+                        bool& wasPaused, MouseState& mouseState, RawMouse& rawMouse) {
     bool isGameActive =
         window.hasFocus() && !gui.isPaused() && !gui.hasWon() && !gui.isInMainMenu();
 
     if (wasPaused && isGameActive) {
         // Returning to game: hide cursor and lock it to the window
-        mouseState.savedMenuMousePos = sf::Mouse::getPosition(window);
+        mouseState.savedMenuMousePos = sf::Mouse::getPosition();
         session.start();
         window.setMouseCursorVisible(false);
         window.setMouseCursorGrabbed(true);
-        center_mouse(window, mouseState);
+        rawMouse.delta();  // Discard any accumulated mouse movement
     } else if (!wasPaused && !isGameActive) {
         // Pausing game: show cursor and free it for UI interaction
         session.stop();
         window.setMouseCursorGrabbed(false);
         window.setMouseCursorVisible(true);
-        sf::Mouse::setPosition(mouseState.savedMenuMousePos, window);
+        rawMouse.setPosition(mouseState.savedMenuMousePos);
     }
 
     wasPaused = !isGameActive;
@@ -259,6 +219,7 @@ int run_engine() {
     GameAssets assets;
     SessionManager session;
     MouseState mouseState;
+    RawMouse rawMouse;
 
     AssetLoader loader;
     register_asset_tasks(loader, assets, scene, minimap);
@@ -295,7 +256,7 @@ int run_engine() {
         scene.update_all();
     };
 
-    auto restartGame = [&gui, &session, &window, &currentDifficulty, &mouseState, resetMaze](
+    auto restartGame = [&gui, &session, &currentDifficulty, &rawMouse, resetMaze](
                            std::optional<unsigned int> seed, int diffIdx) {
         currentDifficulty = diffIdx;
         resetMaze(seed, diffIdx);
@@ -304,7 +265,7 @@ int run_engine() {
         gui.setPaused(false);
         gui.setInMainMenu(false);
 
-        center_mouse(window, mouseState);
+        rawMouse.delta();  // Discard initial jumps before the first frame
         session.reset();
         session.start();
     };
@@ -337,7 +298,7 @@ int run_engine() {
     while (running) {
         sf::Time dt = deltaClock.restart();
 
-        process_events(window, gui, scene, running, mouseState);
+        process_events(window, gui, scene, running, rawMouse);
         gui.update(window, dt);
 
         if (gui.isInMainMenu())
@@ -357,8 +318,16 @@ int run_engine() {
         }
 
         // Process physics and camera movement only if actively playing
-        if (update_pause_state(window, gui, session, wasPaused, mouseState)) {
+        if (update_pause_state(window, gui, session, wasPaused, mouseState, rawMouse)) {
             session.update();
+
+            if (sf::Vector2f mDelta = rawMouse.delta();
+                std::abs(mDelta.x) > 0.0f || std::abs(mDelta.y) > 0.0f) {
+                // Invert Y axis as in the original code
+                scene.getCamera().processMouseMovement(mDelta.x, -mDelta.y);
+                scene.getLights().position(scene.getCamera().getInverseViewMatrix());
+            }
+
             if (assets.maze && scene.getCamera().update(dt, *assets.maze.get())) {
                 scene.getLights().position(scene.getCamera().getInverseViewMatrix());
             }
