@@ -4,6 +4,8 @@
 
 The core rendering engine features strict C++20 standard compliance, real-time animation clock tracking, and an automated multi-stage compilation framework.
 
+---
+
 ## Installation & Build Instructions
 
 ### Prerequisites
@@ -90,141 +92,78 @@ cd ../Stage_02
 # And so on...
 ```
 
-## User Interface Controls
+Or directly from the source directories:
 
-### Stage 1 (v0.2.x)
+```bash
+# To run Stage 1
+cd FCG_Stages/Stage_01
+../build/bin/tu-maze_01
+# or from 
 
-#### Keyboard Controls v0.2
+# To run Stage 2
+cd ../Stage_02
+../build/bin/tu-maze_02
 
-* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
-* **`G`**: Use Gouraud shaders.
-* **`P`**: Use Phong shaders.
-* **`F`**: Use Flat shaders.
-* **`C`**: Use Normal shaders.
+# And so on...
+```
 
-#### Mouse Controls v0.2
+## User Interface & Controls
 
-* **`Left Mouse Button` while dragging**: rotate the object.
-* **`Left Mouse Button` + `Left Alt` while dragging**: move the object.
+As the project evolves, the control scheme expands. Below are the specific commands mapped to each stage.
 
-### Stage 4 (v0.5.x)
+### Stage 25 (v0.26.x) - *Latest*
 
-#### Keyboard Controls v0.5
-
-* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
-* **`P`**: Use Phong shaders.
-* **`F`**: Use Flat shaders.
-
-#### Mouse Controls v0.5
-
-* **`Left Mouse Button` while dragging**: rotate the object.
-* **`Left Mouse Button` + `Left Alt` while dragging**: move the object.
-
-### Stage 7 (v0.8.x)
-
-#### Keyboard Controls v0.8
-
-* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
-* **`P`**: Use Phong shaders.
-* **`F`**: Use Flat shaders.
-* **`W`**: Move forward.
-* **`A`**: Move left.
-* **`S`**: Move backward.
-* **`D`**: Move right.
-
-#### Mouse Controls v0.8
-
-* **`Left Mouse Button` while dragging**: Move visual.
-
-### Stage 15 (v0.16.x)
-
-### Keyboard Controls v0.16
-
-* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
-* **`Left Shift` or `Right Shift`**: Sprint.
-* **`P`**: Use Phong shaders.
-* **`F`**: Use Flat shaders.
-* **`W`**: Move forward.
-* **`A`**: Move left.
-* **`S`**: Move backward.
-* **`D`**: Move right.
-
-#### Mouse Controls v0.16
-
-* **`Left Mouse Button` while dragging**: Move visual.
-
-### Stage 18 (v0.19.x)
-
-### Keyboard Controls v0.19
-
-* **`Escape`**: Closes the application and shuts down the rendering loop immediately.
-* **`Left Shift` or `Right Shift`**: Sprint.
-* **`W`**: Move forward.
-* **`A`**: Move left.
-* **`S`**: Move backward.
-* **`D`**: Move right.
-
-#### Mouse Controls v0.19
-
-* **`Left Mouse Button` while dragging**: Move visual.
-
-### Stage 19 (v0.20.x)
-
-### Keyboard Controls v0.20
-
-* **`Escape`**: Open or close Pause Menu.
-* **`Left Shift` or `Right Shift`**: Sprint.
-* **`W`**: Move forward.
-* **`A`**: Move left.
-* **`S`**: Move backward.
-* **`D`**: Move right.
-
-#### Mouse Controls v0.20
-
-* **Dragging**: Move visual.
-
-### Stage 21 (v0.22.x)
-
-### Keyboard Controls v0.22
-
-* **`Escape`**: Open or close Pause Menu, close Leaderboard or exit from Main Menu.
-* **`Left Shift` or `Right Shift`**: Sprint.
-* **`W`**: Move forward.
-* **`A`**: Move left.
-* **`S`**: Move backward.
-* **`D`**: Move right.
-
-#### Mouse Controls v0.22
-
-* **Dragging**: Move visual.
+* **Movement:** <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (Move) | <kbd>Shift</kbd> (Sprint)
+* **Actions:** <kbd>F</kbd> (Toggle torch)
+* **System:** <kbd>Esc</kbd> (Pause Menu, close Leaderboard/Settings, Exit Main Menu)
+* **Mouse:** **Drag** (Look around / Move camera)
 
 ### Stage 22 (v0.23.x)
 
-### Keyboard Controls v0.23
+* **Movement:** <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (Move) | <kbd>Shift</kbd> (Sprint)
+* **System:** <kbd>Esc</kbd> (Pause Menu, close Leaderboard/Settings, Exit Main Menu)
+* **Mouse:** **Drag** (Look around / Move camera)
 
-* **`Escape`**: Open or close Pause Menu, close Leaderboard, close Settings, or exit from Main Menu.
-* **`Left Shift` or `Right Shift`**: Sprint.
-* **`W`**: Move forward.
-* **`A`**: Move left.
-* **`S`**: Move backward.
-* **`D`**: Move right.
+### Stage 21 (v0.22.x)
 
-#### Mouse Controls v0.23
+* **Movement:** <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (Move) | <kbd>Shift</kbd> (Sprint)
+* **System:** <kbd>Esc</kbd> (Pause Menu, close Leaderboard, Exit Main Menu)
+* **Mouse:** **Drag** (Look around / Move camera)
 
-* **Dragging**: Move visual.
+### Stage 19 (v0.20.x)
 
-### Stage 25 (v0.26.x)
+* **Movement:** <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (Move) | <kbd>Shift</kbd> (Sprint)
+* **System:** <kbd>Esc</kbd> (Toggle Pause Menu)
+* **Mouse:** **Drag** (Look around / Move camera)
 
-### Keyboard Controls v0.26
+### Stage 18 (v0.19.x)
 
-* **`Escape`**: Open or close Pause Menu, close Leaderboard, close Settings, or exit from Main Menu.
-* **`Left Shift` or `Right Shift`**: Sprint.
-* **`F`**: Toggle torch.
-* **`W`**: Move forward.
-* **`A`**: Move left.
-* **`S`**: Move backward.
-* **`D`**: Move right.
+* **Movement:** <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (Move) | <kbd>Shift</kbd> (Sprint)
+* **System:** <kbd>Esc</kbd> (Close application)
+* **Mouse:** <kbd>Left-Click</kbd> + **Drag** (Look around / Move camera)
 
-#### Mouse Controls v0.26
+### Stage 15 (v0.16.x)
 
-* **Dragging**: Move visual.
+* **Movement:** <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (Move) | <kbd>Shift</kbd> (Sprint)
+* **Shaders:** <kbd>P</kbd> (Phong) | <kbd>F</kbd> (Flat)
+* **System:** <kbd>Esc</kbd> (Close application)
+* **Mouse:** <kbd>Left-Click</kbd> + **Drag** (Look around / Move camera)
+
+### Stage 7 (v0.8.x)
+
+* **Movement:** <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (Move)
+* **Shaders:** <kbd>P</kbd> (Phong) | <kbd>F</kbd> (Flat)
+* **System:** <kbd>Esc</kbd> (Close application)
+* **Mouse:** <kbd>Left-Click</kbd> + **Drag** (Look around / Move camera)
+
+### Stage 4 (v0.5.x)
+
+* **Shaders:** <kbd>P</kbd> (Phong) | <kbd>F</kbd> (Flat)
+* **System:** <kbd>Esc</kbd> (Close application)
+* **Mouse:** <kbd>Left-Click</kbd> + **Drag** (Rotate object) | <kbd>Alt</kbd> + <kbd>Left-Click</kbd> + **Drag** (Move object)
+
+### Stage 1 (v0.2.x)
+
+* **Shaders:** <kbd>G</kbd> (Gouraud) | <kbd>P</kbd> (Phong) | <kbd>F</kbd> (Flat) | <kbd>C</kbd> (Normal)
+* **System:** <kbd>Esc</kbd> (Close application)
+* **Mouse:** <kbd>Left-Click</kbd> + **Drag** (Rotate object) | <kbd>Alt</kbd> + <kbd>Left-Click</kbd> + **Drag** (Move object)
