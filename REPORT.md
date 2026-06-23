@@ -2,61 +2,47 @@
 
 Questo progetto mira a espandere e migliorare il progetto originario [Maze](https://github.com/Tugamer89/maze), implementando un motore di rendering 3D nativo basato su **OpenGL**. Inoltre, è stata integrata la libreria [ImGui](https://github.com/ocornut/imgui) per fornire un'interfaccia grafica intuitiva (GUI) utile alla gestione in tempo reale dei parametri di scena.
 
-Il gameplay si sviluppa in prima persona: l'obiettivo del giocatore è fuggire nel minor tempo possibile da un labirinto generato proceduralmente a ogni partita, orientandosi esclusivamente tramite l'ausilio di una minimappa.
+Il risultato è un motore di rendering 3D nativo con interfaccia grafica integrata in tempo reale. Il gameplay si sviluppa in prima persona (FPS): l'obiettivo è fuggire nel minor tempo possibile da un labirinto generato proceduralmente, orientandosi tramite una minimappa.
 
-**Note di configurazione per ambiente macOS:**
-Nelle versioni precedenti allo `Stage 28`, l'esecuzione nativa su macOS presenta alcune criticità di compatibilità, in particolare riguardanti il rendering della minimappa e lo *stuttering* durante la cattura del cursore. Questi problemi architetturali sono stati definitivamente analizzati e risolti a partire dallo Stage 28, anche se su MacOS il movimento del mouse non risulta fluido al 100%, questo principalmente per mancanza di supporto di testing.
+## Problemi di compatibilità (macOS)
 
-Per scelta progettuale, l'acquisizione dell'input è stata mantenuta a basso livello (*hardware polling*) per garantire la massima reattività dei comandi del giocatore e per evitare di fare un refactoring eccessivo. Tuttavia, le rigide policy di sicurezza e privacy di Apple bloccano nativamente queste chiamate. Per eseguire correttamente l'applicativo su macOS, è strettamente necessario configurare i permessi dell'applicazione ospite (Terminale o IDE) all'interno delle Impostazioni di Sistema:
+Nelle prime fasi di sviluppo, l'esecuzione nativa su macOS presentava criticità (rendering della minimappa e *stuttering* del cursore), risolte quasi definitivamente nello **Stage 28**.
+A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario concedere al terminale/IDE i permessi di **Monitoraggio Input** (per la lettura dei tasti fisici) e di **Accessibilità** (per il riposizionamento programmatico del cursore).
 
-* **Monitoraggio Input** (*Input Monitoring*): Necessario per permettere alla funzione `sf::Keyboard::isKeyPressed` di leggere lo stato hardware dei tasti (`W`, `A`, `S`, `D`).
-* **Accessibilità** (*Accessibility*): Necessario per consentire alla libreria grafica di riposizionare programmaticamente il cursore sullo schermo (`sf::Mouse::setPosition`).
+---
 
-## Tappe
+## Evoluzione del Progetto (Tappe)
 
 ### Stage 1 (v0.2.x)
 
-L'obiettivo di questa prima fase è stato predisporre un ambiente di sviluppo solido. È stato configurato un template di base che include correttamente [ImGui SFML](https://github.com/SFML/imgui-sfml) affiancato al codice necessario per gestire un primo spazio tridimensionale tramite **OpenGL**.
-
+* **Aggiunte:** Configurazione del template di base con integrazione di ImGui-SFML e del contesto OpenGL.
+* **Risultato visivo:** Creazione di un pavimento di base, liberamente ruotabile tramite trascinamento del mouse, e di un pannello GUI rudimentale per testare i parametri di scena.
 ![Vista di default](resources/screenshots/stage1.png)
-
-In questo stage viene visualizzato un semplice pavimento, ruotabile liberamente trascinando il cursore con il tasto sinistro del mouse. È presente inoltre un pannello GUI rudimentale per testare la modifica in tempo reale di alcuni parametri visivi.
 
 ### Stage 2 (v0.3.x)
 
-Il focus si è spostato sulla generazione della griglia di base del labirinto. Per ora la struttura è riempita interamente di muri e posizionata al centro dell'origine degli assi. Questa modifica ha richiesto una transizione architetturale da una scena a singolo oggetto a una scena complessa gestita tramite un **grafo di scena**.
-
+* **Aggiunte:** Generazione di una griglia tridimensionale posizionata all'origine degli assi (attualmente riempita solo di muri).
+* **Soluzioni Tecniche:** Transizione architetturale da una scena a singolo oggetto a una scena complessa gestita tramite un **grafo di scena** (*Scene Graph*).
 ![Labirinto completo](resources/screenshots/stage2.png)
-
-Il risultato visivo è una griglia completa esplorabile spostando la telecamera tramite input del mouse.
 
 ### Stage 3 (v0.4.x)
 
-La generazione della mappa è stata implementata con la logica di un vero e proprio labirinto. È stato adottato un [algoritmo](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)) basato su una visita DFS randomizzata, che garantisce percorsi sempre diversi e completabili.
-
+* **Aggiunte:** Generazione procedurale dei percorsi del labirinto.
+* **Soluzioni Tecniche:** Implementazione di un algoritmo basato su visita DFS (Depth-First Search) randomizzata per garantire percorsi unici e sempre completabili.
 ![Vero labirinto](resources/screenshots/stage3.png)
 
 ### Stage 4 (v0.5.x)
 
-L'obiettivo di questa tappa è innalzare la fedeltà visiva applicando texture ad alta risoluzione ai modelli del labirinto. È stato sviluppato un sistema di materiali che utilizza, per ogni superficie, tre mappe:
-
-* **Albedo (`diff`)**: per il colore base.
-* **Roughness (`rough`)**: per determinare la ruvidezza del materiale e la dispersione dei riflessi.
-* **Normal (`nor`)**: per manipolare le normali dei pixel, simulando micro-rilievi e restituendo un'illuminazione molto più realistica.
-
-A fronte di queste novità, gli shader storici "Normal" e "Gouraud" sono stati rimossi in quanto obsoleti.
-
+* **Aggiunte:** Innalzamento della fedeltà visiva tramite texture ad alta risoluzione. Rimozione dei vecchi shader "Normal" e "Gouraud", divenuti obsoleti.
+* **Soluzioni Tecniche:** Sviluppo di un sistema di materiali PBR-lite basato su tre mappe: **Albedo** (colore), **Roughness** (ruvidezza/riflessi) e **Normal** (micro-rilievi e illuminazione).
 ![Labirinto con shader flat](resources/screenshots/stage4_flat.png)
-
 ![Dettagli fotorealismo texture](resources/screenshots/stage4_photo.png)
 
 ### Stage 5 (v0.6.x)
 
-Sono state apportate migliorie all'interfaccia utente, aggiungendo un contatore degli FPS per monitorare le performance grafiche. È stata inoltre introdotta una schermata di caricamento progressiva per fornire feedback all'utente durante l'inizializzazione sincrona degli asset pesanti.
-
+* **Aggiunte:** Contatore FPS nell'interfaccia, schermata di caricamento progressiva per gli asset pesanti e raffinamento del sistema di illuminazione Phong.
+* **Problemi Risolti:** Corretti artefatti visivi agli spigoli dei muri causati da un calcolo errato dell'illuminazione.
 ![Schermata di caricamento](resources/screenshots/stage5.gif)
-
-Parallelamente, il sistema di illuminazione Phong è stato fixato e raffinato per correggere fastidiosi artefatti visivi agli angoli dei muri.
 
 | Prima (Spigoli rotti) | Dopo (Spigoli corretti) |
 | :---: | :---: |
@@ -64,33 +50,22 @@ Parallelamente, il sistema di illuminazione Phong è stato fixato e raffinato pe
 
 ### Stage 6 (v0.7.x)
 
-L'obiettivo di questa tappa è stata l'ottimizzazione radicale delle prestazioni.
-
-Il **mapping triplanare** utilizzato nello stage precedente per applicare le texture costringeva il *Fragment Shader* a eseguire ben 9 campionamenti in memoria video per ogni singolo pixel a schermo (calcolando i 3 assi per le mappe di colore, normali e ruvidezza e poi fondendoli insieme).
-
-Sfruttando la natura architettonica del labirinto, composto esclusivamente da pareti ortogonali perfettamente allineate agli assi cartesiani, la tecnica è stata sostituita con un più efficiente **Box Mapping** (*Single-Sample Dominant-Axis Mapping*). Lo shader ora identifica matematicamente l'asse dominante della faccia osservata ed effettua il campionamento delle texture una sola volta per quel piano specifico. Questa modifica ha ridotto il carico sulla memoria video del 66%, mantenendo intatto il fotorealismo ma garantendo un drastico aumento dei fotogrammi al secondo.
-
-È stata inoltre implementata un'ottimizzazione architetturale lato CPU introducendo il pre-calcolo (*caching*) delle matrici di trasformazione. Poiché il labirinto è un elemento geometricamente statico, la *Model Matrix* e la relativa *Normal Matrix* di ciascun nodo dello *Scene Graph* vengono ora calcolate e salvate in memoria una sola volta in fase di inizializzazione. Questo approccio elimina migliaia di costose e ridondanti inversioni matriciali dal loop di rendering principale, alleggerendo drasticamente il carico sul processore.
-
-L'implementazione combinata di queste due tecniche (riduzione dei campionamenti GPU e caching delle matrici su CPU) ha portato a un **incremento prestazionale misurato di circa 2.5x in termini di FPS**, garantendo un'esperienza visiva estremamente fluida senza alcun compromesso sul fotorealismo.
+* **Aggiunte:** Ottimizzazione radicale delle prestazioni geometriche e di rendering (+2.5x FPS).
+* **Soluzioni Tecniche:**
+  1. **Box Mapping:** Sostituzione del mapping triplanare (9 campionamenti GPU per pixel) con un *Single-Sample Dominant-Axis Mapping*, che campiona la texture una sola volta sull'asse dominante. Riduce il carico VRAM del 66%. Questo è stato possibile grazie alla natura architettonica del labirinto.
+  2. **CPU Caching:** Pre-calcolo della *Model Matrix* e *Normal Matrix* in fase di inizializzazione per gli elementi statici, rimuovendo ridondanti inversioni matriciali dal loop principale.
 
 ### Stage 7 (v0.8.x)
 
-L'obiettivo principale di questa tappa è stata l'implementazione delle meccaniche di navigazione in prima persona (FPS), collocando fisicamente la telecamera all'interno della geometria del labirinto. Dal punto di vista architetturale, la gestione delle rotazioni e delle traslazioni spaziali è stata rifattorizzata: il calcolo della *View Matrix* è stato automatizzato sfruttando la funzione `glm::lookAt`, garantendo un codice nettamente più pulito e manutenibile.
-
-Il sistema di illuminazione è stato contestualmente aggiornato per assecondare la nuova prospettiva. La sorgente luminosa puntiforme è ora posizionata di default con un offset che simula una torcia impugnata nella mano destra del giocatore. Le coordinate spaziali di questa luce dinamica sono state inoltre esposte all'interno dell'interfaccia GUI, permettendone la manipolazione in tempo reale.
-
-Infine, il motore di rendering è stato bilanciato per favorire la fluidità e la qualità visiva in prospettiva:
-
-* **Filtro Anisotropico**: È stato introdotto per contrastare la naturale perdita di dettaglio delle texture osservate con angolazioni oblique (situazione tipica dei lunghi corridoi in prima persona). Questa tecnica garantisce superfici distanti molto più nitide e leggibili.
-* **Micro-ottimizzazioni**: La sincronizzazione verticale (V-Sync) e l'Anti-Aliasing (AA) sono stati disabilitati di default. Questa scelta mira ad abbattere l'overhead computazionale, massimizzando gli FPS e garantendo un'esperienza di gioco estremamente fluida e reattiva.
+* **Aggiunte:** Implementazione della telecamera in prima persona (FPS) e aggiornamento dell'illuminazione (torcia dinamica manipolabile tramite GUI).
+* **Soluzioni Tecniche:** Automazione del calcolo della *View Matrix* tramite `glm::lookAt`. Introdotto un **Filtro Anisotropico** per mantenere la nitidezza delle texture sui lunghi corridoi visti di sbieco. Disabilitati di default V-Sync e Anti-Aliasing per massimizzare la reattività.
 
 ### Stage 8 (v0.9.x)
 
-L'obiettivo di questo stage è stato un ulteriore perfezionamento delle performance, con particolare attenzione all'ottimizzazione del motore grafico per macchine dotate di hardware meno prestante. A tal fine, la pipeline di rendering è stata arricchita con due feature fondamentali:
-
-* **Frustum Culling**: È stato implementato un sistema di scarto geometrico che evita di processare e inviare alla GPU i nodi del labirinto situati al di fuori del volume visivo (frustum) della telecamera. Poiché la visuale in prima persona all'interno dei corridoi limita naturalmente la visibilità, questa tecnica evita il rendering di una vasta quantità di geometria fuori campo. L'implementazione ha garantito un incremento prestazionale medio di circa **1.5x in termini di FPS**, con picchi di miglioramento nettamente superiori nelle inquadrature ad alta occlusione visiva.
-* **Scalabilità Grafica Automatica**: È stato introdotto un sistema di gestione della qualità delle texture configurabile su tre livelli. Al primo avvio, l'applicativo effettua una stima delle performance per assegnare automaticamente il preset qualitativo più adeguato al sistema in uso. Le impostazioni (scelte dall'algoritmo o modificate dall'utente tramite GUI) vengono poi serializzate e salvate in locale per garantirne la persistenza tra le varie sessioni.
+* **Aggiunte:** Ottimizzazione del motore per hardware di fascia bassa (+1.5x FPS medio) e impostazioni grafiche predefinite.
+* **Soluzioni Tecniche:**
+  1. **Frustum Culling:** Sistema di scarto geometrico che blocca l'invio alla GPU dei nodi esterni al cono visivo della telecamera.
+  2. **Scalabilità Automatica:** Stima iniziale delle performance del PC per l'assegnazione automatica della risoluzione delle texture (Low, Medium, High) con salvataggio persistente su disco.
 
 | Low | Medium | High |
 | :---: | :---: | :---: |
@@ -98,282 +73,163 @@ L'obiettivo di questo stage è stato un ulteriore perfezionamento delle performa
 
 ### Stage 9 (v0.10.x)
 
-L'obiettivo di questa tappa è stato l'arricchimento e il perfezionamento dell'interfaccia utente (GUI), espandendo il pannello delle impostazioni per offrire un controllo più granulare sul motore di rendering e sull'esperienza di gioco. Sono stati introdotti i seguenti parametri configurabili in tempo reale:
-
-* **Sincronizzazione Verticale (V-Sync)**: Implementato un *toggle* per vincolare o sbloccare il *framerate* rispetto alla frequenza di aggiornamento del monitor, permettendo all'utente di scegliere tra l'eliminazione dello *screen tearing* e la massimizzazione pura degli FPS.
-* **Multi-Sample Anti-Aliasing (MSAA)**: È stata aggiunta l'opzione per abilitare l'anti-aliasing con accelerazione hardware, fondamentale per mitigare gli artefatti visivi (*aliasing*) e smussare i bordi dei poligoni. Poiché la modifica del numero di campioni (*samples*) incide direttamente sui buffer del contesto grafico originario, l'applicazione di questa impostazione richiede un riavvio dell'applicativo.
-* **Field of View (FOV)**: È ora possibile regolare dinamicamente il campo visivo della telecamera. Il parametro aggiorna in tempo reale la matrice di proiezione prospettica, consentendo di personalizzare l'ampiezza dell'inquadratura.
-* **Wireframe Mode**: Integrata una modalità di visualizzazione diagnostica. Sfruttando la chiamata di stato `glPolygonMode` (impostata su `GL_LINE`), è possibile bypassare la rasterizzazione dei frammenti e visualizzare esclusivamente la topologia geometrica (*mesh*) della scena. Questo strumento si è rivelato indispensabile per il *debugging* visivo, specialmente per verificare il corretto funzionamento del *Frustum Culling* implementato nello stage precedente.
-
+* **Aggiunte:** Espansione del pannello impostazioni (GUI) con nuovi parametri configurabili in tempo reale: V-Sync, MSAA (Multi-Sample Anti-Aliasing), FOV e modalità Wireframe.
+* **Soluzioni Tecniche:** La modalità Wireframe (`glPolygonMode`) è stata utilizzata come strumento di *debugging* visivo per verificare il corretto scarto dei poligoni da parte del Frustum Culling.
 ![Nuove impostazioni + wireframe](resources/screenshots/stage9.png)
 
 ### Stage 10 (v0.11.x)
 
-L'obiettivo di questa tappa è stata l'introduzione di una **minimappa** in sovraimpressione per agevolare l'orientamento del giocatore all'interno del labirinto, con un focus mirato sull'ottimizzazione prestazionale per evitare che un doppio *pass* di rendering impattasse troppo il framerate.
-
-Per raggiungere questo scopo sono state adottate diverse soluzioni architetturali:
-
-* **Shader Dedicato e Unlit**: È stata creata una telecamera ortografica dedicata ed è stato scritto un *Custom Shader* esclusivo per la minimappa (`minimap.vert/frag`). Questo programma bypassa volutamente i costosi calcoli di illuminazione (Phong) e campionamento delle texture, renderizzando la topologia geometrica tramite semplici colori solidi. Coerentemente con questa riorganizzazione, i vecchi shader generici sono stati rinominati (es. `phong.vert/frag` e `flat.vert/frag`).
-* **Ottimizzazione del Rendering (Distance Culling)**: Evitare di ridisegnare l'intero labirinto per ogni frame della minimappa era fondamentale. È stato implementato un sistema di scarto rapido che calcola la distanza radiale bidimensionale dal giocatore, processando e inviando alla GPU esclusivamente i nodi visibili all'interno dell'attuale livello di zoom della mappa.
-* **Anti-Aliasing Isolato (MSAA FBO)**: Per garantire una pulizia visiva (smussatura dei bordi) della minimappa senza forzare l'MSAA sull'intera scena tridimensionale (operazione estremamente costosa su schede video di fascia bassa), il rendering della minimappa avviene *off-screen* all'interno di un *Multisampled Framebuffer Object* (FBO). L'immagine finale viene poi fusa e trasferita sullo schermo (tramite blitting), ottenendo una UI definita a costo computazionale pressoché nullo.
-* **Integrazione e UI**: Le meccaniche di visualizzazione sono state interamente esposte nell'interfaccia utente (ImGui), permettendo al giocatore di regolare lo zoom e decidere se vincolare la rotazione della minimappa al "Nord Assoluto" o farla ruotare assecondando la visuale in prima persona.
-
+* **Aggiunte:** Minimappa HUD in sovraimpressione per agevolare l'orientamento, con opzioni di zoom e rotazione configurabili.
+* **Soluzioni Tecniche:**
+  1. **Shader Unlit:** Telecamera ortografica dedicata e shader specifico privo di illuminazione per ridurre il carico.
+  2. **Distance Culling:** Rendering limitato ai soli nodi visibili entro il raggio della mappa.
+  3. **MSAA FBO:** Rendering *off-screen* isolato in un Multisampled Framebuffer Object per garantire bordi smussati alla UI senza forzare il costoso MSAA su tutta la scena 3D.
 ![Minimappa](resources/screenshots/stage10.png)
 
 ### Stage 11 (v0.12.x)
 
-L'obiettivo di questa tappa è stato il *refactoring* architetturale del sistema di inizializzazione degli asset, passando da una struttura rigida a una soluzione più moderna, dinamica ed efficiente in linea con gli standard del C++ moderno.
-
-La precedente logica della schermata di caricamento, basata su un esteso blocco `switch` vincolato a un contatore di step cablato a codice (*hardcoded*), è stata interamente sostituita introducendo una **Task Queue** basata sul [*Command Pattern*](https://en.wikipedia.org/wiki/Command_pattern). È stata implementata una classe dedicata (`AssetLoader`) che si occupa di gestire dinamicamente i caricamenti sfruttando espressioni *lambda* e `std::function`.
-
-Questa riorganizzazione ha portato evidenti vantaggi sotto il cofano:
-
-* **Decoupling Architetturale**: Il loop principale e l'interfaccia utente (che calcola dinamicamente la percentuale di completamento) sono ora totalmente slegati dall'identità dei singoli asset caricati. L'aggiunta di nuove texture o mesh non richiede più la modifica manuale della logica di progresso.
-* **Ottimizzazione della Memoria**: Sfruttando la semantica di spostamento (*move semantics* tramite `std::move`) nell'accodamento e nell'esecuzione dei task all'interno della `std::queue`, sono state eliminate copie superflue, garantendo un'occupazione di memoria strettamente necessaria e sicura.
-* **Scalabilità**: Questo sistema pone delle solide basi strutturali per le iterazioni future. Permetterà, ad esempio, di serializzare la coda di caricamento per istanziare livelli o biomi differenti partendo dalla lettura di file di configurazione esterni (es. formati JSON).
+* **Aggiunte:** Refactoring architetturale del sistema di caricamento asincrono degli asset.
+* **Soluzioni Tecniche:** Transizione da switch *hardcoded* a una **Task Queue** basata sul *Command Pattern*. La classe `AssetLoader` gestisce il caricamento via lambda e `std::function`, ottimizzando la memoria tramite *move semantics* (`std::move`).
 
 ### Stage 12 (v0.13.x)
 
-L'obiettivo di questa tappa è stato un radicale intervento di ottimizzazione architetturale mirato a minimizzare il sovraccarico della CPU durante il rendering della geometria statica.
-
-La struttura dello Scene Graph del labirinto è stata rivoluzionata implementando una tecnica di **Static Batching** (o *Mesh Merging*). In precedenza, la scena era composta da un nodo distinto per ogni singolo elemento della griglia ($N$ muri e $M$ celle calpestabili), il che costringeva l'applicazione a generare migliaia di *Draw Calls* individuali per ogni fotogramma. Con la nuova architettura, l'intera geometria viene analizzata in fase di inizializzazione e "fusa" matematicamente via software: tutti i vertici e le matrici dei muri vengono accorpati in un'unica enorme *mesh*, e lo stesso avviene per i pavimenti.
-
-Il risultato è un grafo estremamente snello che delega il rendering dell'intero labirinto a sole due *Draw Calls* globali. Spostando il carico computazionale interamente sulla GPU, il motore grafico ha registrato un salto prestazionale eccezionale, con un incremento di FPS di oltre 5 volte rispetto alle versioni precedenti.
+* **Aggiunte:** Salto prestazionale estremo (+5x FPS) tramite alleggerimento del sovraccarico CPU nel disegno della geometria.
+* **Soluzioni Tecniche:** Implementazione dello **Static Batching** (Mesh Merging). I nodi separati di pavimenti e muri vengono fusi a livello software in fase di avvio, riducendo le migliaia di richieste di disegno dell'intero labirinto a sole **due *Draw Calls* globali**.
 
 ### Stage 13 (v0.14.x)
 
-L'obiettivo di questa tappa è stato il consolidamento del motore grafico e dell'interazione utente, tramite una sessione mirata di bug fixing per risolvere alcuni problemi legati al sistema di anti-aliasing multiplo e alla gestione dell'input.
-
-![Bug visivo](resources/screenshots/stage13.png)
-
-* **Risoluzione artefatti MSAA**: L'attivazione del Multi-Sample Anti-Aliasing causava la scomparsa della minimappa (schermo parzialmente colorato) e una fastidiosa sfocatura dei font dell'interfaccia utente. Il problema della minimappa è stato risolto introducendo un Resolve Framebuffer intermedio: l'immagine multisamplata generata *off-screen* viene ora "appiattita" su un FBO standard prima di essere trasferita sul *Default Framebuffer* (tramite operazione di *blitting*), garantendo il corretto trasferimento dei pixel. Per la GUI, è stato sufficiente disabilitare temporaneamente lo stato `GL_MULTISAMPLE` prima del rendering di ImGui (che implementa già un proprio anti-aliasing vettoriale), ripristinandolo subito dopo a costo computazionale nullo grazie allo state filtering dei driver OpenGL.
-* **Gestione del Focus e dell'Input**: È stato corretto un difetto per cui il giocatore continuava a muoversi nel labirinto anche quando la finestra perdeva il focus o veniva ridotta a icona. Poiché la libreria interroga lo stato globale dell'hardware della tastiera, la logica di aggiornamento della telecamera è stata revisionata vincolando la lettura degli input esclusivamente ai momenti in cui l'applicativo risulta attivamente in primo piano, prevenendo così movimenti accidentali in background.
+* **Problemi Risolti:** Artefatti visivi su minimappa e font sfocati causati dall'MSAA; movimento anomalo del giocatore in background.
+* **Soluzioni Tecniche:**
+  1. Risolto il problema MSAA "appiattendo" l'immagine tramite *blitting* su un Resolve Framebuffer prima del render su schermo, disabilitando temporaneamente `GL_MULTISAMPLE` per i testi ImGui.
+  2. Vincolato il *polling* della tastiera al solo stato di focus attivo della finestra.
+![Bug visivo prima del fix](resources/screenshots/stage13.png)
 
 ### Stage 14 (v0.15.x)
 
-L'obiettivo di questa tappa è stato il rinnovamento dell'architettura dei materiali e la completa ricalibrazione del sistema di illuminazione, al fine di conferire al gioco un'atmosfera da *dungeon crawler* cupa e immersiva.
-
-Dal punto di vista architetturale, le proprietà dei materiali (colore diffuso, componente ambientale, speculare e lucentezza) sono state totalmente disaccoppiate dalla classe globale preposta alla gestione delle luci. Ogni oggetto e nodo geometrico possiede ora un proprio `Material` indipendente. Per preservare le elevate prestazioni del motore, le *location* delle variabili *uniform* degli shader vengono ora memorizzate in cache (`MaterialLocations`) direttamente alla base della scena e propagate ricorsivamente lungo lo *Scene Graph* durante le singole *Draw Calls*, eliminando le costose e ridondanti interrogazioni al contesto OpenGL ad ogni frame.
-
-L'aspetto visivo è stato radicalmente trasformato. I controlli manuali dei materiali tramite interfaccia grafica (GUI) sono stati rimossi in favore di costanti fisiche realistiche preimpostate, modellate sfruttando i *designated initializers* del C++20 per garantire una sintassi chiara e robusta. I muri in mattoni presentano ora un'elevata specularità, studiata per simulare l'umidità della pietra e la riflessione del muschio bagnato, mentre la pavimentazione in *cobblestone* è stata resa sufficientemente opaca e ruvida da assorbire la luce radente in modo naturale.
-
-Infine, l'illuminazione della scena è stata bilanciata in ottica *dark-fantasy*: la luce dinamica del giocatore emette ora un fascio caldo e focale tipico di una torcia a fiamma, mentre l'illuminazione ambientale è stata drasticamente ridotta e virata su toni molto freddi e bluastri. Questo netto contrasto cromatico permette di leggere la conformazione del labirinto in lontananza e orientarsi, mantenendo però intatto il senso di oscurità e tensione esplorativa dei corridoi vicini.
-
+* **Aggiunte:** Atmosfera dark-fantasy tramite nuovi materiali e nuova calibrazione dell'illuminazione (luce direzionale calda, ambientale fredda).
+* **Soluzioni Tecniche:** Disaccoppiamento di luci e materiali. Implementazione del caching delle variabili *uniform* (`MaterialLocations`) nei nodi base dello *Scene Graph* per limitare le chiamate ad OpenGL durante il render loop. Configurazione delle costanti fisiche tramite *designated initializers* (C++20).
 ![Nuove luci](resources/screenshots/stage14.png)
 
 ### Stage 15 (v0.16.x)
 
-L'obiettivo di questa tappa è stato l'introduzione di un sistema di collisioni fisiche e l'espansione delle meccaniche di navigazione del giocatore.
-
-Dal punto di vista tecnico, il rilevamento degli ostacoli è stato implementato adottando un approccio **AABB vs AABB** (Axis-Aligned Bounding Box), che tratta l'ingombro del giocatore e le celle dei muri come volumi di collisione ortogonali. Per garantire un'esplorazione fluida, la valutazione delle collisioni è stata scissa sui singoli assi X e Z: in caso di impatto, viene azzerata esclusivamente la componente vettoriale interessata, permettendo al giocatore di scivolare in modo naturale lungo le pareti senza il rischio di incastrarsi ("gradino") sugli spigoli geometrici.
-
-Parallelamente, è stata introdotta la possibilità di correre mantenendo premuto uno dei tasti `Shift`. L'input applica dinamicamente un moltiplicatore alla velocità di base, accuratamente pesato tramite il calcolo del *delta-time* per mantenere il movimento coerente a prescindere dal framerate.
+* **Aggiunte:** Collisioni ambientali e meccanica di corsa (moltiplicatore velocità legato al *delta-time*).
+* **Soluzioni Tecniche:** Rilevamento intersezioni basato su **AABB (Axis-Aligned Bounding Box)**. Il calcolo delle collisioni è stato separato per asse (X e Z): in caso di impatto viene bloccata solo la coordinata incriminata, permettendo al giocatore di "scivolare" fluidamente lungo le pareti.
 
 ### Stage 16 (v0.17.x)
 
-L'obiettivo principale di questa tappa è stata l'evoluzione del progetto da semplice *tech demo* esplorativa a un vero e proprio ecosistema di gioco, introducendo un *gameplay* completo e una chiara condizione di vittoria.
-
-Le meccaniche di base sono state formalizzate: il giocatore viene ora istanziato (*spawn*) nel vertice in alto a destra del labirinto e deve orientarsi per raggiungere l'uscita posizionata all'estremità opposta (in basso a sinistra). Il punto di arrivo è stato fisicamente inserito all'interno della scena 3D sotto forma di un cristallo fluttuante e luminoso, oltre a essere tracciato dinamicamente in verde sulla minimappa.
-
-Dal punto di vista della logica di gioco, sono state implementate diverse migliorie architetturali:
-
-* **Game State e Vittoria**: Il calcolo della distanza tra il giocatore e il traguardo permette di innescare uno stato di "Vittoria". Questo evento sospende i comandi di navigazione e presenta all'utente un pop-up modale (tramite la GUI) che offre la possibilità di avviare una nuova partita. La funzione di *reset* ripristina la posizione della telecamera e genera un nuovo labirinto.
-* **Animazioni Frame-Independent**: L'animazione di oscillazione e rotazione del cristallo è stata svincolata dal tempo assoluto di esecuzione. Sfruttando l'accumulo incrementale del *delta-time* combinato con un *wrapping* matematico degli angoli, sono state eliminate le perdite di precisione della mantissa dei *float*, garantendo animazioni fluide e prive di microscatti (o salti temporali dovuti alla perdita di focus della finestra).
-* **Material Flags (Uber Shader)**: Poiché la tecnica di *Box Mapping* (ottimizzata nello Stage 6) causa una illuminazione errata delle texture se applicata a modelli non allineati agli assi o in rotazione libera, è stato introdotto un approccio architetturale basato su *flag*. La classe `Material` invia ora un *uniform* booleano allo shader (`useTextures`) per indicare la natura dell'oggetto. Sfruttando il *branching* condizionale, i *Fragment Shader* ignorano il calcolo delle coordinate UV per il cristallo, renderizzandolo istantaneamente come un solido puro pur applicando correttamente l'illuminazione Phong e la riflessione speculare sulle facce inclinate.
-
+* **Aggiunte:** Obiettivo di gioco (raggiungere l'uscita), spawn system, cristallo di fine livello e modale di Vittoria con logica di riavvio.
+* **Soluzioni Tecniche:** L'animazione del cristallo sfrutta il *delta-time* con wrapping angolare per evitare perdita di precisione in virgola mobile. Introduzione dei **Material Flags**: tramite un uniform `useTextures`, gli Uber Shader ignorano UV e mapping testuale per il cristallo, ottimizzandone il rendering come solido puro illuminato.
 ![Animazione cristallo](resources/screenshots/stage16.gif)
-
 ![Popup di vittoria](resources/screenshots/stage16.png)
 
 ### Stage 17 (v0.18.x)
 
-L'obiettivo di questa tappa è stato il completamento del *gameplay* di gioco tramite l'integrazione di un sistema di tracciamento delle performance del giocatore e il raffinamento visivo dell'obiettivo finale.
-
-Dal punto di vista tecnico e di gameplay, sono state introdotte le seguenti novità architetturali:
-
-* **Alpha Blending**: È stata abilitata la fusione dei colori nel contesto globale di OpenGL (tramite l'operazione `glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)`). Questa modifica ha permesso di assegnare un canale alfa parametrico al materiale del cristallo, rendendolo semi-trasparente. Il risultato è un indicatore di fine livello visivamente molto più accattivante, che si sovrappone alla scena senza occludere completamente la geometria retrostante.
-* **Session Manager e Timer**: Il ciclo di vita della singola run è ora orchestrato da una classe dedicata (`SessionManager`). È stato implementato un cronometro ad alta precisione aggiornato tramite il *delta-time* del render loop e mostrato dinamicamente in sovraimpressione (HUD). Al fine di garantire misurazioni eque, la logica di aggiornamento intercetta gli eventi di sistema e mette automaticamente in pausa il timer qualora la finestra perda il focus.
-* **Salvataggio e Tracciabilità**: Al raggiungimento della condizione di vittoria, il timer viene interrotto e il tempo di fuga formattato viene serializzato su disco all'interno di un registro testuale. Per conferire valore alla progressione e favorire la rigiocabilità (in ottica *speedrunning*), ogni punteggio viene salvato associandolo al seed utilizzato per la generazione di quel specifico labirinto.
-
+* **Aggiunte:** Tracciamento prestazioni del giocatore, cristallo traslucido e salvataggio dei record su disco.
+* **Soluzioni Tecniche:** Abilitato l'Alpha Blending nativo di OpenGL. Sviluppo del `SessionManager` per gestire il timer (con pausa automatica in caso di perdita focus) e serializzare su file di testo il tempo di completamento, strettamente associato al seme generazionale (*seed*) della partita.
 ![Cristallo traslucido + timer](resources/screenshots/stage17.png)
 
 ### Stage 18 (v0.19.x)
 
-L'obiettivo di questa tappa è stato il consolidamento della pipeline grafica attraverso la creazione di un singolo **Uber Shader** (`standard.vert/frag`) che unifica e sostituisce i precedenti programmi separati (Flat e Phong).
-
-Dal punto di vista architetturale, la transizione tra lo stile geometrico e l'illuminazione smussata fotorealistica è ora gestita dinamicamente a *runtime* tramite l'invio di una singola variabile `uniform` (`useFlatShading`). Questo *refactoring* ha permesso di eliminare la duplicazione del codice e snellire la gestione dei materiali lato CPU, azzerando i cambi di contesto (`glUseProgram`) per gli oggetti opachi.
-
-Contestualmente, il *Fragment Shader* è stato oggetto di micro-ottimizzazioni matematiche e prestazionali mirate: le costose derivate in *screen-space* (`dFdx`, `dFdy`) vengono ora calcolate solo se strettamente richieste dallo stile del materiale, le chiamate di campionamento in VRAM sono state ridotte, e le divisioni per la *Gamma Correction* (sRGB) sono state sostituite da moltiplicazioni costanti precalcolate.
-
+* **Aggiunte:** Consolidamento della pipeline grafica in un singolo **Uber Shader** (`standard.vert/frag`).
+* **Soluzioni Tecniche:** La transizione tra ombreggiatura piatta e smussata fotorealistica avviene ora a *runtime* tramite la variabile `useFlatShading`, abbattendo i cambi di contesto (`glUseProgram`). Micro-ottimizzazioni in *screen-space* (derivate `dFdx/dFdy` calcolate solo se richieste) per la riduzione dei campionamenti VRAM.
 ![Nuovo shading](resources/screenshots/stage18.png)
 
 ### Stage 19 (v0.20.x)
 
-L'obiettivo di questa tappa è stato il perfezionamento del sistema di controllo e l'introduzione di una gestione formale dello stato di gioco, avvicinando l'esperienza utente agli standard dei titoli 3D professionali.
-
-Dal punto di vista tecnico e di gameplay, sono state introdotte le seguenti novità architetturali:
-
-* **True FPS Camera (Mouse Grab & Hide)**: Il sistema di rotazione della visuale è stato totalmente riprogettato, abbandonando la necessità di tenere premuto il tasto del mouse (*drag*). È stato implementato un meccanismo continuo in cui il cursore di sistema viene nascosto e intrappolato al centro della finestra. Calcolando il delta di spostamento a ogni fotogramma e forzando istantaneamente il cursore al centro, si ottiene un movimento della telecamera fluido e illimitato a 360 gradi.
-* **Gestione dello Stato di Pausa**: È stato integrato un vero e proprio stato di "Pausa", richiamabile tramite il tasto `ESC` o attivato in automatico in caso di perdita di focus della finestra (es. *Alt-Tab*). L'attivazione di questo stato congela temporaneamente l'aggiornamento del timer interno (`SessionManager`), svincola il cursore del mouse per permetterne l'uso libero e mostra in sovraimpressione il pannello GUI delle impostazioni.
-* **Refactoring del Game Loop**: Per integrare le nuove logiche di transizione di stato senza compromettere la manutenibilità del progetto, il loop principale (`main`) è stato sottoposto a refactoring. L'interrogazione degli eventi (*polling*) e la gestione hardware del mouse sono state isolate in funzioni esterne dedicate, abbattendo drasticamente la complessità cognitiva del blocco d'esecuzione.
-
-![Menu di pausa](resources/screenshots/stage19.png)
+* **Aggiunte:** Implementazione dei controlli da FPS moderno, stato formale di Pausa (tasto `ESC`) e refactoring del game loop principale.
+* **Soluzioni Tecniche:** Il sistema **True FPS Camera** nasconde il cursore e lo blocca al centro della finestra a ogni frame, calcolandone il delta di spostamento per permettere una rotazione visiva a 360° fluida e ininterrotta.
 
 ### Stage 20 (v0.21.x)
 
-L'obiettivo di questa tappa è stato il rinnovamento visivo e funzionale dell'interfaccia utente (GUI), con particolare attenzione al menu di pausa e al monitoraggio delle prestazioni grafiche.
-
-Dal punto di vista tecnico e di *User Experience* (UX), sono state implementate le seguenti migliorie:
-
-* **Restyling e Tema Custom**: Attraverso la manipolazione diretta della struttura `ImGuiStyle`, il tema predefinito di ImGui è stato interamente sovrascritto. Sono stati introdotti angoli arrotondati per finestre e widget (*rounding*), spaziature (*padding*) più ampie e una palette cromatica *Dark Theme* con accenti blu, conferendo all'applicativo un aspetto decisamente più professionale e moderno.
-* **Riorganizzazione del Menu di Pausa**: Il layout è stato riprogettato abbandonando i classici *collapsing headers* in favore di un più ordinato sistema a schede (*Tabs*). La finestra è ora ancorata rigidamente al centro dello schermo con dimensioni fisse e bloccate: questo elimina la fastidiosa necessità di effettuare *scrolling* verticale e garantisce un'immediata leggibilità per tutte le opzioni di configurazione.
-* **Overlay FPS Persistente**: Il contatore dei fotogrammi per secondo è stato isolato dalle impostazioni video e convertito in un *overlay* indipendente. Sfruttando flag di finestra specifici (come `ImGuiWindowFlags_NoBackground` e `ImGuiWindowFlags_NoInputs`), il testo fluttua direttamente a schermo nell'angolo in alto a sinistra senza interferire con l'input di gioco. L'attivazione dell'overlay è gestita da un *toggle* il cui stato viene serializzato nel file di configurazione locale, rendendo la scelta persistente tra le diverse sessioni.
-
+* **Aggiunte:** Restyling UI con *Dark Theme* custom (angoli smussati e spaziature), riorganizzazione menu Pausa a schede (*Tabs*) bloccato centralmente e Overlay FPS indipendente su schermo.
 ![Nuovo menu di pausa e overlay FPS](resources/screenshots/stage20.png)
 
 ### Stage 21 (v0.22.x)
 
-L'obiettivo di questa tappa è stato il completamento del *flow* di gioco tramite l'introduzione di un vero e proprio **Menu Principale** interattivo e di un sistema di visualizzazione dei record (*Leaderboard*).
-
-Dal punto di vista tecnico e di *User Experience* (UX), l'aggiornamento ha introdotto diverse novità architetturali e funzionali:
-
-* **Main Menu e Stati di Gioco**: L'ingresso diretto nel labirinto è stato sostituito da una schermata di avvio. L'integrazione ha richiesto la riorganizzazione della macchina a stati globale: quando il giocatore si trova nel menu principale, il rendering 3D del labirinto e le logiche di simulazione passano in *idle*, presentando un elegante sfondo scuro. I menu di Pausa e di Vittoria sono stati contestualmente aggiornati per permettere il ritorno alla schermata iniziale invece del semplice "Quit to Desktop".
-* **Seme Generazionale (Custom Seed)**: Il motore di generazione procedurale (`Maze`) è stato modificato per accettare un identificativo opzionale (`std::optional<unsigned int>`). Tramite un apposito campo di input nella GUI, i giocatori possono ora avviare partite su labirinti specifici inserendone il *seed*. Questa meccanica è fondamentale per garantire la ripetibilità degli scenari e favorire competizioni ad armi pari.
-* **Classifica Integrata (Leaderboard)**: La classe `SessionManager` è stata estesa con un parser capace di leggere il registro di testo dei punteggi locali. I record vengono istanziati in un vettore di strutture (`ScoreRecord`), ordinati per tempo di completamento (dal più veloce al più lento) tramite `std::range::sort`, vengono selezionati i migliori 50 e infine renderizzati su schermo sfruttando le API tabellari avanzate di ImGui.
-
+* **Aggiunte:** Menu Principale (idle rendering), inserimento Seme Personalizzato (*Custom Seed*) e Leaderboard dei migliori 50 tempi.
+* **Soluzioni Tecniche:** Lettura e ordinamento automatico (tramite `std::range::sort`) del file di testo locale contenente i record del Session Manager e rendering tramite API tabellari di ImGui.
 ![Menu principale](resources/screenshots/stage21_menu.png)
-
 ![Leaderboard](resources/screenshots/stage21_leaderboard.png)
 
 ### Stage 22 (v0.23.x)
 
-L'obiettivo di questa tappa è stato l'arricchimento del Menu Principale tramite l'integrazione del pannello delle Impostazioni, precedentemente accessibile in via esclusiva dal menu di pausa *in-game*.
-
-Dal punto di vista architetturale e dell'interfaccia utente, sono stati effettuati i seguenti interventi:
-
-* **Refactoring**: Per prevenire la duplicazione del codice, l'intera logica di rendering delle opzioni ("Video & Display" e "Gameplay & UI") è stata astratta in un componente riutilizzabile (`renderSettingsContent`). Questo approccio modulare consente di richiamare le medesime interfacce di configurazione sia all'interno del menu di pausa sia nel menu principale.
-* **Configurazione Pre-Partita**: L'utente può ora calibrare comodamente l'esperienza di gioco (modificando FOV, qualità delle texture, MSAA e V-Sync) o impostare l'HUD minimappa ancor prima di inizializzare la generazione procedurale del labirinto, ottimizzando le prestazioni fin dal primo fotogramma.
-* **Gestione degli Stati dell'Input**: Il parsing degli eventi della tastiera è stato aggiornato. La pressione del tasto `ESC` intercetta ora correttamente lo stato del sottomenu delle impostazioni nel menu principale, garantendo un'uscita fluida verso la root del menu senza causare chiusure accidentali dell'applicazione.
+* **Aggiunte:** Integrazione delle impostazioni video e HUD direttamente nel Menu Principale.
+* **Soluzioni Tecniche:** Prevenzione della duplicazione del codice astraendo la logica di disegno in `renderSettingsContent`, componente riutilizzabile sia *in-game* che fuori.
 
 ### Stage 23 (v0.24.x)
 
-L'obiettivo di questa tappa è stato il perfezionamento del flusso di gioco (UX) e una sessione mirata di *refactoring* architetturale per risolvere alcune criticità strutturali segnalate dall'analisi statica del codice.
-
-Dal punto di vista tecnico e logico, sono state implementate le seguenti migliorie:
-
-* **Ritenzione dello Stato (Play Again)**: È stata introdotta la memorizzazione persistente del seme generazionale (`std::optional<unsigned int>`) durante il *game loop*. Alla pressione del tasto "Play Again" nella schermata di vittoria, il motore grafico istanzia ora una nuova partita rispettando esattamente la scelta originale dell'utente (mantenendo il *custom seed* inserito o rigenerando un labirinto del tutto casuale).
-* **Parameter Object Pattern**: Per risolvere un *code smell* architetturale (firma del metodo `renderUI` eccessivamente lunga e prona a errori), la gestione degli eventi della GUI è stata riprogettata. Tutte le *callback* espresse tramite *lambda functions* (avvio, riavvio, ritorno al menu, uscita) sono state raggruppate in una singola struttura dati dedicata (`GuiCallbacks`). Questo pattern riduce drasticamente il passaggio di parametri, disaccoppia la logica applicativa dall'interfaccia e garantisce un codice molto più pulito e scalabile.
+* **Aggiunte:** Ritenzione dello stato per il pulsante "Play Again" (mantiene il seed personalizzato) e refactoring delle callback dell'interfaccia.
+* **Soluzioni Tecniche:** Risoluzione di un *code smell* (firme metodi troppo lunghe) tramite il **Parameter Object Pattern**. Le callback lambda (avvio, uscita, ecc.) sono state raggruppate in un'unica struttura `GuiCallbacks`, migliorando la scalabilità del codice.
 
 ### Stage 24 (v0.25.x)
 
-L'obiettivo di questa tappa è stata una profonda ottimizzazione prestazionale lato CPU, mirata ad abbattere i colli di bottiglia derivanti dal ricalcolo ridondante di trasformazioni spaziali, dall'inefficienza del rilevamento delle collisioni e dall'eccessivo numero di cambi di stato sulla GPU.
-
-Dal punto di vista architetturale e algoritmico, sono state implementate tre fondamentali tecniche di ottimizzazione:
-
-* **Spatial Caching (Frustum & Distance Culling)**: Il calcolo delle coordinate globali del centro della mesh (`worldCenter`) e del suo raggio delimitatore (`worldRadius`) è stato rimosso dal *render loop*. Questi valori vengono ora pre-calcolati e salvati in cache all'interno dei nodi durante la fase di inizializzazione dello *Scene Graph* (`updateTransforms`). Questa modifica risparmia al processore migliaia di costose estrazioni di scala e moltiplicazioni matriciali per ogni fotogramma, accelerando drasticamente i controlli di visibilità della telecamera principale e della minimappa.
-* **State Sorting (Material Binding)**: È stata introdotta una logica di minimizzazione dei cambi di stato della GPU (*State Changes*). Durante l'attraversamento ricorsivo dell'albero di scena, il motore di rendering tiene traccia dell'indirizzo di memoria del materiale correntemente "attivo". Le operazioni di *bind* delle texture e di aggiornamento degli *uniform* avvengono esclusivamente se il materiale del nodo analizzato differisce da quello precedente. Questo approccio riduce drasticamente le lente chiamate di stato alle API OpenGL (come `glBindTexture`).
-* **Spatial Partitioning (Collision Detection)**: L'algoritmo di rilevamento degli ostacoli (*Narrow Phase*) è stato riscritto per ottimizzarne la complessità. Invece di iterare staticamente su una griglia 3x3 (testando 9 celle a ogni frame), il motore calcola ora la posizione frazionaria del giocatore all'interno della cella corrente. Confrontando questa posizione con una "soglia di raggiungibilità" basata sul raggio di collisione, i test di intersezione AABB vengono eseguiti dinamicamente solo sui muri strettamente adiacenti. Questa soluzione matematica restringe il ciclo di controlli da 9 a un range ottimizzato (da 1 a un massimo di 4 celle negli angoli), garantendo una reattività del movimento eccellente anche in scenari complessi.
+* **Aggiunte:** Profonda ottimizzazione CPU (rimozione calcoli ridondanti e cambi stato GPU).
+* **Soluzioni Tecniche:**
+  1. **Spatial Caching:** Centri e raggi delle mesh calcolati in avvio e cachati, azzerando le estrazioni matriciali nei controlli di culling.
+  2. **State Sorting:** Binding di texture e uniform applicato *solo* se il materiale cambia rispetto al nodo precedente.
+  3. **Spatial Partitioning (Collisioni):** Test AABB eseguiti non più su 9 celle limitrofe, ma dinamicamente da 1 a 4 celle sfruttando la posizione frazionaria del giocatore e il suo raggio d'ingombro.
 
 ### Stage 25 (v0.26.x)
 
-L'obiettivo di questa tappa è stato un forte potenziamento dell'immersività e del *Game Feel*, l'aspetto sensoriale del gameplay, allo scopo di conferire una percezione di peso, dinamismo e tensione esplorativa ai movimenti del giocatore all'interno del labirinto.
-
-Dal punto di vista tecnico e di *User Experience* (UX), sono state implementate tre meccaniche fondamentali:
-
-* **Dynamic Sprint FOV**: La corsa (*sprint*) non si limita più a un semplice incremento della velocità vettoriale. Sfruttando un'interpolazione lineare (Lerp) agganciata al *delta-time*, il *Field of View* (FOV) subisce una dilatazione progressiva durante lo scatto, simulando la naturale accelerazione ottica e ampliando in tempo reale la visione laterale per trasmettere un forte senso di slancio.
-* **Head-Bobbing**: Per simulare il passo e il peso corporeo, la coordinata Y della telecamera (l'altezza dal suolo) viene ora modulata da un'onda sinusoidale indipendente. L'algoritmo fa scalare la frequenza dell'oscillazione in base al ritmo della camminata o della corsa, calcolando al contempo un'"ampiezza interpolata" per garantire che la visuale si stabilizzi morbidamente senza scatti improvvisi non appena il giocatore si ferma.
-* **Illuminazione Interattiva**: L'atmosfera in stile *dungeon crawler* è stata intensificata concedendo al giocatore il controllo sulla torcia (la luce puntiforme principale). Tramite la pressione di un tasto dedicato (`F`), il sistema intercetta l'input aggiornando dinamicamente le variabili *Uniform* del *Fragment Shader*. Lo spegnimento disabilita la luce diretta, lasciando il giocatore avvolto esclusivamente dalla fredda e debolissima illuminazione ambientale bluastra.
-
+* **Aggiunte:** Miglioramento del *Game Feel* e interattività ambientale.
+* **Soluzioni Tecniche:** Interpolazione lineare (*Lerp*) del FOV durante lo scatto (Dynamic Sprint FOV); modulazione sinusoidale parametrica sull'asse Y per simulare il peso corporeo durante il movimento (Head-Bobbing); gestione interattiva dell'uniform shader della luce per accendere/spegnere la torcia tramite `F`.
 ![Head bobbing + dynamic FOV](resources/screenshots/stage25.gif)
 
 ### Stage 26 (v0.27.x)
 
-L'obiettivo di questa tappa è stato l'ampliamento della rigiocabilità tramite l'introduzione di un selettore di difficoltà che agisce dinamicamente sulle dimensioni del labirinto generato proceduralmente, affiancato da un potenziamento dell'interfaccia utente (UX) e da un aggiornamento del sistema di salvataggio.
-
-Dal punto di vista architetturale e logico, sono state implementate le seguenti funzionalità:
-
-* **Scalabilità Generazionale**: Sono stati introdotti quattro livelli di difficoltà predefiniti (Easy 10x10, Normal 15x15, Hard 25x25, Extreme 40x40). Il motore di generazione (`Maze`) riceve ora dinamicamente in input le nuove dimensioni spaziali, permettendo di variare l'esperienza di gioco da *run* molto rapide a complesse sfide esplorative di lunga durata. La selezione è stata integrata nel menu principale tramite un intuitivo menu a tendina (*Combo Box*).
-* **UX della Leaderboard (Tab Bar)**: Per mantenere equa e leggibile la competizione, la schermata della classifica è stata riprogettata. Evitando di mescolare tempi ottenuti su griglie di dimensioni diverse, è stato implementato un sistema a schede (*Tab Bar*) tramite le API di ImGui. Questa soluzione categorizza in modo pulito e immediato i punteggi, garantendo una navigazione rapida e contestuale ai vari livelli di difficoltà.
-* **Serializzazione e Retrocompatibilità**: La classe preposta al salvataggio su disco (`SessionManager`) è stata estesa per registrare l'indice di difficoltà di fianco a ogni nuovo record nel file di testo locale. Il *parser* di lettura è stato scritto ponendo un forte accento sulla robustezza e sulla retrocompatibilità: i punteggi storici, privi del *flag* di difficoltà, vengono automaticamente intercettati dal sistema e riassegnati di *default* al livello "Normal". Questo approccio ha permesso di aggiornare il formato dati senza invalidare o corrompere i salvataggi e le *speedrun* precedenti degli utenti.
-
+* **Aggiunte:** Selettore difficoltà (scalabilità dimensioni labirinto da 10x10 a 40x40) e aggiornamento Leaderboard.
+* **Soluzioni Tecniche:** Categorizzazione dei record in Leaderboard tramite *Tab Bar* separate per difficoltà.
 ![Selezione difficoltà nel menu](resources/screenshots/stage26_menu.png)
-
 ![Leaderboard suddivisa a schede](resources/screenshots/stage26_leaderboard.png)
 
 ### Stage 27 (v0.28.x)
 
-L'obiettivo di questa tappa è stato conferire all'eseguibile di gioco, specificatamente in ambiente Windows, un aspetto e una struttura professionale (*Production Ready*), introducendo metadati ufficiali e un'icona personalizzata.
-
-Dal punto di vista architetturale e di *build system*, l'integrazione è stata gestita interamente a monte tramite CMake, senza alterare il codice C++ o pesare sul runtime:
-
-* **Resource Script e Pre-Linking**: È stato generato un template `.rc.in` (Windows Resource File) che raccoglie l'icona e i dati identificativi del progetto. Durante la configurazione (esclusivamente su sistemi WIN32), CMake intercetta la versione formale del progetto (mantenuta sincronizzata dal bot *release-please*) e la inietta nel template. Il file `.rc` risultante viene poi compilato dal *Resource Compiler* e collegato nativamente all'eseguibile finale prima dell'emissione.
-* **Integrazione "Zero Friction"**: L'operazione risulta completamente trasparente. Su Linux e macOS il blocco CMake viene ignorato e l'eseguibile generato normalmente, mentre su Windows il file binario `tu-maze.exe` eredita l'icona di sistema e presenta nativamente nelle proprietà dettagli aziendali, copyright e numero di build esatto.
+* **Aggiunte:** Eseguibile di livello *Production Ready* su Windows con icona e metadati ufficiali.
+* **Soluzioni Tecniche:** Integrazione gestita a livello *build system*. Uno script CMake compila un Resource File (`.rc`) contenente le info di build e lo collega nativamente all'eseguibile `.exe`, in modo totalmente trasparente e cross-platform (ignorato su Linux/macOS).
 
 ### Stage 28 (v0.29.x)
 
-L'obiettivo di questa tappa è stato la risoluzione di alcune criticità legate alla compatibilità multipiattaforma (con particolare attenzione all'ecosistema macOS e agli ambienti Wayland su Linux) e il perfezionamento visivo dell'interfaccia utente.
-
-Dal punto di vista tecnico e architetturale, sono stati implementati i seguenti interventi:
-
-* **Telemetria Mouse Cross-Platform**: È stato risolto un grave artefatto visivo (*camera spin* e *stuttering*) che affliggeva i sistemi con gestione asincrona degli eventi del cursore. L'algoritmo di scorrimento in prima persona è stato perfezionato: sebbene il cursore continui a essere ancorato al centro della finestra (`sf::Mouse::setPosition`), è stato introdotto uno stato logico di filtraggio (`ignoreNextMovement`). Intercettando e scartando programmaticamente l'evento sintetico generato dal riposizionamento forzato, il motore grafico elabora esclusivamente gli input fisici reali dell'utente, eliminando i salti anomali e garantendo una visuale perfettamente fluida.
-* **Supporto High-DPI (Retina) per la Minimappa**: Per superare i limiti dell'implementazione OpenGL sui display ad altissima densità di pixel (es. Mac Retina), il rendering della minimappa è stato riprogettato. Il problematico trasferimento dell'immagine sul *Default Framebuffer* tramite `glBlitFramebuffer` è stato abbandonato in favore della risoluzione dell'output multisamplato in una singola Texture OpenGL. Quest'ultima viene passata a ImGui, delegando nativamente al framework la corretta scalatura visiva indipendente dal sistema operativo.
-* **UI Polishing e Custom DrawList**: L'integrazione della texture della minimappa nell'HUD è stata raffinata scavalcando i classici *widget* di ImGui per evitare difetti di *padding* o spigoli vivi. Ottenendo l'accesso a basso livello alla `DrawList` della finestra, l'immagine renderizzata viene ora stampata con angoli elegantemente smussati (`AddImageRounded`) e incorniciata da un bordo personalizzato disegnato direttamente in sovraimpressione.
+* **Problemi Risolti:** *Stuttering* su macOS causato dalla telemetria del mouse; limiti di rendering su schermi ad alta densità (Retina); spigoli vivi nella minimappa.
+* **Soluzioni Tecniche:**
+  1. Filtraggio logico degli eventi: il motore ora ignora l'evento sintetico generato dal ricentramento del cursore, processando solo l'input fisico dell'utente.
+  2. Risoluzione della minimappa MSAA in Texture OpenGL passata a ImGui per delegare la scalatura corretta.
+  3. Stampa manuale sulla `DrawList` di ImGui per smussare gli angoli della minimappa in HUD.
 
 ### Stage 29 (v0.30.x)
 
-L'obiettivo di questa tappa è stato il miglioramento della *Quality of Life* (QoL) e dell'accessibilità dell'applicativo, introducendo nuove opzioni per permettere al giocatore di calibrare l'esperienza visiva in prima persona direttamente dal menu delle impostazioni.
-
-Dal punto di vista architetturale e funzionale, sono state implementate le seguenti aggiunte:
-
-* **Sensibilità del Mouse**: È stato esposto un parametro moltiplicatore dinamico nell'interfaccia utente (GUI) che aggiorna istantaneamente la classe `Camera`, consentendo di personalizzare la reattività della visuale a 360 gradi.
-* **Intensità dell'Head-Bobbing**: L'ampiezza dell'onda sinusoidale che simula il passo del giocatore è ora modulabile. Questa integrazione favorisce l'accessibilità, permettendo agli utenti sensibili alla *motion sickness* (cinetosi) di attenuare o disabilitare completamente l'oscillazione della telecamera.
+* **Aggiunte:** Accessibilità e Quality of Life (QoL) nel menu impostazioni.
+* **Soluzioni Tecniche:** Parametrizzazione tramite GUI della sensibilità del mouse (moltiplicatore sulla telecamera) e dell'intensità dell'Head-Bobbing, utile per attenuare gli effetti legati alla cinetosi (*motion sickness*).
 
 ### Stage 30 (v0.31.x)
 
-L'obiettivo di questa tappa è stata la rifinitura strutturale e documentale del motore grafico in preparazione alla prima *release* stabile, allineando l'intero ecosistema ai più alti standard dell'ingegneria del software in C++ moderno.
-
-Dal punto di vista architetturale e stilistico, sono stati implementati i seguenti interventi:
-
-* **Direttive Preprocessore (`#pragma once`)**: Le obsolete macro di inclusione in stile C (`#ifndef ... #define`) sono state interamente sostituite dalla direttiva standard `#pragma once`. Questa transizione snellisce la sintassi degli header (`.hh`), previene conflitti accidentali di denominazione e demanda direttamente al compilatore l'ottimizzazione dei tempi di analisi.
-* **Documentazione Architetturale**: Il codice è stato sottoposto a una profonda revisione. I commenti puramente didascalici ("cosa fa il codice") sono stati rimossi a favore di descrizioni tecniche mirate ("perché lo fa"), focalizzandosi sui fondamenti matematici e sistemici (es. *Frustum Culling*, *Spatial Partitioning*) per garantire una base solida e manutenibile.
-* **Incapsulamento, Memoria e Gestione Errori**: L'architettura delle classi è stata blindata correggendo l'esposizione impropria delle variabili di stato (ora rigorosamente `private` ed esposte tramite *getter/setter*). Il lancio di errori generici è stato sostituito da un sistema di eccezioni fortemente tipizzate (tramite un nuovo header `exceptions.hh`), mentre le conversioni di memoria a basso livello (`reinterpret_cast`) sono state rimpiazzate con la funzione sicura `std::bit_cast` introdotta nello standard C++20.
+* **Aggiunte:** Consolidamento standard C++ moderno.
+* **Soluzioni Tecniche:** Transizione direttive macro a `#pragma once`. Incapsulamento totale degli stati, adozione di eccezioni fortemente tipizzate per la gestione errori e sostituzione dei cast memoria pericolosi con il più sicuro `std::bit_cast` introdotto in C++20. Revisione dei commenti dal "cosa fa" al "perché lo fa".
 
 ### Stage 31 (v1.0.x)
 
-L'obiettivo di questa tappa è stato il definitivo abbandono dell'approccio *header-only* a favore di un'architettura modulare standard, unito a un profondo *refactoring* del codice mirato a rispettare i vincoli di complessità strutturale e a ottimizzare i tempi di compilazione.
-
-Dal punto di vista architetturale e tecnico, sono stati implementati i seguenti interventi:
-
-* **Separazione Interfaccia-Implementazione**: L'intera logica delle classi è stata estratta dai file *header* (ora rinominati `.hpp`) e incapsulata in *translation unit* dedicate (`.cpp`). Questo approccio abilita la compilazione parallela e abbatte drasticamente i tempi di ricompilazione a seguito di modifiche interne ai metodi.
-* **Modularizzazione e Refactoring Architetturale**: La cartella generica `include/` è stata abolita in favore di moduli a singola responsabilità (`core`, `render`, `game`, `ui`, `utils`). Parallelamente, per risolvere le criticità di design segnalate dall'analisi statica, classi monolitiche come `Gui` sono state frammentate in componenti isolati (`GuiState`, `GuiMenus`, `GuiOverlays`), implementando una netta separazione degli intenti (*Separation of Concerns*). La classe `Camera` è stata invece razionalizzata raggruppando l'elevato numero di campi in strutture dati nidificate.
-* **Isolamento del Backend Grafico**: L'implementazione dei puntatori alle funzioni OpenGL è stata confinata all'interno di un singolo file sorgente dedicato (`glad.cpp`). Questo intervento risolve in modo definitivo i *crash* del *linker* causati dalle violazioni della *One Definition Rule* (ODR).
+* **Aggiunte:** Refactoring architetturale a moduli (abbandono dell'approccio *header-only*) e ottimizzazione tempi di compilazione.
+* **Soluzioni Tecniche:** Separazione interfaccia/implementazione in `.hpp`/`.cpp`. Classe monolitica `Gui` divisa in componenti isolati (*Separation of Concerns*). Risoluzione di crash legati alle API grafiche isolando i puntatori OpenGL nel file dedicato `glad.cpp`, rispettando la *One Definition Rule* (ODR).
 
 ### Stage 32 (v1.1.x)
 
-L'obiettivo di questa tappa è stato il perfezionamento dell'interfaccia utente (UX) e la riorganizzazione spaziale del pannello delle impostazioni, al fine di ottimizzare la navigazione e la leggibilità dei parametri di gioco.
+* **Aggiunte:** Pulizia visiva delle impostazioni.
+* **Soluzioni Tecniche:** L'eccessivo caricamento visivo del pannello impostazioni è stato snellito espandendo la *Tab Bar* in tre sezioni logiche: Video & Display, Controls & Camera, e Minimap.
 
-Dal punto di vista dell'interfaccia, è stato implementato il seguente intervento:
+---
 
-* **Espansione della Tab Bar**: Per prevenire il sovraffollamento visivo (*clutter*) all'interno di una singola schermata e limitare la necessità di scorrimento verticale, il layout delle impostazioni è stato riprogettato. La precedente sezione combinata del gameplay è stata segmentata: l'interfaccia a schede (*Tab Bar*) di ImGui ospita ora tre sezioni distinte ("Video & Display", "Controls & Camera" e un nuovo tab esclusivo per la "Minimap"). Questa separazione netta tra i controlli di movimento della telecamera e le opzioni dell'HUD rende la configurazione molto più ordinata e immediata per il giocatore.
+## Crediti e Risorse Esterne
 
-## Crediti
+Lo sviluppo del progetto è stato affiancato dall'intelligenza artificiale **Gemini** per la consulenza architetturale in C++ moderno, il refactoring delle logiche e la risoluzione dei *Code Smells* individuati dalla pipeline **SonarQube**.
 
-Lo sviluppo del progetto è stato affiancato da **[Gemini](https://gemini.google.com/)**. L'intelligenza artificiale ha fornito un contributo sostanziale in diverse fasi del ciclo di vita del software: dalla progettazione architetturale del motore grafico, al refactoring di logiche complesse in C++ moderno, fino alla revisione formale della documentazione e dei commenti. In particolare, il suo ausilio si è rivelato determinante per l'ottimizzazione continua del codice, accelerando drasticamente la risoluzione dei *Code Smells* e delle anomalie strutturali rilevate tramite l'integrazione della *pipeline* di **[SonarQube](https://sonarcloud.io/project/overview?id=Tugamer89_Tu-Maze)**.
+### Soluzioni Tecniche di Base
 
-### Soluzioni tecniche
+* **Generazione labirinto:** Visita DFS randomizzata iterativa (stack) basata sulla [documentazione Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
+* **Box Mapping:** Sostituto ottimizzato del mapping triplanare. Documentazione su [Wikipedia - Box Mapping](https://en.wikipedia.org/wiki/Texture_mapping#Box_mapping).
+* **Frustum Culling:** Matematica delle intersezioni AABB adattata dagli studi tecnici di [LearnOpenGL](https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling) e [Bruop](https://bruop.github.io/frustum_culling/).
+* **Collisioni:** Geometria AABB studiata su [LearnOpenGL](https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-detection).
+* **Distance Culling (Minimappa):** Ottimizzazione basata su distanza euclidea radiale bidimensionale senza l'uso di radici quadrate.
 
-* **Algoritmo di generazione del labirinto**: L'algoritmo si basa su una versione randomizzata della visita DFS di un grafo, implementata in maniera iterativa tramite stack come descritto nell'apposita [pagina Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation_(with_stack)).
-* **Dal Mapping Triplanare al Box Mapping**: Inizialmente le texture venivano applicate tramite un approccio *Triplanar Mapping* (ispirato a [questo articolo](https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/)). Per risolvere severi colli di bottiglia prestazionali, l'approccio è stato convertito in un *Dominant-Axis Box Mapping*, un'ottimizzazione standard nei motori grafici basati su griglie ortogonali che proietta la texture su un singolo piano per evitare il costoso calcolo di interpolazione multi-asse. Maggiori dettagli su Wikipedia alla voce [Box Mapping](https://en.wikipedia.org/wiki/Texture_mapping#Box_mapping).
-* **Frustum Culling**: L'implementazione del culling spaziale per l'esclusione della geometria non visibile sfrutta l'estrazione dei sei piani del *frustum* (piramide di vista) a partire dalle matrici di vista e proiezione combinate. La logica matematica per il calcolo e il test delle intersezioni con i volumi delimitatori (*Axis-Aligned Bounding Box*, AABB) dei muri è stata sviluppata studiando e riadattando le architetture descritte negli articoli tecnici di [LearnOpenGL](https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling) e del blog [Bruop](https://bruop.github.io/frustum_culling/).
-* **Distance Culling 2D (Minimappa)**: A differenza del *Frustum Culling* tridimensionale, l'ottimizzazione implementata per la telecamera ortogonale dall'alto calcola la distanza euclidea al quadrato sul piano cartesiano XZ. Valutare la distanza ignorando il calcolo della radice quadrata (`sqrt`) garantisce cicli di *traversal* dell'albero di scena estremamente rapidi.
-* **Anti-Aliasing Frazionato (MSAA FBO)**: Per separare l'estetica nativa della GUI 2D da quella dell'engine 3D, è stato impiegato un render off-screen (*Framebuffer Object*) multisamplato pre-allocato esclusivamente per la Viewport della minimappa. L'immagine finale viene elaborata e impressa sul *Default Framebuffer* ricorrendo alla chiamata `glBlitFramebuffer`, la quale esegue contestualmente il *resolve* (downsampling) anti-alias dell'immagine limitando drasticamente i costi in VRAM.
-* **Collisioni (AABB)**: Il sistema di collisioni ortogonali e la logica di scivolamento sui muri tramite separazione degli assi vettoriali si basano sui concetti standard di intersezione geometrica AABB. Un'ottima base teorica per la matematica delle *bounding box* è disponibile nella sezione dedicata alle collisioni di [LearnOpenGL](https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-detection).
+### Codice e Asset
 
-### Codice esterno
-
-* **Template di base**: Il template di partenza è basato sul [Lab7](https://github.com/Tugamer89/FCG/tree/main/Lab7) di [FCG](https://github.com/Tugamer89/FCG), a cui è stato applicato un pesante refactoring architetturale unito a diversi miglioramenti qualitativi.
-
-### Risorse
-
-* **Texture `cobblestone_pavement`**: Creata da [Charlotte Baglioni](https://www.artstation.com/wyrine), prelevata in CC0 da [PolyHaven](https://polyhaven.com/a/cobblestone_pavement).
-* **Texture `mossy_brick`**: Creata da [Amal Kumar](https://www.artstation.com/amalbubble), prelevata in CC0 da [PolyHaven](https://polyhaven.com/a/mossy_brick).
+* **Template Iniziale:** Evoluzione diretta del codice base del [Lab7](https://github.com/Tugamer89/FCG/tree/main/Lab7) del corso [FCG](https://github.com/Tugamer89/FCG).
+* **Texture PBR:** Materiali CC0 [`cobblestone_pavement`](https://polyhaven.com/a/cobblestone_pavement) e [`mossy_brick`](https://polyhaven.com/a/mossy_brick) reperiti su [PolyHaven](https://polyhaven.com).
