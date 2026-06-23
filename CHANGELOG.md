@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.2...v1.2.3) (2026-06-23)
+
+
+### Bug Fixes
+
+* update mouse position retrieval to use default window context ([0f89d67](https://github.com/Tugamer89/Tu-Maze/commit/0f89d67072903d926ada2cf3d98b29955bd4349a))
+
 ## [1.2.2](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.1...v1.2.2) (2026-06-23)
 
 
