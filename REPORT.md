@@ -6,7 +6,7 @@ Il risultato è un motore di rendering 3D nativo con interfaccia grafica integra
 
 ## Problemi di compatibilità (macOS)
 
-Nelle prime fasi di sviluppo, l'esecuzione nativa su macOS presentava criticità (rendering della minimappa e *stuttering* del cursore), risolte quasi definitivamente nello **Stage 28**.
+Nelle prime fasi di sviluppo, l'esecuzione nativa su macOS presentava criticità (rendering della minimappa e *stuttering* del cursore), risolte in parte nello **Stage 28** e poi definitivamente nello **Stage 33**.
 A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario concedere al terminale/IDE i permessi di **Monitoraggio Input** (per la lettura dei tasti fisici) e di **Accessibilità** (per il riposizionamento programmatico del cursore).
 
 ---
@@ -235,6 +235,11 @@ A causa delle policy Apple, per eseguire l'applicativo su macOS è necessario co
 
 ![Sezione Camera](resources/screenshots/stage32_camera.png)
 ![Sezione Minimappa](resources/screenshots/stage32_minimap.png)
+
+### Stage 33 (v1.2.x)
+
+* **Aggiunte:** Acquisizione nativa dell'input hardware del mouse (*Raw Input*) per una telecamera FPS più fluida e totalmente priva di *stuttering* su tutti i sistemi operativi, macOS incluso.
+* **Soluzioni Tecniche:** Sostituzione del ricentramento forzato del cursore con il blocco nativo della finestra (`setMouseCursorGrabbed`). Implementazione della classe `RawMouse` per l'estrazione dei delta di movimento puri (tramite `MouseMovedRaw` su Windows/Linux o API `CGGetLastMouseDelta` per Apple). Prevenzione dei salti improvvisi della telecamera (*camera snap*) al rientro in gioco scartando proattivamente i delta accumulati in background dall'OS durante la navigazione nei menu.
 
 ---
 
