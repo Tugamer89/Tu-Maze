@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.3...v1.3.0) (2026-06-23)
+
+
+### Features
+
+* add fullscreen support ([8424903](https://github.com/Tugamer89/Tu-Maze/commit/842490344ed4eda5f6e372ccbbe87e161b596672))
+
+
+### Documentation
+
+* updated with Stage 34 features ([cd4761a](https://github.com/Tugamer89/Tu-Maze/commit/cd4761a529124bf360a1b61bdaca9066b698dbdb))
+
 ## [1.2.3](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.2...v1.2.3) (2026-06-23)
 
 

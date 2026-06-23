@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5...4.0)
-project(Tu_Maze VERSION 1.2.3 LANGUAGES CXX) # x-release-please-version
+project(Tu_Maze VERSION 1.3.0 LANGUAGES CXX) # x-release-please-version
 
 # Force C++20 standard
 set(CMAKE_CXX_STANDARD 20)
@@ -171,7 +171,7 @@ endif()
 # Configure CPack variables
 set(CPACK_GENERATOR "ZIP")
 set(CPACK_PACKAGE_NAME "tu-maze")
-set(CPACK_PACKAGE_VERSION "1.2.3") # x-release-please-version
+set(CPACK_PACKAGE_VERSION "1.3.0") # x-release-please-version
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 
 include(CPack)
