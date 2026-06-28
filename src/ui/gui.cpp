@@ -537,7 +537,6 @@ void GuiOverlays::renderLoading(const sf::Window& window, const std::string& wha
     ImGui::PopStyleColor();
 
     ImGui::Render();
-    glDisable(GL_MULTISAMPLE);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
@@ -651,6 +650,8 @@ void Gui::renderUI(Scene& scene, sf::Window& window, const SessionManager& sessi
 }
 
 void Gui::renderLoading(const sf::Window& window, const std::string& what, float progress) const {
+    glDisable(GL_MULTISAMPLE);
+
     GuiOverlays::renderLoading(window, what, progress);
 
     if (state.active_msaa_level > 0) glEnable(GL_MULTISAMPLE);
