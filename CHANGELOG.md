@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.1](https://github.com/Tugamer89/Tu-Maze/compare/v1.3.0...v1.3.1) (2026-06-28)
+
+
+### Code Refactoring
+
+* multisample disabling in loading screen ([d217d55](https://github.com/Tugamer89/Tu-Maze/commit/d217d559ba446b97afd02a1177fcde190453529d))
+
+
+### Documentation
+
+* added screenshot to Stage 34 report ([2dc3979](https://github.com/Tugamer89/Tu-Maze/commit/2dc397905a8513e134385225411286fc2f463039))
+
 ## [1.3.0](https://github.com/Tugamer89/Tu-Maze/compare/v1.2.3...v1.3.0) (2026-06-23)
 
 
