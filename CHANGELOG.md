@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/Tugamer89/Tu-Maze/compare/v1.3.1...v1.3.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* optimize pass-by-value in mesh normals computation ([#55](https://github.com/Tugamer89/Tu-Maze/issues/55)) ([b73c9af](https://github.com/Tugamer89/Tu-Maze/commit/b73c9af6f495b123724fd49430e46a97e6cfaef8))
+
 ## [1.3.1](https://github.com/Tugamer89/Tu-Maze/compare/v1.3.0...v1.3.1) (2026-06-28)
 
 
