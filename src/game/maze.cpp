@@ -19,8 +19,8 @@ Cell& Maze::getCellModifiable(int x, int y) {
 void Maze::generate(std::optional<unsigned int> seed) {
     std::stack<int> stack;
 
-    currentSeed = seed.value_or(static_cast<unsigned int>(
-        std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+    std::random_device rd;
+    currentSeed = seed.value_or(rd());
 
     std::mt19937 rng(currentSeed);
     std::cout << "Maze generated with seed: " << currentSeed << std::endl;
