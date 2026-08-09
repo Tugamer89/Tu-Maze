@@ -126,7 +126,7 @@ void Mesh::pack4gpu(std::vector<float>& points, std::vector<unsigned int>& indic
 }
 
 void Mesh::compute_normals() {
-    for (auto t : triangles) {
+    for (const auto& t : triangles) {
         glm::vec3 v0 = vertices[t[0]];
         glm::vec3 v1 = vertices[t[1]];
         glm::vec3 v2 = vertices[t[2]];
