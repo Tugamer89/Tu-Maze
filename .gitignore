@@ -49,3 +49,5 @@ tu-maze_scores.txt
 # ==========================================
 
 .DS_Store
+large.off
+huge.off
