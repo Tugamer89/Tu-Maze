@@ -5,6 +5,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+void Minimap::updateUniformLocations() {
+    modelLoc = glGetUniformLocation(shaders.getProgram(), "model");
+    colorLoc = glGetUniformLocation(shaders.getProgram(), "color");
+    vpLoc = glGetUniformLocation(shaders.getProgram(), "vp");
+}
+
 void Minimap::initFBO() {
     if (fbo != 0) return;
 
@@ -64,8 +70,7 @@ void Minimap::setupProjection(const Scene& scene, const Gui& gui, const glm::vec
     glm::mat4 view = glm::lookAt(camPos + glm::vec3(0.0f, 40.0f, 0.0f), camPos, up);
     glm::mat4 vp = pr * view;
 
-    glUniformMatrix4fv(glGetUniformLocation(shaders.getProgram(), "vp"), 1, GL_FALSE,
-                       glm::value_ptr(vp));
+    glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp));
 }
 
 void Minimap::drawPlayerMarker(const Scene& scene, const Gui& gui, GLint modelLoc, GLint colorLoc,
@@ -118,9 +123,6 @@ void Minimap::draw(const Scene& scene, const Gui& gui) {
 
     glm::vec3 camPos = scene.getCamera().getPosition();
     setupProjection(scene, gui, camPos);
-
-    GLint modelLoc = glGetUniformLocation(shaders.getProgram(), "model");
-    GLint colorLoc = glGetUniformLocation(shaders.getProgram(), "color");
 
     // Radially cull minimap geometry that exists beyond the map zoom
     float cullRadius = gui.getMinimapZoom() * 1.5f;

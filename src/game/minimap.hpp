@@ -24,6 +24,11 @@ class Minimap {
     const int renderResolution = 512;
     const int msaaSamples = 8;
 
+    GLint modelLoc = -1;
+    GLint colorLoc = -1;
+    GLint vpLoc = -1;
+
+    void updateUniformLocations();
     void initFBO();
 
     void setupProjection(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const;
@@ -33,7 +38,9 @@ class Minimap {
 
    public:
     Minimap(const std::string& vert_path, const std::string& frag_path)
-        : shaders(vert_path, frag_path) {}
+        : shaders(vert_path, frag_path) {
+        updateUniformLocations();
+    }
 
     Minimap(const Minimap&) = delete;
     Minimap& operator=(const Minimap&) = delete;
@@ -46,6 +53,7 @@ class Minimap {
 
     void reloadShaders(const std::string& vert_path, const std::string& frag_path) {
         shaders.reload(vert_path, frag_path);
+        updateUniformLocations();
     }
 
     [[nodiscard]] GLuint getTextureID() const { return texColorResolve; }
