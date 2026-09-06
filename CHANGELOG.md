@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/Tugamer89/Tu-Maze/compare/v1.3.3...v1.3.4) (2026-09-06)
+
+
+### Bug Fixes
+
+* **gui:** refactor saveSettings to use formatted string for improved readability ([709e464](https://github.com/Tugamer89/Tu-Maze/commit/709e4643b58f8463197f435c7beddd5019d4e780))
+
 ## [1.3.3](https://github.com/Tugamer89/Tu-Maze/compare/v1.3.2...v1.3.3) (2026-09-06)
 
 
