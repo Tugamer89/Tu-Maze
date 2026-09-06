@@ -52,10 +52,6 @@ void Minimap::initFBO() {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorResolve, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    vpLoc = glGetUniformLocation(shaders.getProgram(), "vp");
-    modelLoc = glGetUniformLocation(shaders.getProgram(), "model");
-    colorLoc = glGetUniformLocation(shaders.getProgram(), "color");
 }
 
 void Minimap::setupProjection(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const {
@@ -77,7 +73,8 @@ void Minimap::setupProjection(const Scene& scene, const Gui& gui, const glm::vec
     glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp));
 }
 
-void Minimap::drawPlayerMarker(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const {
+void Minimap::drawPlayerMarker(const Scene& scene, const Gui& gui, GLint mLoc, GLint cLoc,
+                               const glm::vec3& camPos) const {
     if (!playerMesh) return;
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), camPos);
@@ -87,8 +84,8 @@ void Minimap::drawPlayerMarker(const Scene& scene, const Gui& gui, const glm::ve
     float markerScale = gui.getMinimapZoom() * 0.15f;
     model = glm::scale(model, glm::vec3(markerScale));
 
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    glUniform3f(colorLoc, 1.0f, 0.2f, 0.2f);
+    glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniform3f(cLoc, 1.0f, 0.2f, 0.2f);
 
     glDisable(GL_DEPTH_TEST);
     playerMesh->draw();
@@ -131,7 +128,7 @@ void Minimap::draw(const Scene& scene, const Gui& gui) {
     float cullRadius = gui.getMinimapZoom() * 1.5f;
     scene.getRoot().drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
     scene.getGoalNode().drawMinimap(modelLoc, colorLoc, camPos, cullRadius);
-    drawPlayerMarker(scene, gui, camPos);
+    drawPlayerMarker(scene, gui, modelLoc, colorLoc, camPos);
 
     // Blit resolves the Multisampled FBO into a readable 2D Texture for ImGui
     glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);

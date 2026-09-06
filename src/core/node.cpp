@@ -5,9 +5,9 @@
 
 void Node::updateTransforms(const glm::mat4& parentMatrix /*= glm::mat4(1.0f)*/) {
     globalMatrix = parentMatrix * localMatrix;
+    normalMatrix = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
 
     if (mesh) {
-        normalMatrix = glm::transpose(glm::inverse(glm::mat3(globalMatrix)));
         worldCenter = glm::vec3(globalMatrix * glm::vec4(mesh->getCenter(), 1.0f));
 
         float scaleX2 = glm::dot(glm::vec3(globalMatrix[0]), glm::vec3(globalMatrix[0]));

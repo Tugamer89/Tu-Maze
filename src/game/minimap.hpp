@@ -19,11 +19,6 @@ class Minimap {
     GLuint fboResolve = 0;
     GLuint texColorResolve = 0;
 
-    // Cached uniform locations
-    GLint vpLoc = -1;
-    GLint modelLoc = -1;
-    GLint colorLoc = -1;
-
     const GPUMesh* playerMesh = nullptr;
 
     const int renderResolution = 512;
@@ -38,7 +33,8 @@ class Minimap {
 
     void setupProjection(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const;
 
-    void drawPlayerMarker(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const;
+    void drawPlayerMarker(const Scene& scene, const Gui& gui, GLint mLoc, GLint cLoc,
+                          const glm::vec3& camPos) const;
 
    public:
     Minimap(const std::string& vert_path, const std::string& frag_path)
