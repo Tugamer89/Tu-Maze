@@ -36,8 +36,10 @@ jobs:
 
       - name: Set Version Environment Variable
         shell: bash
+        env:
+          TAG_INPUT: ${{ inputs.tag_name || github.event.release.tag_name || github.ref_name }}
         run: |
-          VERSION=${{ inputs.tag_name || github.event.release.tag_name || github.ref_name }}
+          VERSION="$TAG_INPUT"
           VERSION=${VERSION#refs/tags/}
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
