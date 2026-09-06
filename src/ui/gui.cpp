@@ -59,19 +59,15 @@ void GuiState::loadSettings() {
 
 void GuiState::saveSettings() const {
     std::ofstream file(settingsFile);
+
     if (file.is_open()) {
-        file << static_cast<int>(Texture::getGlobalQuality()) << "\n"
-             << vsync_enabled << "\n"
-             << msaa_level << "\n"
-             << camera_fov << "\n"
-             << minimap_enabled << "\n"
-             << minimap_fix_north << "\n"
-             << minimap_zoom << "\n"
-             << show_fps_overlay << "\n"
-             << selectedDifficulty << "\n"
-             << camera_sensitivity << "\n"
-             << camera_bobbing << "\n"
-             << fullscreen << "\n";
+        const std::string content = std::format(
+            "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n",
+            static_cast<int>(Texture::getGlobalQuality()), vsync_enabled, msaa_level, camera_fov,
+            minimap_enabled, minimap_fix_north, minimap_zoom, show_fps_overlay,
+            std::clamp(selectedDifficulty, 0, 3), camera_sensitivity, camera_bobbing, fullscreen);
+
+        file << content;
         file.close();
     }
 }
