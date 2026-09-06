@@ -19,25 +19,28 @@ class Minimap {
     GLuint fboResolve = 0;
     GLuint texColorResolve = 0;
 
-    // Cached uniform locations
-    GLint vpLoc = -1;
-    GLint modelLoc = -1;
-    GLint colorLoc = -1;
-
     const GPUMesh* playerMesh = nullptr;
 
     const int renderResolution = 512;
     const int msaaSamples = 8;
 
+    GLint modelLoc = -1;
+    GLint colorLoc = -1;
+    GLint vpLoc = -1;
+
+    void updateUniformLocations();
     void initFBO();
 
     void setupProjection(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const;
 
-    void drawPlayerMarker(const Scene& scene, const Gui& gui, const glm::vec3& camPos) const;
+    void drawPlayerMarker(const Scene& scene, const Gui& gui, GLint mLoc, GLint cLoc,
+                          const glm::vec3& camPos) const;
 
    public:
     Minimap(const std::string& vert_path, const std::string& frag_path)
-        : shaders(vert_path, frag_path) {}
+        : shaders(vert_path, frag_path) {
+        updateUniformLocations();
+    }
 
     Minimap(const Minimap&) = delete;
     Minimap& operator=(const Minimap&) = delete;
@@ -50,9 +53,7 @@ class Minimap {
 
     void reloadShaders(const std::string& vert_path, const std::string& frag_path) {
         shaders.reload(vert_path, frag_path);
-        vpLoc = glGetUniformLocation(shaders.getProgram(), "vp");
-        modelLoc = glGetUniformLocation(shaders.getProgram(), "model");
-        colorLoc = glGetUniformLocation(shaders.getProgram(), "color");
+        updateUniformLocations();
     }
 
     [[nodiscard]] GLuint getTextureID() const { return texColorResolve; }
