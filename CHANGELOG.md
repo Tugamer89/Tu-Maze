@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.3.3](https://github.com/Tugamer89/Tu-Maze/compare/v1.3.2...v1.3.3) (2026-09-06)
+
+
+### Bug Fixes
+
+* **ci:** improve version variable assignment in publish-binaries workflow ([138183f](https://github.com/Tugamer89/Tu-Maze/commit/138183fe8fc40cae14b7c9c41558fc9b784cad80))
+* **ci:** mitigate command injection in publish-binaries workflow ([#58](https://github.com/Tugamer89/Tu-Maze/issues/58)) ([e2ebbd8](https://github.com/Tugamer89/Tu-Maze/commit/e2ebbd8c0d7a689d7e5a45f6fd77626346f59bbc))
+* **node:** move normalMatrix computation inside mesh check for clarity ([fde54be](https://github.com/Tugamer89/Tu-Maze/commit/fde54be90b4025461b09185f84629639cc8bb0c2))
+
+
+### Performance Improvements
+
+* **minimap:** cache OpenGL uniform locations to reduce overhead ([#59](https://github.com/Tugamer89/Tu-Maze/issues/59)) ([a34b643](https://github.com/Tugamer89/Tu-Maze/commit/a34b6433df161a3655f12fa5e9f9ce0b99251fb4))
+* **minimap:** cache uniform locations to prevent per-frame glGetUniformLocation calls ([#61](https://github.com/Tugamer89/Tu-Maze/issues/61)) ([5979cf3](https://github.com/Tugamer89/Tu-Maze/commit/5979cf3df686737c40bff6fbe867372ea769e427))
+* **render:** defer normal matrix computation to meshed nodes only ([#57](https://github.com/Tugamer89/Tu-Maze/issues/57)) ([a30f2a8](https://github.com/Tugamer89/Tu-Maze/commit/a30f2a8602d76a5013719e71af75be7b2c7a5510))
+
 ## [1.3.2](https://github.com/Tugamer89/Tu-Maze/compare/v1.3.1...v1.3.2) (2026-08-09)
 
 
